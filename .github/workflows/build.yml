@@ -17,21 +17,8 @@ jobs:
       - name: Configure CMake
         run: cmake -S . -B build -A x64
 
-      # TEMP DIAGNOSTIC: surface compiler errors as check annotations so they are
-      # readable without downloading job logs. Removed once the branch is green.
       - name: Build loader, Python bridge and overlay
-        shell: pwsh
-        run: |
-          cmake --build build --config Release --target bs_loader bs_pyexec bs_overlay 2>&1 |
-            Tee-Object -FilePath build.log
-          if ($LASTEXITCODE -ne 0) {
-            $errors = Select-String -Path build.log -Pattern 'error [A-Z]+[0-9]+|error:' |
-                      Select-Object -First 12 | ForEach-Object { $_.Line.Trim() }
-            $summary = ($errors -join " | ")
-            if ($summary.Length -gt 3000) { $summary = $summary.Substring(0, 3000) }
-            Write-Host "::error title=Compile errors::$summary"
-            exit 1
-          }
+        run: cmake --build build --config Release --target bs_loader bs_pyexec bs_overlay
 
       - name: Embed runtime payload into loader
         run: cmake --build build --config Release --target pack_loader
