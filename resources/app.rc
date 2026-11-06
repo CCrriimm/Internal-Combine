@@ -1,0 +1,2 @@
+// Loader resources. 101 is the primary icon id (taskbar / Alt+Tab / title bar).
+101 ICON "app.ico"

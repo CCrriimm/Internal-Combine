@@ -1,0 +1,94 @@
+SpellWorker.GetShootDir ['self', 'shoot_pos']
+ 38           RESUME                   0
+
+ 39           LOAD_GLOBAL              0 (MEngine)
+              LOAD_ATTR                2 (GetGameplay)
+              PUSH_NULL
+              CALL                     0
+              LOAD_ATTR                4 (Player)
+              LOAD_ATTR                6 (Camera)
+              STORE_FAST               2 (camera)
+
+ 40           LOAD_FAST_BORROW         2 (camera)
+              LOAD_ATTR                9 (GetRayDirectionFromScreenPoint + NULL|self)
+              LOAD_GLOBAL             11 (int + NULL)
+              LOAD_FAST_BORROW         1 (shoot_pos)
+              LOAD_SMALL_INT           0
+              BINARY_OP               26 ([])
+              CALL                     1
+              LOAD_GLOBAL             11 (int + NULL)
+              LOAD_FAST_BORROW         1 (shoot_pos)
+              LOAD_SMALL_INT           1
+              BINARY_OP               26 ([])
+              CALL                     1
+              CALL                     2
+              STORE_FAST               3 (shoot_dir)
+
+ 41           LOAD_FAST_BORROW         0 (self)
+              LOAD_ATTR               12 (caster)
+              LOAD_ATTR               14 (is_real_ads)
+              STORE_FAST               4 (is_real_ads)
+
+ 45           LOAD_FAST_BORROW         0 (self)
+              LOAD_ATTR               12 (caster)
+              LOAD_ATTR               16 (shoot_idx)
+              STORE_FAST               5 (shoot_idx)
+
+ 46           LOAD_FAST_BORROW         0 (self)
+              LOAD_ATTR               12 (caster)
+              LOAD_ATTR               19 (GetCurWeaponCase + NULL|self)
+              CALL                     0
+              STORE_FAST               6 (weapon_case)
+
+ 47           LOAD_FAST_BORROW         4 (is_real_ads)
+              TO_BOOL
+              POP_JUMP_IF_FALSE       19 (to L1)
+              NOT_TAKEN
+
+ 48           LOAD_FAST_BORROW         6 (weapon_case)
+              LOAD_ATTR               21 (GetRealShootScatterRadianForAds + NULL|self)
+              LOAD_FAST_BORROW         5 (shoot_idx)
+              CALL                     1
+              STORE_FAST               7 (scatterRadians)
+              JUMP_FORWARD            17 (to L2)
+
+ 50   L1:     LOAD_FAST_BORROW         6 (weapon_case)
+              LOAD_ATTR               23 (GetRealShootScatterRadian + NULL|self)
+              LOAD_FAST_BORROW         5 (shoot_idx)
+              CALL                     1
+              STORE_FAST               7 (scatterRadians)
+
+ 52   L2:     LOAD_FAST_BORROW         7 (scatterRadians)
+              LOAD_SMALL_INT           0
+              COMPARE_OP             148 (bool(>))
+              POP_JUMP_IF_FALSE       23 (to L3)
+              NOT_TAKEN
+
+ 53           LOAD_GLOBAL             24 (formula)
+              LOAD_ATTR               26 (RandomDirInConeByConeRadians)
+              PUSH_NULL
+              LOAD_FAST_BORROW_LOAD_FAST_BORROW 55 (shoot_dir, scatterRadians)
+              CALL                     2
+              STORE_FAST               3 (shoot_dir)
+
+ 68   L3:     LOAD_FAST_BORROW         3 (shoot_dir)
+              RETURN_VALUE
+
+SpellWorker.GetShootStartPos ['self', 'caster_position', 'shoot_dir']
+ 84           RESUME                   0
+
+ 85           LOAD_GLOBAL              0 (MEngine)
+              LOAD_ATTR                2 (GetGameplay)
+              PUSH_NULL
+              CALL                     0
+              LOAD_ATTR                4 (Player)
+              LOAD_ATTR                6 (Camera)
+              STORE_FAST               3 (camera)
+
+ 90           LOAD_FAST_BORROW         3 (camera)
+              LOAD_ATTR                9 (GetOrigin + NULL|self)
+              CALL                     0
+              STORE_FAST               4 (start_pos)
+
+ 91           LOAD_FAST_BORROW         4 (start_pos)
+              RETURN_VALUE

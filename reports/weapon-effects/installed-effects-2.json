@@ -1,0 +1,14 @@
+{
+  "applied": "ChangeWeaponGuise template=11100018 item=5100000950 cases=2",
+  "template_id": 11100018,
+  "source_sha256": "05c39bfc936e33a4404bdc2476c5c19504ba05c5ea9cff4ab05f4fba03d49983",
+  "case": {
+    "guise_item_id": 5100000950,
+    "show_guise_bullet_trace": true,
+    "show_guise_hit_effect": true,
+    "new_fire_sfx_id": 818,
+    "new_fire_ads_sfx_id": 819
+  },
+  "hit_effect_materials": 10,
+  "runtime_file": "%TEMP%/CiyE_BSLoader/pyexec/bs_runtime.py"
+}

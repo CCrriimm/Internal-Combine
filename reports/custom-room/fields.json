@@ -1,0 +1,66 @@
+{
+  "game": "BloodStrike",
+  "scope": "Player/team/HP/position in current custom-room session",
+  "native_status": "SDK only; timestamp matches on-disk EXE; native object layout not independently validated",
+  "sdk_version": "Messiah reflection, PE timestamp 0x6ACBBFBA",
+  "native_fields": {
+    "IGameplay": {
+      "Player": {
+        "offset": 88,
+        "size": 8,
+        "type": "IComponent",
+        "array_dim": 1
+      }
+    },
+    "ClientPlayer": {
+      "Camera": {
+        "offset": 3464,
+        "size": 8,
+        "type": "ICamera",
+        "array_dim": 1
+      },
+      "PrincipleRole": {
+        "offset": 3544,
+        "size": 0,
+        "type": "IEntity",
+        "array_dim": 1
+      }
+    },
+    "IEntity": {
+      "Transform": {
+        "offset": 88,
+        "size": 0,
+        "type": "Matrix4x3",
+        "array_dim": 1
+      },
+      "Level": {
+        "offset": 144,
+        "size": 0,
+        "type": "ILevel",
+        "array_dim": 1
+      },
+      "World": {
+        "offset": 152,
+        "size": 0,
+        "type": "IWorld",
+        "array_dim": 1
+      }
+    }
+  },
+  "python_fields": {
+    "entities": "genv.space.combat_avatars",
+    "local_player": "genv.player",
+    "id": "entity.id",
+    "team": "entity.combat_team_id",
+    "hp": "entity.hp -> entity.server_hp",
+    "max_hp": "entity.cur_maxhp",
+    "position": "entity.position; alias entity.pos",
+    "armor": "entity.armor -> entity.server_armor"
+  },
+  "warnings": [
+    "Python properties are not native offsets.",
+    "IsPlayerCombatAvatar is false on remote CombatAvatarSquadFight.",
+    "genv.player changed to ReplayCombatAvatarSquadFight in second capture; local identity needs replay-aware handling.",
+    "Snapshot 2 contains hp=141 with cur_maxhp=125; snapshots do not guarantee atomic server replication."
+  ]
+}

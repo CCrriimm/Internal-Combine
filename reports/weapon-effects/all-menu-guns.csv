@@ -1,0 +1,744 @@
+﻿skin,gun_id,template_id,source_item_id,menu_upgrade_level,kill_effect_feature_flag,kill_fx_map,kill_fx_ids,kill_fx_paths,kill_material,team_kill_material,team_dead_fx,team_extra_model_id,single_extra_model_id,kill_feed_icon,kill_hud_id_raw,kill_hud_csb,new_kill_hud_bg,new_kill_hud_fx,new_kill_hud_head,new_kill_hud_vx_node,deathbox_item_ids,deathbox_model_ids,deathbox_names,deathbox_refs,role_status
+M4A1 - Tiadraco [Lv 7],1,11199011,510010117,7,1,"{""2"": 1101121}",[1101121],"[""Effect/Effect_weapon/M4A1/Skin/Lydxc/fx_m4a1_lydxc_kill""]",Effect/Effect_f/M4a1_lydxc_die_mat,Effect/Effect_f/M4a1_lydxc_die_mat,"{""2"": 1101135}",90101114,,5100101105,,UIScript/node_ig_escape_bobao_skin_kill_vx22.csb,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+M4A1 - Eternal Oracle [Lv 7],1,11199020,510010207,7,1,"{""2"": 1102021}",[1102021],"[""Effect/Effect_weapon/M4A1/Skin/Lydxc/fx_m4a1_lydxc_platina_kill""]",Effect/Effect_f/M4a1_lydxc_platina_die_mat,Effect/Effect_f/M4a1_lydxc_platina_die_mat,"{""2"": 1102035}",90102014,,5100101105,,UIScript/node_ig_escape_bobao_skin_kill_vx22_2.csb,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+M4A1 - Blight's Embrace [Lv 6],1,11100018,5100000950,6,1,"{""1"": 900}",[900],"[""Effect/Effect_weapon/M4A1/Skin/Dzem/fx_m4a1_dzem_hit_s_ql_01""]",Effect/Effect_f/M4v19_die_mat,,,,,800010,,UIScript/node_ig_escape_bobao_skin_kill_vx03.csb,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+M4A1 - Sacred Embrace [Lv 6],1,11100020,5100001600,6,1,"{""1"": 956}",[956],"[""Effect/Effect_weapon/M4A1/Skin/Dzem/Adv_new/fx_m4a1_dzem_hit_s_ql_01_adv""]",Effect/Effect_f/M4v24_die_mat,,,,,800010,,UIScript/node_ig_escape_bobao_skin_kill_vx03_2.csb,,,,,[6060000040],[629],"[""Loot Crate - Sacred Embrace""]","[{""item_id"": 6060000040, ""name"": ""Loot Crate - Sacred Embrace"", ""model_id"": 629, ""source_skin_item_ids"": [5100001600], ""association"": ""bound item in upgrade family; independently equipped deathbox cosmetic""}]",observed table fields; activation not tested for every skin
+M4A1 - Royal [Lv 6],1,111990272,510010276,6,1,"{""2"": 1102715}",[1102715],"[""Effect/Effect_weapon/M4A1/Skin/m4v56/fx_m4_lj_kill01""]",Effect/Effect_f/jinbi_die_mat_M4V56,,,,,5100102706,,UIScript/node_ig_escape_bobao_skin_kill_common.csb,5100102708,5100102707,5100102709,UIScript/node_kill_effect_jisha_05.csb,[],[],[],[],observed table fields; activation not tested for every skin
+M4A1 - Battle of Faith [Lv 5],1,111990322,510010325,5,0,"{""2"": 1103215}",[1103215],"[""Effect/None,effect_id=1103215""]",,,,,,5100103207,,UIScript/node_ig_escape_bobao_skin_kill_common.csb,5100103209,5100103208,5100103210,UIScript/node_kill_effect_jisha_04.csb,[],[],[],[],observed table fields; activation not tested for every skin
+M4A1 - Year of the Dragon [Lv 5],1,11100011,5100000410,5,0,,[],[],,,,,,,11429,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+M4A1 - Dragon Dance,1,11100012,5100000420,0,0,,[],[],,,,,,,11430,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+M4A1 - Apocalypse [Lv 5],1,11100016,5100000850,5,0,,[],[],,,,,,12025,12001,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+M4A1 - Colossus Titan [Lv 5],1,11100030,5100001555,5,0,,[],[],,,,,,800003,600032,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+M4A1 - Radioactive [Lv 5],1,11199003,510010035,5,0,,[],[],,,,,,,5100100303,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+M4A1 - Supersonic [Lv 5],1,11199004,510010045,5,0,,[],[],,,,,,,5100100403,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+M4A1 - Turbocharge [Lv 5],1,11199006,510010065,5,0,,[],[],,,,,,,13261,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+M4A1 - Ironsurgency [Lv 5],1,11199021,510010215,5,0,,[],[],,,,,,,5100102103,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+M4A1 - Dreadbind [Lv 5],1,11199024,510010245,5,0,,[],[],,,,,,,54004500203,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+M4A1 - Sea Wraith [Lv 5],1,11199025,510010255,5,0,,[],[],,,,,,,5100102503,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+M4A1 - Garou [Lv 4],1,111990291,510010294,4,0,,[],[],,,,,,5100102907,5100102903,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+M4A1 - Hacker,1,11100004,5100000090,0,0,,[],[],,,,,,,,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+M4A1 - Violet Wraith,1,11100007,5100000200,0,0,,[],[],,,,,,,,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+M4A1 - Viridian Dream [Lv 3],1,11100014,5100000690,3,0,,[],[],,,,,,,11688,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+M4A1 - Venom,1,11100019,5100000960,0,0,,[],[],,,,,,,,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+M4A1 - Vicious Beast [Lv 3],1,11100022,5100001093,3,0,,[],[],,,,,,,600004,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+M4A1 - Reaper [Lv 3],1,11100023,5100001113,3,0,,[],[],,,,,,,600002,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+M4A1 - Glacier [Lv 3],1,11100024,5100001193,3,0,,[],[],,,,,,,11497,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+M4A1 - Twilight [Lv 3],1,11100025,5100001463,3,0,,[],[],,,,,,,600024,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+M4A1 - Blood Vengeance [Lv 3],1,11100026,5100001473,3,0,,[],[],,,,,,,13260,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+M4A1 - Lava [Lv 3],1,11199001,510010013,3,0,,[],[],,,,,,,12048,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+M4A1 - Ruins [Lv 3],1,11199007,510010073,3,0,,[],[],,,,,,,52001600103,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+M4A1 - Pendulum of Fate [Lv 3],1,11199008,510010083,3,0,,[],[],,,,,,,600025,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+M4A1 - Dreamy Ocean,1,11199009,510010090,0,0,,[],[],,,,,,,,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+M4A1 - Glory,1,11199010,510010100,0,0,,[],[],,,,,,,,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+M4A1 - Extinction [Lv 3],1,11199022,510010223,3,0,,[],[],,,,,,,5200201003,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+M4A1 - Endbringer [Lv 3],1,11199023,510010233,3,0,,[],[],,,,,,,600013,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+MP5 - Guard [Lv 7],2,211990193,520020197,7,1,"{""2"": 1201915}",[1201915],"[""Effect/Effect_weapon/Mp5/Skin/v7_sq/fx_mp5_sq_kill""]",Effect/Effect_f/jinbi_die_mat_MP5V32,Effect/Effect_f/jinbi_die_mat_MP5V32,"{""2"": 1201924, ""3"": 1201925, ""4"": 1201926}",,,5200201911,,UIScript/node_ig_escape_bobao_skin_kill_common.csb,5200201909,5200201908,5200201910,UIScript/node_kill_effect_jisha_05.csb,[],[],[],[],observed table fields; activation not tested for every skin
+MP5 - Void Delirium [Lv 7],2,211990203,520020207,7,1,"{""2"": 1202015}",[1202015],"[""Effect/Effect_weapon/Mp5/Skin/v7_sq/fx_mp5_sq_kill_adv""]",Effect/Effect_f/jinbi_die_mat_MP5V32adv,Effect/Effect_f/jinbi_die_mat_MP5V32adv,"{""2"": 1202030, ""3"": 1202031, ""4"": 1202032}",,,5200201911,,UIScript/node_ig_escape_bobao_skin_kill_common.csb,5200202009,5200202008,5200202010,UIScript/node_kill_effect_jisha_12.csb,[],[],[],[],observed table fields; activation not tested for every skin
+MP5 - Starlitscar [Lv 6],2,21100011,5200000856,6,1,"{""1"": 2333}",[2333],"[""Effect/Effect_weapon/Mp5/Skin/Haemin/adv/fx_mp5_haemin_kills_adv""]",Effect/Effect_f/jinbi_die_mat_Mp5v17_adv,,,,,800011,,UIScript/node_ig_escape_bobao_skin_kill_vx09_2.csb,,,,,[6060000240],[200011],"[""Loot Crate - Starlitscar""]","[{""item_id"": 6060000240, ""name"": ""Loot Crate - Starlitscar"", ""model_id"": 200011, ""source_skin_item_ids"": [5200000856], ""association"": ""bound item in upgrade family; independently equipped deathbox cosmetic""}]",observed table fields; activation not tested for every skin
+MP5 - Bloodrift [Lv 6],2,21199005,520020056,6,1,"{""1"": 2166}",[2166],"[""Effect/Effect_weapon/Mp5/Skin/Haemin/fx_mp5_haemin_kills""]",Effect/Effect_f/jinbi_die_mat_Mp5v17,,,,,800011,,UIScript/node_ig_escape_bobao_skin_kill_vx09.csb,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+MP5 - Empyrean [Lv 6],2,211990095,520020096,6,1,"{""1"": 3140}",[3140],"[""Effect/Effect_weapon/P90/Skin/BlackGlod/fx_p90_blackgold_specialkill""]",Effect/Effect_f/jinbi_die_mat_P90v9,,,,,800008,,UIScript/node_ig_escape_bobao_skin_kill_vx04.csb,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+MP5 - EVA-01 [Lv 5],2,211990135,520020135,5,1,"{""2"": 4039}",[4039],"[""Effect/Effect_weapon/Mp5/Skin/Chj/fx_mp5_chj_kill""]",,,,,,800025,,UIScript/node_ig_escape_bobao_skin_kill_vx26.csb,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+MP5 - Dominator [Lv 6],2,211990156,520020156,6,1,"{""1"": 1201518}",[1201518],"[""Effect/Effect_weapon/Scar/Skin/Phoenix/fx_scar_phoenix_tsjs_01""]",Effect/Effect_f/jinbi_die_mat_Scarv20,Effect/Effect_f/jinbi_die_mat_Scarv24,,,,800020,,UIScript/node_ig_escape_bobao_skin_kill_vx05.csb,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+MP5 - Saitama Vanguard Edition [Lv 5],2,211990222,520020225,5,0,,[],[],,,,,,5200202207,,UIScript/node_ig_escape_bobao_skin_kill_common.csb,5200202209,5200202208,5200202210,UIScript/node_kill_effect_jisha_02.csb,[],[],[],[],observed table fields; activation not tested for every skin
+MP5 - Turbocharge [Lv 5],2,21100002,5200000635,5,0,,[],[],,,,,,,13261,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+MP5 - Cataclysm [Lv 5],2,21100007,5200000795,5,0,,[],[],,,,,,,600020,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+MP5 - Midnight Terror [Lv 5],2,21199011,520020115,5,0,,[],[],,,,,,,11560,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+MP5 - Fallux [Lv 5],2,21199016,520020165,5,0,,[],[],,,,,,,5200201603,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+MP5 - Heatwave [Lv 5],2,21199024,520020245,5,0,,[],[],,,,,,,5200202403,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+MP5 - Lava,2,21100001,5200000530,0,0,,[],[],,,,,,,12048,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+MP5 - Quantum Grid [Lv 3],2,21100003,5200000653,3,0,,[],[],,,,,,,600005,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+MP5 - Glacier [Lv 3],2,21100004,5200000703,3,0,,[],[],,,,,,,11497,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+MP5 - Payday [Lv 3],2,21100005,5200000723,3,0,,[],[],,,,,,,600006,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+MP5 - Singularity [Lv 3],2,21100006,5200000753,3,0,,[],[],,,,,,,600013,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+MP5 - Twilight [Lv 3],2,21100008,5200000813,3,0,,[],[],,,,,,,600024,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+MP5 - Tide [Lv 3],2,21199001,520020013,3,0,,[],[],,,,,,,5200200103,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+MP5 - Sleek [Lv 3],2,21199002,520020023,3,0,,[],[],,,,,,,600002,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+MP5 - Mythical Beast [Lv 3],2,21199004,520020043,3,0,,[],[],,,,,,,5200200403,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+MP5 - Glory,2,21199006,520020060,0,0,,[],[],,,,,,,,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+MP5 - Blood Vengeance [Lv 3],2,21199007,520020073,3,0,,[],[],,,,,,,13260,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+MP5 - Pendulum of Fate [Lv 3],2,21199008,520020083,3,0,,[],[],,,,,,,600025,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+MP5 - Extinction [Lv 3],2,21199010,520020103,3,0,,[],[],,,,,,,5200201003,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+MP5 - Hellhound [Lv 3],2,21199012,520020123,3,0,,[],[],,,,,,,600012,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+MP5 - Blight's Embrace [Lv 3],2,21199014,520020143,3,0,,[],[],,,,,,,13264,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+MP5 - Sunrise [Lv 3],2,21199018,520020183,3,0,,[],[],,,,,,,54003300203,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+MP5 - Ruins [Lv 3],2,21199021,520020213,3,0,,[],[],,,,,,,52001600103,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+MP5 - Explorer [Lv 3],2,21199023,520020233,3,0,,[],[],,,,,,,600011,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+MP5 - Vicious Beast [Lv 3],2,21199025,520020253,3,0,,[],[],,,,,,,600004,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Glock - Neo Mirage [Lv 5],4,41199002,550040025,5,0,,[],[],,,,,,,5500400203,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Glock - Molten Core [Lv 5],4,41199005,550040055,5,0,,[],[],,,,,,,600008,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Glock - Money Shot [Lv 5],4,41199006,550040065,5,0,,[],[],,,,,,,5500400603,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Glock - Radiant [Lv 3],4,41100003,5500000170,3,0,,[],[],,,,,,,11133,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Glock - Glacier [Lv 3],4,41100009,5500000240,3,0,,[],[],,,,,,,11497,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Glock - Haunted [Lv 3],4,41100010,5500000273,3,0,,[],[],,,,,,,13135,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Glock - Celestial [Lv 3],4,41100011,5500000293,3,0,,[],[],,,,,,,600003,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Glock - Lava [Lv 3],4,41100012,5500000333,3,0,,[],[],,,,,,,12048,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Glock - Venom [Lv 3],4,41100013,5500000343,3,0,,[],[],,,,,,,11209,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Glock - Glory,4,41100014,5500000350,0,0,,[],[],,,,,,,,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Glock - Blood Vengeance [Lv 3],4,41100015,5500000373,3,0,,[],[],,,,,,,13260,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Glock - Tide [Lv 3],4,41199001,550040013,3,0,,[],[],,,,,,,5500400103,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Glock - Hellhound [Lv 3],4,41199003,550040033,3,0,,[],[],,,,,,,600012,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Glock - Abyss [Lv 3],4,41199004,550040043,3,0,,[],[],,,,,,,52000008403,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Origin-12 - Playmaker [Lv 5],6,61199012,530060125,5,0,,[],[],,,,,,,5300601203,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Origin-12 - Thunderclaw [Lv 5],6,61100011,5300000250,5,0,,[],[],,,,,,,13030,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Origin-12 - Jack Blaster [Lv 5],6,61100018,5300000365,5,0,,[],[],,,,,,,53000003603,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Origin-12 - Warrior [Lv 5],6,61199009,530060095,5,0,,[],[],,,,,,,51003202003,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Origin-12 - Hellbound [Lv 5],6,61199013,530060135,5,0,,[],[],,,,,,,11168,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Origin-12 - Energy Core,6,61100010,5300000180,0,0,,[],[],,,,,,,,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Origin-12 - Glacier [Lv 3],6,61100012,5300000273,3,0,,[],[],,,,,,,11497,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Origin-12 - Lava [Lv 3],6,61100013,5300000283,3,0,,[],[],,,,,,,12048,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Origin-12 - Undercurrent [Lv 3],6,61100014,5300000293,3,0,,[],[],,,,,,,600007,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Origin-12 - Infernal [Lv 3],6,61100017,5300000343,3,0,,[],[],,,,,,,600014,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Origin-12 - Haunted [Lv 3],6,61199001,530060013,3,0,,[],[],,,,,,,600002,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Origin-12 - Prism [Lv 3],6,61199002,530060023,3,0,,[],[],,,,,,,5300600203,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Origin-12 - Celestial [Lv 3],6,61199003,530060033,3,0,,[],[],,,,,,,600003,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Origin-12 - Blood Vengeance [Lv 3],6,61199004,530060043,3,0,,[],[],,,,,,,13260,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Origin-12 - Glory,6,61199005,530060050,0,0,,[],[],,,,,,,,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Origin-12 - Hellhound [Lv 3],6,61199006,530060063,3,0,,[],[],,,,,,,600012,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Origin-12 - Radioactive [Lv 3],6,61199007,530060073,3,0,,[],[],,,,,,,5300600703,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Origin-12 - Explorer [Lv 3],6,61199010,530060103,3,0,,[],[],,,,,,,600011,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Origin-12 - Endbringer [Lv 3],6,61199014,530060143,3,0,,[],[],,,,,,,600013,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Vector - Polarity [Lv 7],8,811990203,520080207,7,1,"{""2"": 1802015}",[1802015],"[""Effect/Effect_weapon/Vector/Skin/V37/fx_vector_v37_kill""]",Effect/Effect_f/jinbi_die_mat_vector_v37,Effect/Effect_f/jinbi_die_mat_vector_v37,,90802020,,5200802007,,UIScript/node_ig_escape_bobao_skin_kill_common.csb,5200802009,5200802008,5200802010,UIScript/node_kill_effect_jisha_08.csb,[],[],[],[],observed table fields; activation not tested for every skin
+Vector - Shadowdrake [Lv 6],8,81199007,5200170086,6,1,"{""1"": 2486}",[2486],"[""Effect/Effect_weapon/Vector/Skin/V6_Dragon/fx_vector_dragon_kill01""]",Effect/Effect_f/jinbi_die_mat_Vectorv24,,,,,800012,,UIScript/node_ig_escape_bobao_skin_kill_vx12.csb,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Vector - Frost Oblivion [Lv 6],8,81199009,520080096,6,1,"{""1"": 2754}",[2754],"[""Effect/Effect_weapon/Vector/Skin/V6_Dragon/fx_vector_dragon_kill01_adv""]",Effect/Effect_f/jinbi_die_mat_Vectorv24adv,,,,,800012,,UIScript/node_ig_escape_bobao_skin_kill_vx12_2.csb,,,,,[6060000300],[200018],"[""Loot Crate - Frost Mirror Box""]","[{""item_id"": 6060000300, ""name"": ""Loot Crate - Frost Mirror Box"", ""model_id"": 200018, ""source_skin_item_ids"": [520080096], ""association"": ""bound item in upgrade family; independently equipped deathbox cosmetic""}]",observed table fields; activation not tested for every skin
+Vector - Gilded [Lv 5],8,81100014,5200000835,5,0,,[],[],,,,,,,600028,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Vector - Demonwrath [Lv 5],8,81199005,520080055,5,0,,[],[],,,,,,,5200800503,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Vector - Warp Neon [Lv 5],8,81199013,520080135,5,0,,[],[],,,,,,,5200801303,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Vector - Crimson Storm [Lv 5],8,81199015,520080155,5,0,,[],[],,,,,,,5200801503,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Vector - Flame Fox [Lv 5],8,81199017,520080175,5,0,,[],[],,,,,,,5200801703,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Vector - Violet Wraith,8,81100004,5200000150,0,0,,[],[],,,,,,,,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Vector - Aquarium [Lv 3],8,81100006,5200000380,3,0,,[],[],,,,,,,11396,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Vector - Mercury,8,81100010,5200000510,0,0,,[],[],,,,,,,,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Vector - Glory,8,81100011,5200000570,0,0,,[],[],,,,,,,,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Vector - Lava [Lv 3],8,81100012,5200000643,3,0,,[],[],,,,,,,12048,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Vector - Pendulum of Fate [Lv 3],8,81100013,5200000773,3,0,,[],[],,,,,,,600025,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Vector - Glacier [Lv 3],8,81199001,520080013,3,0,,[],[],,,,,,,11497,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Vector - Venom [Lv 3],8,81199002,520080023,3,0,,[],[],,,,,,,11209,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Vector - Illusionist [Lv 3],8,81199003,520080033,3,0,,[],[],,,,,,,600002,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Vector - Undercurrent [Lv 3],8,81199004,520080043,3,0,,[],[],,,,,,,600007,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Vector - Blood Vengeance [Lv 3],8,81199008,520080083,3,0,,[],[],,,,,,,13260,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Vector - Twilight [Lv 3],8,81199010,520080103,3,0,,[],[],,,,,,,600024,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Vector - Ruins [Lv 3],8,81199011,520080113,3,0,,[],[],,,,,,,52001600103,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Vector - Quantum Grid [Lv 3],8,81199012,520080123,3,0,,[],[],,,,,,,600005,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Vector - Sunrise [Lv 3],8,81199014,520080143,3,0,,[],[],,,,,,,54003300203,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Vector - Celestial [Lv 3],8,81199016,520080163,3,0,,[],[],,,,,,,600003,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Vector - Abyss [Lv 3],8,81199018,520080183,3,0,,[],[],,,,,,,52000008403,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Vector - Hellhound [Lv 3],8,81199019,520080193,3,0,,[],[],,,,,,,5200801903,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Vector - Pride [Lv 3],8,81199022,520080223,3,0,,[],[],,,,,,,5200802203,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+AK47 - Dark Matter [Lv 8],10,1011990263,5100100268,8,1,"{""2"": 11002615}",[11002615],"[""Effect/Effect_weapon/Ak47/Skin/V51/fx_ak47_v51_kill""]",Effect/Effect_f/jinbi_die_mat_ak47_v51,Effect/Effect_f/jinbi_die_mat_ak47_v51,,91002622,,51001002611,,UIScript/node_ig_escape_bobao_skin_kill_common.csb,51001002609,51001002608,51001002610,UIScript/node_kill_effect_jisha_15.csb,[],[],[],[],observed table fields; activation not tested for every skin
+AK47 - Hellride [Lv 7],10,1011990155,5100100157,7,1,"{""2"": 11001515}",[11001515],"[""Effect/Effect_weapon/Ak47/Skin/Elqs/fx_ak_elqs_kills""]",Effect/Effect_f/jinbi_die_mat_ak45v40,Effect/Effect_f/jinbi_die_mat_ak45v40,"{""2"": 11001548}",91001519,,51001001506,,UIScript/node_ig_escape_bobao_skin_kill_common.csb,51001001509,51001001508,51001001510,UIScript/node_kill_effect_jisha_12.csb,[],[],[],[],observed table fields; activation not tested for every skin
+AK47 - Hellride [Lv 7],10,1011990165,5100100167,7,1,"{""2"": 11001615}",[11001615],"[""Effect/Effect_weapon/Ak47/Skin/Elqs/fx_ak_elqs_kills_adv""]",Effect/Effect_f/jinbi_die_mat_ak45v40adv,Effect/Effect_f/jinbi_die_mat_ak45v40adv,"{""2"": 11001651}",91001619,,51001001606,,UIScript/node_ig_escape_bobao_skin_kill_common.csb,51001001608,51001001607,51001001609,UIScript/node_kill_effect_jisha_12.csb,[],[],[],[],observed table fields; activation not tested for every skin
+AK47 - Chiaroscuro - Light [Lv 6],10,101100021,5100001516,6,1,"{""1"": 1895}",[1895],"[""Effect/Effect_weapon/Ak47/Skin/Gyss/Light/fx_ak_ss_light_kill""]",Effect/Effect_weapon/Ak47/Skin/Gyss/Light/Mat_Die_AKv25,,,,,800013,,UIScript/node_ig_escape_bobao_skin_kill_vx08.csb,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+AK47 - Chiaroscuro [Lv 6],10,101100022,5100001526,6,1,"{""1"": 1912}",[1912],"[""Effect/Effect_weapon/Ak47/Skin/Gyss/Night/fx_ak_ss_night_kill""]",Effect/Effect_weapon/Ak47/Skin/Gyss/Light/Mat_Die_AKv26,,,,,800013,,UIScript/node_ig_escape_bobao_skin_kill_vx08.csb,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+AK47 - Power of Hardening [Lv 5],10,101100030,5100001565,5,1,"{""2"": 2515}",[2515],"[""Effect/Effect_weapon/Ak47/Skin/Yzhsj/fx_ak47_yzhsj_kill""]",Effect/Effect_weapon/Ak47/Skin/Gyss/Light/Mat_Die_AKv28,,,,,800004,,UIScript/node_ig_escape_bobao_skin_kill_vx16.csb,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+AK47 - Power of Hardening - Crystal [Lv 5],10,101199002,5100100025,5,1,"{""2"": 2529}",[2529],"[""Effect/Effect_weapon/Ak47/Skin/Yzhsjg/fx_ak47_yzhsjg_kill""]",Effect/Effect_weapon/Ak47/Skin/Gyss/Light/Mat_Die_AKv29,,,,,800004,,UIScript/node_ig_escape_bobao_skin_kill_vx16_2.csb,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+AK47 - Overload [Lv 6],10,101199010,5100100106,6,1,"{""2"": 11001018}",[11001018],"[""Effect/Effect_weapon/Ak47/Skin/C1/fx_ak_c1_kills""]",Effect/Effect_f/jinbi_die_mat_ak_c1,,,,,51001001005,,UIScript/node_ig_escape_bobao_skin_kill_vx21.csb,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+AK47 - Prismatic Mirage [Lv 6],10,101199011,5100100116,6,1,"{""2"": 11001118}",[11001118],"[""Effect/Effect_weapon/Ak47/Skin/C1/fx_ak_c1_kills_adv""]",Effect/Effect_f/jinbi_die_mat_ak_c1_adv,,,,,51001001005,,UIScript/node_ig_escape_bobao_skin_kill_vx21_2.csb,,,,,[6060000480],[200034],"[""Loot Crate - Thunderclash Fury""]","[{""item_id"": 6060000480, ""name"": ""Loot Crate - Thunderclash Fury"", ""model_id"": 200034, ""source_skin_item_ids"": [5100100116], ""association"": ""bound item in upgrade family; independently equipped deathbox cosmetic""}]",observed table fields; activation not tested for every skin
+AK47 - Asuka [Lv 5],10,1011990125,5100100125,5,1,"{""2"": 4040}",[4040],"[""Effect/Effect_weapon/Ak47/Skin/Mrx/fx_ak47_mrx_kill""]",,,,,,800023,,UIScript/node_ig_escape_bobao_skin_kill_vx24.csb,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+AK47 - Hellbound [Lv 5],10,101100006,5100000270,5,0,,[],[],,,,,,,11168,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+AK47 - Midnight Terror [Lv 5],10,101100010,5100000550,5,0,,[],[],,,,,,,11560,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+AK47 - Void [Lv 5],10,101100016,5100001315,5,0,,[],[],,,,,,,600009,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+AK47 - Phoenix [Lv 5],10,101100019,5100001415,5,0,,[],[],,,,,,,600021,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+AK47 - Force of Nature [Lv 5],10,101199007,5100100075,5,0,,[],[],,,,,,,11722,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+AK47 - Chroma Surge [Lv 5],10,101199020,5100100205,5,0,,[],[],,,,,,,51001002003,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+AK47 - Violet Wraith,10,101100005,5100000210,0,0,,[],[],,,,,,,,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+AK47 - Specterstrike [Lv 3],10,101100011,5100000990,3,0,,[],[],,,,,,,13028,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+AK47 - Lightning Coil [Lv 3],10,101100013,5100001043,3,0,,[],[],,,,,,,13101,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+AK47 - Hellhound [Lv 3],10,101100014,5100001213,3,0,,[],[],,,,,,,600012,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+AK47 - Lava [Lv 3],10,101100015,5100001243,3,0,,[],[],,,,,,,12048,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+AK47 - Venom [Lv 3],10,101100017,5100001333,3,0,,[],[],,,,,,,11209,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+AK47 - Pendulum of Fate [Lv 3],10,101100018,5100001373,3,0,,[],[],,,,,,,600025,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+AK47 - Glacier [Lv 3],10,101100020,5100001443,3,0,,[],[],,,,,,,11497,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+AK47 - Blood Vengeance [Lv 3],10,101199001,5100100013,3,0,,[],[],,,,,,,13260,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+AK47 - Undercurrent [Lv 3],10,101199004,5100100043,3,0,,[],[],,,,,,,600007,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+AK47 - Ruins [Lv 3],10,101199005,5100100053,3,0,,[],[],,,,,,,52001600103,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+AK47 - Twilight [Lv 3],10,101199006,5100100063,3,0,,[],[],,,,,,,600024,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+AK47 - Glory,10,101199008,5100100080,0,0,,[],[],,,,,,,,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+AK47 - Infernal [Lv 3],10,101199013,5100100133,3,0,,[],[],,,,,,,600014,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+AK47 - Abyss [Lv 3],10,101199014,5100100143,3,0,,[],[],,,,,,,52000008403,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+AK47 - Sunrise [Lv 3],10,101199019,5100100193,3,0,,[],[],,,,,,,54003300203,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+AK47 - REAL AK,10,101199021,5100100210,0,0,,[],[],,,,,,,51001002103,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+AK47 - Green Blaze [Lv 3],10,101199024,5100100243,3,0,,[],[],,,,,,,51001002403,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Kala - Requiem [Lv 6],13,1311990075,5400130076,6,1,"{""1"": 1733}",[1733],"[""Effect/Effect_weapon/AUG/Skin/Mopan/fx_aug_mopan_kill""]",Effect/Effect_f/jinbi_die_mat_Augv7,,,,,800019,,UIScript/node_ig_escape_bobao_skin_kill_vx07.csb,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Kala - Whisper [Lv 6],13,1311990122,5400130126,6,1,"{""2"": 11301215}",[11301215],"[""Effect/Effect_weapon/QBZ95/Skin/xezw/fx_qbz95_xezw_kills""]",Effect/Effect_f/jinbi_die_mat_QBZ95V9,,,,,54001301205,,UIScript/node_ig_escape_bobao_skin_kill_vx29.csb,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Kala - Starbreaker [Lv 5],13,131199008,5400130085,5,0,,[],[],,,,,,,54001300803,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Kala - Crimson Verdict [Lv 5],13,131199013,5400130135,5,0,,[],[],,,,,,,54001301303,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Kala - Final Strike [Lv 5],13,131199014,5400130145,5,0,,[],[],,,,,,,54001301403,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Kala - Mako [Lv 5],13,131199015,5400130155,5,0,,[],[],,,,,,,54001301503,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Kala - Warrior [Lv 5],13,131199016,5400130165,5,0,,[],[],,,,,,,51003202003,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Kala - Glacier [Lv 3],13,131100004,5400000300,3,0,,[],[],,,,,,,11497,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Kala - Lava,13,131100010,5400000340,0,0,,[],[],,,,,,,12048,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Kala - Blood Vengeance [Lv 3],13,131100011,5400000393,3,0,,[],[],,,,,,,13260,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Kala - Celestial [Lv 3],13,131100012,5400000403,3,0,,[],[],,,,,,,600003,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Kala - Lapis Lazuli [Lv 3],13,131100013,5400000433,3,0,,[],[],,,,,,,600023,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Kala - Undercurrent [Lv 3],13,131100014,5400000483,3,0,,[],[],,,,,,,600007,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Kala - Venom [Lv 3],13,131199002,5400130023,3,0,,[],[],,,,,,,11209,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Kala - Glory,13,131199003,5400130030,0,0,,[],[],,,,,,,,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Kala - Specterstrike [Lv 3],13,131199004,5400130043,3,0,,[],[],,,,,,,600002,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Kala - Hellhound [Lv 3],13,131199005,5400130053,3,0,,[],[],,,,,,,600012,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Kala - Ruins [Lv 3],13,131199006,5400130063,3,0,,[],[],,,,,,,52001600103,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Kala - Pendulum of Fate [Lv 3],13,131199009,5400130093,3,0,,[],[],,,,,,,600025,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Kala - Dreamy Ocean,13,131199010,5400130100,0,0,,[],[],,,,,,,,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+KAG-6 - Matrix [Lv 7],14,3911990132,5100390137,7,1,"{""2"": 13901317}",[13901317],"[""Effect/Effect_weapon/QBZ95/Skin/Mf/fx_qbz95_mf_kill""]",,,"{""2"": 13901318}",93901314,,51003901308,,UIScript/node_ig_escape_bobao_skin_kill_vx34.csb,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+KAG-6 - Verdicube [Lv 7],14,3911990142,5100390147,7,1,"{""2"": 13901417}",[13901417],"[""Effect/Effect_weapon/QBZ95/Skin/Mfzz/fx_qbz95_mfzz_kill""]",,,"{""2"": 13901418}",93901414,,51003901308,,UIScript/node_ig_escape_bobao_skin_kill_vx34_2.csb,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+KAG-6 - Dynamite [Lv 6],14,141100009,5100000750,6,1,"{""1"": 697}",[697],"[""Effect/Effect_weapon/Kag/Skin/Bwd/fx_bwdwz_emd_hit_s""]",Effect/Effect_f/jinbi_die_mat,,,,,11863,,UIScript/node_ig_escape_bobao_skin_kill_vx02.csb,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+KAG-6 - Inkforge [Lv 6],14,141199011,5100140116,6,1,"{""2"": 3582}",[3582],"[""Effect/Effect_weapon/Kag/Skin/InkMecha/fx_kag_inkmecha_kill""]",Effect/Effect_f/jinbi_die_mat_inkmecha_KAGv6,,,,,51001401107,,UIScript/node_ig_escape_bobao_skin_kill_vx20.csb,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+KAG-6 - Divine Machine [Lv 6],14,141199012,5100140126,6,1,"{""2"": 3799}",[3799],"[""Effect/Effect_weapon/Kag/Skin/InkMecha/fx_kag_inkmecha_adv_kill""]",Effect/Effect_f/jinbi_die_mat_inkmecha_KAGv6_adv,,,,,51001401107,,UIScript/node_ig_escape_bobao_skin_kill_vx20_2.csb,,,,,[6060000390],[200028],"[""Loot Crate - Purple Inkstone""]","[{""item_id"": 6060000390, ""name"": ""Loot Crate - Purple Inkstone"", ""model_id"": 200028, ""source_skin_item_ids"": [5100140126], ""association"": ""bound item in upgrade family; independently equipped deathbox cosmetic""}]",observed table fields; activation not tested for every skin
+KAG-6 - Star Chaser [Lv 6],14,1411990202,5100140206,6,1,"{""2"": 11402015}",[11402015],"[""Effect/Effect_weapon/Uzi/Skin/Ys/fx_uzi_ys_kills""]",Effect/Effect_f/jinbi_die_mat_UZIv6,,,,,51001402006,,UIScript/node_ig_escape_bobao_skin_kill_vx18.csb,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+KAG-6 - Comandante [Lv 5],14,1411990212,5100140215,5,0,"{""2"": 11402115}",[11402115],"[""Effect/Effect_weapon/AR01/Skin/AR01v37/fx_AR01v37_fire_kill""]",,,,,,51001402107,,UIScript/node_ig_escape_bobao_skin_kill_common.csb,51001402109,51001402110,51001402108,UIScript/node_kill_effect_jisha_04.csb,[],[],[],[],observed table fields; activation not tested for every skin
+KAG-6 - Doomsday Titan [Lv 5],14,1411990222,5100140225,5,1,"{""2"": 11402215}",[11402215],"[""Effect/Effect_weapon/Kag/Skin/Zwjr/fx_kag_zwjr_kill""]",Effect/Effect_f/kag_zwjr_die_mat,,,,,51001402206,,UIScript/node_ig_escape_bobao_skin_kill_common.csb,51001402209,51001402208,51001402210,UIScript/node_kill_effect_jisha_03.csb,[],[],[],[],observed table fields; activation not tested for every skin
+KAG-6 - Icicle [Lv 5],14,141100012,5100001675,5,0,,[],[],,,,,,,14043,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+KAG-6 - Soulblaze [Lv 5],14,141100014,5100270065,5,0,,[],[],,,,,,,51002700603,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+KAG-6 - Beast Titan [Lv 5],14,141100015,5100001575,5,0,,[],[],,,,,,,600030,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+KAG-6 - Summer Waves [Lv 5],14,141199009,5100140095,5,0,,[],[],,,,,,,51001400903,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+KAG-6 - Voltique [Lv 5],14,141199017,5100140175,5,0,,[],[],,,,,,,51001401703,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+KAG-6 - Mako [Lv 5],14,141199023,5100140235,5,0,,[],[],,,,,,,51001402303,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+KAG-6 - Glacier [Lv 3],14,141100004,5100000500,3,0,,[],[],,,,,,,11497,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+KAG-6 - Violet Wraith,14,141100005,5100000220,0,0,,[],[],,,,,,,,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+KAG-6 - Explorer [Lv 3],14,141100013,5100001293,3,0,,[],[],,,,,,,600011,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+KAG-6 - Ruins [Lv 3],14,141199001,5100140013,3,0,,[],[],,,,,,,51001400103,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+KAG-6 - Venom [Lv 3],14,141199002,5100140023,3,0,,[],[],,,,,,,11209,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+KAG-6 - Blood Vengeance [Lv 3],14,141199003,5100140033,3,0,,[],[],,,,,,,13260,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+KAG-6 - Lava [Lv 3],14,141199005,5100140053,3,0,,[],[],,,,,,,12048,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+KAG-6 - Specterstrike [Lv 3],14,141199006,5100140063,3,0,,[],[],,,,,,,600002,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+KAG-6 - Twilight [Lv 3],14,141199007,5100140073,3,0,,[],[],,,,,,,600024,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+KAG-6 - Pendulum of Fate [Lv 3],14,141199008,5100140083,3,0,,[],[],,,,,,,600025,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+KAG-6 - Glory,14,141199010,5100140100,0,0,,[],[],,,,,,,,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+KAG-6 - Abyss [Lv 3],14,141199013,5100140133,3,0,,[],[],,,,,,,52000008403,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+KAG-6 - Dreamy Ocean,14,141199015,5100140150,0,0,,[],[],,,,,,,,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+KAG-6 - Extinction [Lv 3],14,141199019,5100140193,3,0,,[],[],,,,,,,5200201003,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+KAG-6 - Halo [Lv 3],14,141199024,5100140243,3,0,,[],[],,,,,,,5200802203,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Desert Eagle - Scorpius [Lv 6],15,1511990122,5500150126,6,1,"{""2"": 11501215}",[11501215],"[""Effect/Effect_weapon/Uzi/Skin/UZIv12/fx_uziv12_kills""]",Effect/Effect_f/jinbi_die_mat_uziv12,,,,,55001501206,,UIScript/node_ig_escape_bobao_skin_kill_vx31.csb,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Desert Eagle - Sacred Arbiter [Lv 5],15,151100011,5500000305,5,0,,[],[],,,,,,,14069,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Desert Eagle - Molten Core [Lv 5],15,151199009,5500150095,5,0,,[],[],,,,,,,600008,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Desert Eagle - Fortune Lion [Lv 5],15,151199011,5500150115,5,0,,[],[],,,,,,,55001501103,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Desert Eagle - Hacker,15,151100002,5500000060,0,0,,[],[],,,,,,,,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Desert Eagle - Ghostfire [Lv 3],15,151100009,5500000253,3,0,,[],[],,,,,,,13134,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Desert Eagle - Lava [Lv 3],15,151100010,5500000283,3,0,,[],[],,,,,,,12048,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Desert Eagle - Hellhound [Lv 3],15,151100012,5500000313,3,0,,[],[],,,,,,,600012,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Desert Eagle - Glacier [Lv 3],15,151100013,5500000323,3,0,,[],[],,,,,,,11497,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Desert Eagle - Venom [Lv 3],15,151199001,5500150013,3,0,,[],[],,,,,,,11209,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Desert Eagle - Glory,15,151199002,5500150020,0,0,,[],[],,,,,,,,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Desert Eagle - Undercurrent [Lv 3],15,151199003,5500150033,3,0,,[],[],,,,,,,600007,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Desert Eagle - Blood Vengeance [Lv 3],15,151199004,5500150043,3,0,,[],[],,,,,,,13260,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Desert Eagle - Celestial [Lv 3],15,151199005,5500150053,3,0,,[],[],,,,,,,600003,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Desert Eagle - Infernal [Lv 3],15,151199006,5500150063,3,0,,[],[],,,,,,,600014,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Desert Eagle - Abyss [Lv 3],15,151199010,5500150103,3,0,,[],[],,,,,,,52000008403,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+URB - Evolved Viper [Lv 5],16,161199009,5200160095,5,0,,[],[],,,,,,,52001600903,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+URB - Asura [Lv 5],16,161199004,5200160045,5,0,,[],[],,,,,,,52001600403,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+URB - Castle Adventure [Lv 5],16,161199006,5200160065,5,0,,[],[],,,,,,,52001600603,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+URB - Molten Core [Lv 5],16,161199011,5200160115,5,0,,[],[],,,,,,,600008,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+URB - Neon Shard [Lv 5],16,161199015,5200160155,5,0,,[],[],,,,,,,52001601503,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+URB - Radiant [Lv 4],16,161100002,5200000200,4,0,,[],[],,,,,,,11133,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+URB - Radiant,16,161100002,5200000200,4,0,,[],[],,,,,,,11133,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+URB - Neko [Lv 3],16,161100008,5200000340,3,0,,[],[],,,,,,,11275,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+URB - Neon [Lv 3],16,161100010,5200000480,3,0,,[],[],,,,,,,11642,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+URB - Glacier [Lv 3],16,161100011,5200000560,3,0,,[],[],,,,,,,11497,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+URB - Lightning Coil [Lv 3],16,161100012,5200000603,3,0,,[],[],,,,,,,13101,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+URB - Lava [Lv 3],16,161100013,5200000713,3,0,,[],[],,,,,,,12048,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+URB - Infernal [Lv 3],16,161100014,5200000783,3,0,,[],[],,,,,,,600014,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+URB - Impaler [Lv 3],16,161100015,5200000823,3,0,,[],[],,,,,,,600002,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+URB - Ruins [Lv 3],16,161199001,5200160013,3,0,,[],[],,,,,,,52001600103,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+URB - FOX [Lv 3],16,161199002,5200160023,3,0,,[],[],,,,,,,52001600203,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+URB - Venom [Lv 3],16,161199003,5200160033,3,0,,[],[],,,,,,,11209,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+URB - Glory,16,161199005,5200160050,0,0,,[],[],,,,,,,,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+URB - Blood Vengeance [Lv 3],16,161199007,5200160073,3,0,,[],[],,,,,,,13260,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+URB - Hellhound [Lv 3],16,161199008,5200160083,3,0,,[],[],,,,,,,600012,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+URB - Ethereal Blue [Lv 3],16,161199010,5200160103,3,0,,[],[],,,,,,,54003300803,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+URB - Undercurrent [Lv 3],16,161199012,5200160123,3,0,,[],[],,,,,,,600007,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+URB - Twilight [Lv 3],16,161199013,5200160133,3,0,,[],[],,,,,,,600024,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+URB - Dreamy Ocean,16,161199016,5200160160,0,0,,[],[],,,,,,,,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+INP-9 - Heatwire [Lv 5],17,171199018,5200170185,5,0,,[],[],,,,,,,51004100603,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+INP-9 - Golden Elegy [Lv 6],17,1711990202,5200170206,6,1,"{""2"": 11702015}",[11702015],"[""Effect/Effect_weapon/SMG/Skin/V34/fx_smg_v34_kill""]",Effect/Effect_f/jinbi_die_mat_SMG_v34,,,,,52001702007,,UIScript/node_ig_escape_bobao_skin_kill_common.csb,52001702008,52001702009,52001702010,UIScript/node_kill_effect_jisha_03.csb,[],[],[],[],observed table fields; activation not tested for every skin
+INP-9 - Immortal Lament [Lv 6],17,1711990212,5200170216,6,1,"{""2"": 11702115}",[11702115],"[""Effect/Effect_weapon/SMG/Skin/V34/fx_smg_v34_killadv""]",Effect/Effect_f/jinbi_die_mat_SMG_v34adv,,,,,52001702107,,UIScript/node_ig_escape_bobao_skin_kill_common.csb,52001702008,52001702009,52001702010,UIScript/node_kill_effect_jisha_07.csb,[6060001190],[200105],"[""Loot Crate - Millennial Gaze""]","[{""item_id"": 6060001190, ""name"": ""Loot Crate - Millennial Gaze"", ""model_id"": 200105, ""source_skin_item_ids"": [5200170216], ""association"": ""bound item in upgrade family; independently equipped deathbox cosmetic""}]",observed table fields; activation not tested for every skin
+INP-9 - Molten Core [Lv 5],17,171100014,5200000735,5,0,,[],[],,,,,,,600008,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+INP-9 - Dragon Wrath [Lv 5],17,171199005,5200170055,5,0,,[],[],,,,,,,52001700503,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+INP-9 - Ice & Fire Clash [Lv 5],17,171199006,5200170065,5,0,,[],[],,,,,,,52001700603,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+INP-9 - Arcade Era [Lv 5],17,171199013,5200170135,5,0,,[],[],,,,,,,52001701303,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+INP-9 - Violet Wraith,17,171100005,5200000160,0,0,,[],[],,,,,,,,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+INP-9 - Frostbite,17,171100010,5200000520,0,0,,[],[],,,,,,,,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+INP-9 - Haunted [Lv 3],17,171100011,5200000583,3,0,,[],[],,,,,,,13135,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+INP-9 - Vicious Beast [Lv 3],17,171100012,5200000663,3,0,,[],[],,,,,,,600004,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+INP-9 - Glacier [Lv 3],17,171100013,5200000743,3,0,,[],[],,,,,,,11497,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+INP-9 - Chasm [Lv 3],17,171100015,5200000843,3,0,,[],[],,,,,,,52000008403,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+INP-9 - Turbulence [Lv 3],17,171199001,5200170013,3,0,,[],[],,,,,,,52001700103,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+INP-9 - Lava [Lv 3],17,171199002,5200170023,3,0,,[],[],,,,,,,12048,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+INP-9 - Venom [Lv 3],17,171199003,5200170033,3,0,,[],[],,,,,,,11209,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+INP-9 - Glory,17,171199004,5200170040,0,0,,[],[],,,,,,,,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+INP-9 - Pendulum of Fate [Lv 3],17,171199011,5200170113,3,0,,[],[],,,,,,,600025,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+INP-9 - Blood Vengeance [Lv 3],17,171199012,5200170123,3,0,,[],[],,,,,,,13260,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+INP-9 - Specterstrike [Lv 3],17,171199014,5200170143,3,0,,[],[],,,,,,,600002,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+INP-9 - Dreamy Ocean,17,171199017,5200170170,0,0,,[],[],,,,,,,,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+INP-9 - Celestial [Lv 3],17,171199019,5200170193,3,0,,[],[],,,,,,,600003,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+M700 - Warlock [Lv 7],18,1811990163,5400180167,7,1,"{""2"": 11801615}",[11801615],"[""Effect/Effect_weapon/M700/Skin/V39/fx_m700_v39_kill""]",Effect/Effect_f/jinbi_die_mat_m700_v39,Effect/Effect_f/jinbi_die_mat_m700_v39,,91801615,,54001801606,,UIScript/node_ig_escape_bobao_skin_kill_common.csb,54001801608,54001801607,54001801609,UIScript/node_kill_effect_jisha_07.csb,[],[],[],[],observed table fields; activation not tested for every skin
+M700 - Bloodlock [Lv 7],18,1811990173,5400180177,7,1,"{""2"": 11801715}",[11801715],"[""Effect/Effect_weapon/M700/Skin/V39/fx_m700_v39_kill_adv""]",Effect/Effect_f/jinbi_die_mat_m700_v39_adv,Effect/Effect_f/jinbi_die_mat_m700_v39_adv,,91801716,,54001801706,,UIScript/node_ig_escape_bobao_skin_kill_common.csb,54001801708,54001801707,54001801709,UIScript/node_kill_effect_jisha_01.csb,[],[],[],[],observed table fields; activation not tested for every skin
+M700 - Seraph [Lv 6],18,181100019,5400000496,6,1,"{""1"": 1559}",[1559],"[""Effect/Effect_weapon/M700/Skin/heaven/fx_m700_heaven_Death_kills""]",Effect/Effect_f/jinbi_die_mat_M700v23,,,,,800014,,UIScript/node_ig_escape_bobao_skin_kill_vx06.csb,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+M700 - Thunder Gun [Lv 5],18,181199003,5400180035,5,1,"{""2"": 2696}",[2696],"[""Effect/Effect_weapon/Scar/Skin/Bzq/fx_scar_bzq_kill""]",,,,,,800005,,UIScript/node_ig_escape_bobao_skin_kill_vx15.csb,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+M700 - Power Surge [Lv 5],18,181100008,5400000280,5,0,,[],[],,,,,,,11541,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+M700 - Boitatá [Lv 5],18,181100016,5400000455,5,0,,[],[],,,,,,,600016,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+M700 - Polar Express [Lv 5],18,181199002,5400180025,5,0,,[],[],,,,,,,54001800203,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+M700 - Sinner [Lv 5],18,181199006,5400180065,5,0,,[],[],,,,,,,54001800603,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+M700 - Iridian [Lv 5],18,181199011,5400180115,5,0,,[],[],,,,,,,51004400903,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+M700 - Ember [Lv 5],18,181199013,5400180135,5,0,,[],[],,,,,,,54001801303,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+M700 - Copperhead [Lv 5],18,181199018,5400180185,5,0,,[],[],,,,,,,52005200303,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+M700 - Hacker,18,181100003,5400000070,0,0,,[],[],,,,,,,,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+M700 - Energy Core,18,181100009,5400000330,0,0,,[],[],,,,,,,,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+M700 - Haunted [Lv 3],18,181100011,5400000373,3,0,,[],[],,,,,,,13135,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+M700 - Soundwave [Lv 3],18,181100012,5400000383,3,0,,[],[],,,,,,,13259,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+M700 - Venom [Lv 3],18,181100013,5400000413,3,0,,[],[],,,,,,,11209,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+M700 - Lava [Lv 3],18,181100014,5400000423,3,0,,[],[],,,,,,,12048,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+M700 - Glory,18,181100015,5400000440,0,0,,[],[],,,,,,,,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+M700 - Glacier [Lv 3],18,181100017,5400000473,3,0,,[],[],,,,,,,11497,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+M700 - Blood Vengeance [Lv 3],18,181199001,5400180013,3,0,,[],[],,,,,,,13260,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+M700 - Undercurrent [Lv 3],18,181199004,5400180043,3,0,,[],[],,,,,,,600007,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+M700 - Ruins [Lv 3],18,181199005,5400180053,3,0,,[],[],,,,,,,52001600103,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+M700 - Specterstrike [Lv 3],18,181199007,5400180073,3,0,,[],[],,,,,,,600002,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+M700 - Ethereal Blue [Lv 3],18,181199009,5400180093,3,0,,[],[],,,,,,,54003300803,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+M700 - Celestial [Lv 3],18,181199010,5400180103,3,0,,[],[],,,,,,,600003,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+M700 - Pendulum of Fate [Lv 3],18,181199015,5400180153,3,0,,[],[],,,,,,,600025,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+M700 - Extinction [Lv 3],18,181199019,5400180193,3,0,,[],[],,,,,,,5200201003,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+M700 - Twilight [Lv 3],18,181199020,5400180203,3,0,,[],[],,,,,,,600024,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+MP155 - Hotblast [Lv 5],20,201199010,5300200105,5,0,,[],[],,,,,,,53002001003,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+MP155 - Umbra [Lv 5],20,201100011,5300000265,5,0,,[],[],,,,,,,13166,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+MP155 - Molten Core [Lv 5],20,201199009,5300200095,5,0,,[],[],,,,,,,600008,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+MP155 - Crimson Storm [Lv 5],20,201199014,5300200145,5,0,,[],[],,,,,,,5200801503,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+MP155 - Glacier,20,201100004,5300000070,0,0,,[],[],,,,,,,,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+MP155 - Scarlet Reaper,20,201100009,5300000190,0,0,,[],[],,,,,,,,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+MP155 - Frostbite [Lv 3],20,201100012,5300000303,3,0,,[],[],,,,,,,600010,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+MP155 - Jungle [Lv 3],20,201100013,5300000333,3,0,,[],[],,,,,,,600015,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+MP155 - Venom [Lv 3],20,201100014,5300000353,3,0,,[],[],,,,,,,11209,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+MP155 - Lava [Lv 3],20,201199001,5300200013,3,0,,[],[],,,,,,,12048,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+MP155 - Radiance [Lv 3],20,201199002,5300200023,3,0,,[],[],,,,,,,53002000203,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+MP155 - Undercurrent [Lv 3],20,201199003,5300200033,3,0,,[],[],,,,,,,600007,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+MP155 - Ruins [Lv 3],20,201199004,5300200043,3,0,,[],[],,,,,,,52001600103,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+MP155 - Glory,20,201199005,5300200050,0,0,,[],[],,,,,,,,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+MP155 - Quantum Grid [Lv 3],20,201199006,5300200063,3,0,,[],[],,,,,,,600005,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+MP155 - Specterstrike [Lv 3],20,201199011,5300200113,3,0,,[],[],,,,,,,600002,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+MP155 - Quantum Hive [Lv 3],20,201199012,5300200123,3,0,,[],[],,,,,,,51002302103,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+MP155 - Pendulum of Fate [Lv 3],20,201199013,5300200133,3,0,,[],[],,,,,,,600025,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+RPG-7 - Frostbite,21,211100005,5600000060,0,0,,[],[],,,,,,,,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Bow - Radiant,22,221100001,5400000210,2,0,,[],[],,,,,,,11133,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Bow - Radiant [Lv 2],22,221100001,5400000210,2,0,,[],[],,,,,,,11133,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Bow - Ghostfire [Lv 2],22,221100008,5400000362,2,0,,[],[],,,,,,,13134,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Bow - Jungle [Lv 2],22,221100009,5400000462,2,0,,[],[],,,,,,,600015,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+SCAR - Stellar [Lv 7],23,231199006,5100230067,7,1,"{""1"": 2877}",[2877],"[""Effect/Effect_weapon/Scar/Skin/Tz/fx_scar_tz_body_fire_kills""]",Effect/Effect_f/jinbi_die_mat_scar28,Effect/Effect_f/jinbi_die_mat_scar28,"{""1"": 3089}",4019,,1215,,UIScript/node_ig_escape_bobao_skin_kill_vx17.csb,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+SCAR - Bone Stellar [Lv 7],23,231199007,5100230077,7,1,"{""1"": 3082}",[3082],"[""Effect/Effect_weapon/Scar/Skin/Tz/fx_scar_tz_body_fire_kills_adv""]",Effect/Effect_f/jinbi_die_mat_scar28_adv,Effect/Effect_f/jinbi_die_mat_scar28_adv,"{""1"": 3090}",4020,,1215,,UIScript/node_ig_escape_bobao_skin_kill_vx17_2.csb,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+SCAR - Levi · No Regrets · Resonance [Lv 6],23,2311990192,5100230196,6,1,"{""2"": 12301915}",[12301915],"[""Effect/Effect_weapon/Scar/Skin/Lwe/fx_scar_lwe_kill""]",Effect/Effect_f/scar_lwe_die_mat,,,,,51002301907,,UIScript/node_ig_escape_bobao_skin_kill_common.csb,51002301909,51002301908,51002301910,UIScript/node_kill_effect_jisha_08.csb,[],[],[],[],observed table fields; activation not tested for every skin
+SCAR - Dominator [Lv 6],23,231100016,5100001180,6,1,"{""1"": 1318}",[1318],"[""Effect/Effect_weapon/Scar/Skin/Phoenix/fx_scar_phoenix_tsjs_01""]",Effect/Effect_f/jinbi_die_mat_Scarv20,,,,,800015,,UIScript/node_ig_escape_bobao_skin_kill_vx05.csb,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+SCAR - Liberator [Lv 6],23,231100022,5100001660,6,1,"{""1"": 1433}",[1433],"[""Effect/Effect_weapon/Scar/Skin/Phoenix/fx_scar_phoenix_tsjs_01_adv""]",Effect/Effect_f/jinbi_die_mat_Scarv24,,,,,800015,,UIScript/node_ig_escape_bobao_skin_kill_vx05_2.csb,,,,,[6060000130],[3562],"[""Loot Crate - Liberator""]","[{""item_id"": 6060000130, ""name"": ""Loot Crate - Liberator"", ""model_id"": 3562, ""source_skin_item_ids"": [5100001660], ""association"": ""bound item in upgrade family; independently equipped deathbox cosmetic""}]",observed table fields; activation not tested for every skin
+SCAR - Final War [Lv 5],23,231199005,5100230055,5,1,"{""2"": 2696}",[2696],"[""Effect/Effect_weapon/Scar/Skin/Bzq/fx_scar_bzq_kill""]",,,,,,800006,,UIScript/node_ig_escape_bobao_skin_kill_vx13.csb,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+SCAR - Whisper [Lv 6],23,2311990222,5100230226,6,1,"{""2"": 12302215}",[12302215],"[""Effect/Effect_weapon/QBZ95/Skin/xezw/fx_qbz95_xezw_kills""]",Effect/Effect_f/jinbi_die_mat_QBZ95V9,,,,,51002302207,,UIScript/node_ig_escape_bobao_skin_kill_vx20.csb,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+SCAR - Force of Nature [Lv 5],23,231100010,5100000670,5,0,,[],[],,,,,,,11722,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+SCAR - Molten Core [Lv 5],23,231100019,5100001365,5,0,,[],[],,,,,,,600008,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+SCAR - Gelid [Lv 5],23,231199002,5100230025,5,0,,[],[],,,,,,,14043,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+SCAR - Killing Mech [Lv 5],23,231199008,5100230085,5,0,,[],[],,,,,,,51002300803,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+SCAR - Frostbeam [Lv 5],23,231199009,5100230095,5,0,,[],[],,,,,,,51002300903,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+SCAR - EVA-08 [Lv 3],23,231199010,5100230103,3,0,,[],[],,,,,,,51002301003,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+SCAR - Iridian [Lv 5],23,231199015,5100230155,5,0,,[],[],,,,,,,51004400903,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+SCAR - Starbreaker [Lv 5],23,231199023,5100230235,5,0,,[],[],,,,,,,54001300803,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+SCAR - Venom [Lv 3],23,231100005,5100000300,3,0,,[],[],,,,,,,11209,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+SCAR - Glory,23,231100011,5100001010,0,0,,[],[],,,,,,,,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+SCAR - Blood Vengeance [Lv 3],23,231100012,5100001073,3,0,,[],[],,,,,,,13260,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+SCAR - Quantum Grid [Lv 3],23,231100013,5100001103,3,0,,[],[],,,,,,,600005,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+SCAR - Frostbite [Lv 3],23,231100018,5100001263,3,0,,[],[],,,,,,,600010,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+SCAR - Lava [Lv 3],23,231100020,5100001383,3,0,,[],[],,,,,,,12048,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+SCAR - Glacier [Lv 3],23,231199001,5100230013,3,0,,[],[],,,,,,,11497,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+SCAR - Demonblade [Lv 3],23,231199004,5100230043,3,0,,[],[],,,,,,,600002,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+SCAR - Singularity [Lv 3],23,231199011,5100230113,3,0,,[],[],,,,,,,600013,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+SCAR - Scarlet Castle [Lv 3],23,231199012,5100230123,3,0,,[],[],,,,,,,51002900503,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+SCAR - Abyss [Lv 3],23,231199013,5100230133,3,0,,[],[],,,,,,,52000008403,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+SCAR - Ruins [Lv 3],23,231199014,5100230143,3,0,,[],[],,,,,,,52001600103,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+SCAR - Hellhound [Lv 3],23,231199016,5100230163,3,0,,[],[],,,,,,,600012,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+SCAR - Seven Cannon [Lv 3],23,231199020,5100230203,3,0,,[],[],,,,,,,51002302003,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+SCAR - Crowned Left [Lv 3],23,231199021,5100230213,3,0,,[],[],,,,,,,51002302103,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+P90 - Maestro [Lv 6],24,2411990182,5200240186,6,1,"{""2"": 12401815}",[12401815],"[""Effect/Effect_weapon/P90/Skin/V35/fx_p90_v35_kill""]",Effect/Effect_f/jinbi_die_mat_P90V35,,,,,52002401806,,UIScript/node_ig_escape_bobao_skin_kill_common.csb,52002401809,52002401810,52002401808,UIScript/node_kill_effect_jisha_10.csb,[],[],[],[],observed table fields; activation not tested for every skin
+P90 - King of the World [Lv 6],24,2411990192,5200240196,6,1,"{""2"": 12401915}",[12401915],"[""Effect/Effect_weapon/P90/Skin/V35/fx_p90_v35_kill_adv""]",Effect/Effect_f/jinbi_die_mat_P90V35adv,,,,,52002401906,,UIScript/node_ig_escape_bobao_skin_kill_common.csb,52002401909,52002401910,52002401908,UIScript/node_kill_effect_jisha_03.csb,[],[],[],[],observed table fields; activation not tested for every skin
+P90 - Empyrean [Lv 6],24,241100010,5200000686,6,1,"{""1"": 1065}",[1065],"[""Effect/Effect_weapon/P90/Skin/BlackGlod/fx_p90_blackgold_specialkill""]",Effect/Effect_f/jinbi_die_mat_P90v9,,,,,800016,,UIScript/node_ig_escape_bobao_skin_kill_vx04.csb,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+P90 - Elysian [Lv 6],24,241100011,5200000696,6,1,"{""1"": 1079}",[1079],"[""Effect/Effect_weapon/P90/Skin/BlackGlod/fx_p90_blackgold_specialkill_adv""]",Effect/Effect_f/jinbi_die_mat_P90v14,,,,,800016,,UIScript/node_ig_escape_bobao_skin_kill_vx04_2.csb,,,,,[6060000070],[640],"[""Loot Crate - Elysian""]","[{""item_id"": 6060000070, ""name"": ""Loot Crate - Elysian"", ""model_id"": 640, ""source_skin_item_ids"": [5200000696], ""association"": ""bound item in upgrade family; independently equipped deathbox cosmetic""}]",observed table fields; activation not tested for every skin
+P90 - Blood Crystal [Lv 5],24,241100002,5200000250,5,0,,[],[],,,,,,,11251,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+P90 - Molten Core [Lv 5],24,241100013,5200000765,5,0,,[],[],,,,,,,600008,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+P90 - Phantomrift [Lv 5],24,241199004,5200240045,5,0,,[],[],,,,,,,52002400403,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+P90 - Metal [Lv 5],24,241199008,5200240085,5,0,,[],[],,,,,,,52002400803,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+P90 - Fang Pumpkin [Lv 5],24,241199014,5200240145,5,0,,[],[],,,,,,,52002401403,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+P90 - Neon Shard [Lv 5],24,241199015,5200240155,5,0,,[],[],,,,,,,52002401503,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+P90 - Nebula [Lv 3],24,241100004,5200000430,3,0,,[],[],,,,,,,11619,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+P90 - Blight's Embrace [Lv 3],24,241100006,5200000620,3,0,,[],[],,,,,,,13264,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+P90 - Iridescent [Lv 3],24,241100007,5200000673,3,0,,[],[],,,,,,,52000006703,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+P90 - Venom [Lv 3],24,241100014,5200000803,3,0,,[],[],,,,,,,11209,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+P90 - Glory,24,241199001,5200240010,0,0,,[],[],,,,,,,,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+P90 - Haunted House [Lv 3],24,241199002,5200240023,3,0,,[],[],,,,,,,52002400203,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+P90 - Glacier [Lv 3],24,241199003,5200240033,3,0,,[],[],,,,,,,11497,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+P90 - Lava [Lv 3],24,241199006,5200240063,3,0,,[],[],,,,,,,12048,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+P90 - Hellhound [Lv 3],24,241199007,5200240073,3,0,,[],[],,,,,,,600012,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+P90 - Specterstrike [Lv 3],24,241199009,5200240093,3,0,,[],[],,,,,,,600002,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+P90 - Pendulum of Fate [Lv 3],24,241199010,5200240103,3,0,,[],[],,,,,,,600025,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+P90 - Abyss [Lv 3],24,241199011,5200240113,3,0,,[],[],,,,,,,52000008403,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+P90 - Infernal [Lv 3],24,241199012,5200240123,3,0,,[],[],,,,,,,600014,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+P90 - Scarlet Castle [Lv 3],24,241199013,5200240133,3,0,,[],[],,,,,,,51002900503,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+P90 - Ruins [Lv 3],24,241199016,5200240163,3,0,,[],[],,,,,,,52001600103,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+P90 - Sunrise [Lv 3],24,241199017,5200240173,3,0,,[],[],,,,,,,54003300203,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+P90 - Rising Tide [Lv 3],24,241199020,5200240203,3,0,,[],[],,,,,,,5500400103,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+VSS - Iron Blood [Lv 5],25,251100015,5100001395,5,0,,[],[],,,,,,,600017,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+VSS - Ghost Blade [Lv 5],25,251100016,5100001495,5,0,,[],[],,,,,,,600029,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+VSS - Quantum Hive,25,251100005,5100000700,0,0,,[],[],,,,,,,,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+VSS - Blight's Embrace [Lv 3],25,251100008,5100001060,3,0,,[],[],,,,,,,13264,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+VSS - Lava [Lv 3],25,251100009,5100001123,3,0,,[],[],,,,,,,12048,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+VSS - Undercurrent [Lv 3],25,251100010,5100001223,3,0,,[],[],,,,,,,600007,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+VSS - Glacier [Lv 3],25,251100011,5100001233,3,0,,[],[],,,,,,,11497,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+VSS - Explorer [Lv 3],25,251100012,5100001283,3,0,,[],[],,,,,,,600011,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+VSS - Singularity [Lv 3],25,251100013,5100001273,3,0,,[],[],,,,,,,600013,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+VSS - Venom [Lv 3],25,251100014,5100001343,3,0,,[],[],,,,,,,11209,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+VSS - Ogre [Lv 3],25,251199001,5100250013,3,0,,[],[],,,,,,,600002,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+VSS - Blood Vengeance [Lv 3],25,251199002,5100250023,3,0,,[],[],,,,,,,13260,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+VSS - Ruins [Lv 3],25,251199003,5100250033,3,0,,[],[],,,,,,,52001600103,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+VSS - Pendulum of Fate [Lv 3],25,251199004,5100250043,3,0,,[],[],,,,,,,600025,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+AR97 - EVA Mk.06 [Lv 5],27,2711990135,5100270135,5,1,"{""2"": 4042}",[4042],"[""Effect/Effect_weapon/Ar97/Skin/Eva/fx_ar97_eva_kill""]",,,,,,800026,,UIScript/node_ig_escape_bobao_skin_kill_vx37.csb,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+AR97 - Ascendant [Lv 6],27,2711990172,5100270176,6,1,"{""2"": 12701715}",[12701715],"[""Effect/Effect_weapon/Ar97/Skin/Znq/fx_ar97_znq_kill""]",Effect/Effect_f/ar97_znq_die_mat,,,,,51002701706,,UIScript/node_ig_escape_bobao_skin_kill_common.csb,51002701708,51002701707,51002701709,UIScript/node_kill_effect_jisha_05.csb,[],[],[],[],observed table fields; activation not tested for every skin
+AR97 - Moonrise [Lv 5],27,271199002,5100270025,5,0,,[],[],,,,,,,51002700203,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+AR97 - Gilded [Lv 5],27,271199011,5100270115,5,0,,[],[],,,,,,,600028,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+AR97 - Bit Strike [Lv 5],27,271199014,5100270145,5,0,,[],[],,,,,,,51002701403,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+AR97 - Hellbound [Lv 5],27,271199019,5100270195,5,0,,[],[],,,,,,,11168,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+AR97 - Astral Ode [Lv 5],27,271199022,5100270225,5,0,,[],[],,,,,,,51002702203,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+AR97 - Neon [Lv 3],27,271100001,5100000580,3,0,,[],[],,,,,,,11642,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+AR97 - Lava,27,271100002,5100000860,0,0,,[],[],,,,,,,12048,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+AR97 - Bounty Hunter [Lv 3],27,271100005,5100001683,3,0,,[],[],,,,,,,14049,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+AR97 - Venom [Lv 3],27,271100006,5100001253,3,0,,[],[],,,,,,,11209,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+AR97 - Undercurrent [Lv 3],27,271100007,5100001453,3,0,,[],[],,,,,,,600007,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+AR97 - Glory,27,271199001,5100270010,0,0,,[],[],,,,,,,,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+AR97 - Mythical Beast [Lv 3],27,271199003,5100270033,3,0,,[],[],,,,,,,51002700303,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+AR97 - Glacier [Lv 3],27,271199004,5100270043,3,0,,[],[],,,,,,,11497,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+AR97 - Quantum Grid [Lv 3],27,271199007,5100270073,3,0,,[],[],,,,,,,600005,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+AR97 - Hellhound [Lv 3],27,271199008,5100270083,3,0,,[],[],,,,,,,600012,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+AR97 - Specterstrike [Lv 3],27,271199009,5100270093,3,0,,[],[],,,,,,,600002,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+AR97 - Pendulum of Fate [Lv 3],27,271199010,5100270103,3,0,,[],[],,,,,,,600025,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+AR97 - Amber [Lv 3],27,271199012,5100270123,3,0,,[],[],,,,,,,600024,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+AR97 - Abyss [Lv 3],27,271199015,5100270153,3,0,,[],[],,,,,,,52000008403,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+AR97 - Sunrise [Lv 3],27,271199016,5100270163,3,0,,[],[],,,,,,,54003300203,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+AR97 - Rising Tide [Lv 3],27,271199018,5100270183,3,0,,[],[],,,,,,,5500400103,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+AR97 - Extinction [Lv 3],27,271199020,5100270203,3,0,,[],[],,,,,,,5200201003,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Minigun - Quantum Hive,28,281100001,5700000010,0,0,,[],[],,,,,,,,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Minigun - Thunderclash [Lv 3],28,281100002,5700000040,3,0,,[],[],,,,,,,13029,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Minigun - Lava [Lv 3],28,281100003,5700000053,3,0,,[],[],,,,,,,12048,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Minigun - Nuclear Fusion [Lv 3],28,281100004,5700000063,3,0,,[],[],,,,,,,600027,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Minigun - Chasm [Lv 3],28,281100005,5700000073,3,0,,[],[],,,,,,,52000008403,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Minigun - Glacier [Lv 3],28,281199001,5100280013,3,0,,[],[],,,,,,,11497,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Minigun - Hellhound [Lv 3],28,281199002,5100280023,3,0,,[],[],,,,,,,600012,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+AUG - Riptide [Lv 7],29,2911990203,5100290207,7,1,"{""2"": 12902015}",[12902015],"[""Effect/Effect_weapon/AUG/Skin/Hs/fx_aug_hs_fire_kills""]",Effect/Effect_f/jinbi_die_mat_augv23,Effect/Effect_f/jinbi_die_mat_augv23,"{""2"": 12902019, ""3"": 12902020}",92902023,,51002902007,,UIScript/node_ig_escape_bobao_skin_kill_common.csb,51002902009,51002902008,51002902010,UIScript/node_kill_effect_jisha_09.csb,[],[],[],[],observed table fields; activation not tested for every skin
+AUG - Roar [Lv 7],29,2911990213,5100290217,7,1,"{""2"": 12902115}",[12902115],"[""Effect/Effect_weapon/AUG/Skin/Hs/fx_aug_hs_fire_kills_adv""]",Effect/Effect_f/jinbi_die_mat_augv23_adv,Effect/Effect_f/jinbi_die_mat_augv23_adv,"{""2"": 12902119, ""3"": 12902120}",92902123,,51002902007,,UIScript/node_ig_escape_bobao_skin_kill_common.csb,51002902109,51002902108,51002902110,UIScript/node_kill_effect_jisha_01.csb,[],[],[],[],observed table fields; activation not tested for every skin
+AUG - REQUIEM [Lv 6],29,291100006,5100001486,6,1,"{""1"": 1733}",[1733],"[""Effect/Effect_weapon/AUG/Skin/Mopan/fx_aug_mopan_kill""]",Effect/Effect_f/jinbi_die_mat_Augv7,,,,,800017,,UIScript/node_ig_escape_bobao_skin_kill_vx07.csb,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+AUG - Sunburst [Lv 6],29,291100008,5100001546,6,1,"{""1"": 1852}",[1852],"[""Effect/Effect_weapon/AUG/Skin/Mopan/fx_aug_mopan_kill_adv""]",Effect/Effect_f/jinbi_die_mat_Augv10,,,,,800017,,UIScript/node_ig_escape_bobao_skin_kill_vx07_2.csb,,,,,[6060000180],[200006],"[""Loot Crate - Dawnlight""]","[{""item_id"": 6060000180, ""name"": ""Loot Crate - Dawnlight"", ""model_id"": 200006, ""source_skin_item_ids"": [5100001546], ""association"": ""bound item in upgrade family; independently equipped deathbox cosmetic""}]",observed table fields; activation not tested for every skin
+AUG - Empyrean [Lv 6],29,2911990095,5100290096,6,1,"{""1"": 2994}",[2994],"[""Effect/Effect_weapon/P90/Skin/BlackGlod/fx_p90_blackgold_specialkill""]",Effect/Effect_f/jinbi_die_mat_P90v9,,,,,800007,,UIScript/node_ig_escape_bobao_skin_kill_vx04.csb,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+AUG - Rei [Lv 5],29,2911990155,5100290155,5,1,"{""2"": 4041}",[4041],"[""Effect/Effect_weapon/AUG/Skin/Lbl/fx_aug_lbl_kill""]",,,,,,800024,,UIScript/node_ig_escape_bobao_skin_kill_vx27.csb,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+AUG - Apocalypse [Lv 5],29,291199012,5100290125,5,0,,[],[],,,,,,,12001,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+AUG - Aureate [Lv 5],29,291199017,5100290175,5,0,,[],[],,,,,,,51002901703,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+AUG - Flame Fox [Lv 5],29,291199019,5100290195,5,0,,[],[],,,,,,,5200801703,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+AUG - Elysium [Lv 5],29,291199022,5100290225,5,0,,[],[],,,,,,,54005300303,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+AUG - Peel Power [Lv 5],29,291199023,5100290235,5,0,,[],[],,,,,,,51002902303,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+AUG - Bounty Hunter [Lv 3],29,291100001,5100001693,3,0,,[],[],,,,,,,14049,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+AUG - Lapis Lazuli [Lv 3],29,291100002,5100001323,3,0,,[],[],,,,,,,600023,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+AUG - Gunslinger of Terror [Lv 3],29,291100004,5100001423,3,0,,[],[],,,,,,,600002,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+AUG - Glacier [Lv 3],29,291199001,5100290013,3,0,,[],[],,,,,,,11497,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+AUG - Blood Vengeance [Lv 3],29,291199003,5100290033,3,0,,[],[],,,,,,,13260,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+AUG - Lava [Lv 3],29,291199004,5100290043,3,0,,[],[],,,,,,,12048,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+AUG - Scarlet Castle [Lv 3],29,291199005,5100290053,3,0,,[],[],,,,,,,51002900503,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+AUG - Undercurrent [Lv 3],29,291199006,5100290063,3,0,,[],[],,,,,,,600007,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+AUG - Pendulum of Fate [Lv 3],29,291199007,5100290073,3,0,,[],[],,,,,,,600025,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+AUG - Ruins [Lv 3],29,291199008,5100290083,3,0,,[],[],,,,,,,52001600103,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+AUG - Glory,29,291199011,5100290110,0,0,,[],[],,,,,,,,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+AUG - Hellhound [Lv 3],29,291199013,5100290133,3,0,,[],[],,,,,,,600012,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+AUG - Twilight [Lv 3],29,291199014,5100290143,3,0,,[],[],,,,,,,600024,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+AUG - Sunrise [Lv 3],29,291199018,5100290183,3,0,,[],[],,,,,,,54003300203,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Magnum - Phantomrift [Lv 5],30,301199008,5500300085,5,0,,[],[],,,,,,,52002400403,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Magnum - Mako [Lv 5],30,301199012,5500300125,5,0,,[],[],,,,,,,55003001203,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Magnum - Venom [Lv 3],30,301199001,5500300013,3,0,,[],[],,,,,,,11209,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Magnum - Singularity [Lv 3],30,301199002,5500300023,3,0,,[],[],,,,,,,600013,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Magnum - Ethereal Blue [Lv 3],30,301199003,5500300033,3,0,,[],[],,,,,,,54003300803,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Magnum - Pendulum of Fate [Lv 3],30,301199004,5500300043,3,0,,[],[],,,,,,,600025,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Magnum - Undercurrent [Lv 3],30,301199005,5500300053,3,0,,[],[],,,,,,,600007,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Magnum - Specterstrike [Lv 3],30,301199006,5500300063,3,0,,[],[],,,,,,,600002,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Magnum - Abyss [Lv 3],30,301199007,5500300073,3,0,,[],[],,,,,,,52000008403,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Magnum - Glory,30,301199009,5500300090,0,0,,[],[],,,,,,,,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Magnum - Sunrise [Lv 3],30,301199010,5500300103,3,0,,[],[],,,,,,,54003300203,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Magnum - Ancient Charm [Lv 3],30,301199011,5500300113,3,0,,[],[],,,,,,,55003001103,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+MCX - The Worst Future [Lv 5],31,3111990262,5100310265,5,1,"{""2"": 13102615}",[13102615],"[""Effect/Effect_weapon/Mcx/Skin/Zgdwl/fx_mcx_zgdwl_kill""]",Effect/Effect_f/mcx_zgdwl_die_mat,,,,,51003102606,,UIScript/node_ig_escape_bobao_skin_kill_common.csb,51003102609,51003102608,51003102610,UIScript/node_kill_effect_jisha_14.csb,[],[],[],[],observed table fields; activation not tested for every skin
+MCX - Ascendant [Lv 6],31,3111990282,5100310286,6,1,"{""2"": 13102815}",[13102815],"[""Effect/Effect_weapon/Ar97/Skin/Znq/fx_ar97_znq_kill""]",Effect/Effect_f/ar97_znq_die_mat,,,,,51003102806,,UIScript/node_ig_escape_bobao_skin_kill_common.csb,51002701708,51002701707,51002701709,UIScript/node_kill_effect_jisha_05.csb,[],[],[],[],observed table fields; activation not tested for every skin
+MCX - Noxdra [Lv 6],31,3111990332,5100310336,6,1,"{""2"": 13103315}",[13103315],"[""Effect/Effect_weapon/Galil/Skin/Ll/fx_galil_ll_kill""]",,,,,,51003103307,,UIScript/node_ig_escape_bobao_skin_kill_vx19.csb,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+MCX - Hannya [Lv 5],31,311199002,5100310025,5,0,,[],[],,,,,,,51003100203,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+MCX - Red Devil [Lv 5],31,311199004,5100310045,5,0,,[],[],,,,,,,51003100403,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+MCX - Bloodcryst [Lv 5],31,311199006,5100310065,5,0,,[],[],,,,,,,51003100603,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+MCX - EVA-00 [Lv 3],31,311199017,5100310173,3,0,,[],[],,,,,,,51003101703,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+MCX - Meltdown [Lv 5],31,311199019,5100310195,5,0,,[],[],,,,,,,51003101903,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+MCX - Debonair [Lv 5],31,311199021,5100310215,5,0,,[],[],,,,,,,51003102103,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+MCX - Splashes [Lv 5],31,311199027,5100310275,5,0,,[],[],,,,,,,51003102703,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+MCX - Hellhound [Lv 3],31,311100001,5100001433,3,0,,[],[],,,,,,,600012,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+MCX - Radiance [Lv 3],31,311199001,5100310013,3,0,,[],[],,,,,,,51003100103,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+MCX - Veilstrike [Lv 3],31,311199005,5100310053,3,0,,[],[],,,,,,,600002,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+MCX - Lava [Lv 3],31,311199007,5100310073,3,0,,[],[],,,,,,,12048,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+MCX - Endbringer [Lv 3],31,311199009,5100310093,3,0,,[],[],,,,,,,600013,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+MCX - Twilight [Lv 3],31,311199010,5100310103,3,0,,[],[],,,,,,,600024,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+MCX - Blood Vengeance [Lv 3],31,311199011,5100310113,3,0,,[],[],,,,,,,13260,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+MCX - Pendulum of Fate [Lv 3],31,311199012,5100310123,3,0,,[],[],,,,,,,600025,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+MCX - Ruins [Lv 3],31,311199013,5100310133,3,0,,[],[],,,,,,,52001600103,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+MCX - Glory,31,311199014,5100310140,0,0,,[],[],,,,,,,,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+MCX - Celestial [Lv 3],31,311199015,5100310153,3,0,,[],[],,,,,,,600003,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+MCX - Glacier [Lv 3],31,311199016,5100310163,3,0,,[],[],,,,,,,11497,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+MCX - Dreamy Ocean,31,311199024,5100310240,0,0,,[],[],,,,,,,,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+MCX - Extinction [Lv 3],31,311199025,5100310253,3,0,,[],[],,,,,,,5200201003,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+FAL - Evolved Draco [Lv 5],32,321199011,5100320115,5,0,,[],[],,,,,,,51003201103,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+FAL - Glory Cup [Lv 5],32,321199022,5100320225,5,0,,[],[],,,,,,,,UIScript/node_ig_escape_bobao_skin_kill_common.csb,51003202206,51003202207,51003202205,UIScript/node_kill_effect_jisha_05.csb,[],[],[],[],observed table fields; activation not tested for every skin
+FAL - Beast Titan [Lv 5],32,321100001,5100001585,5,0,,[],[],,,,,,,600030,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+FAL - Argent Serpent [Lv 5],32,321199005,5100320055,5,0,,[],[],,,,,,,51003200503,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+FAL - Supernova [Lv 5],32,321199007,5100320075,5,0,,[],[],,,,,,,51003200703,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+FAL - Limbo [Lv 5],32,321199014,5100320145,5,0,,[],[],,,,,,,51003700503,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+FAL - Warrior [Lv 5],32,321199020,5100320205,5,0,,[],[],,,,,,,51003202003,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+FAL - Luchador [Lv 5],32,321199023,5100320235,5,0,,[],[],,,,,,,51003202303,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+FAL - Lapis Lazuli [Lv 3],32,321199001,5100320013,3,0,,[],[],,,,,,,600023,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+FAL - Haunted House [Lv 3],32,321199002,5100320023,3,0,,[],[],,,,,,,51003200203,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+FAL - Blood Vengeance [Lv 3],32,321199003,5100320033,3,0,,[],[],,,,,,,13260,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+FAL - Sunrise [Lv 3],32,321199004,5100320043,3,0,,[],[],,,,,,,51003200403,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+FAL - Undercurrent [Lv 3],32,321199006,5100320063,3,0,,[],[],,,,,,,600007,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+FAL - Glory,32,321199008,5100320080,0,0,,[],[],,,,,,,,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+FAL - Prism [Lv 3],32,321199009,5100320093,3,0,,[],[],,,,,,,51003200903,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+FAL - Ruins [Lv 3],32,321199010,5100320103,3,0,,[],[],,,,,,,52001600103,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+FAL - Extinction [Lv 3],32,321199012,5100320123,3,0,,[],[],,,,,,,51003201203,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+FAL - Specterstrike [Lv 3],32,321199013,5100320133,3,0,,[],[],,,,,,,600002,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+FAL - Venom [Lv 3],32,321199015,5100320153,3,0,,[],[],,,,,,,11209,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+FAL - Hellhound [Lv 3],32,321199016,5100320163,3,0,,[],[],,,,,,,600012,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+FAL - Pendulum of Fate [Lv 3],32,321199018,5100320183,3,0,,[],[],,,,,,,600025,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+FAL - Endbringer [Lv 3],32,321199021,5100320213,3,0,,[],[],,,,,,,600013,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Kar98k - Shuriken [Lv 7],33,3311990203,5400330207,7,1,"{""2"": 13302015}",[13302015],"[""Effect/Effect_weapon/Kar98k/Skin/V21/fx_kar98k_v21_kill""]",Effect/Effect_f/kar98kv21_die_mat,Effect/Effect_f/kar98kv21_die_mat,"{""2"": 13302068}",,,54003302011,,UIScript/node_ig_escape_bobao_skin_kill_common.csb,54003302009,54003302008,54003302010,UIScript/node_kill_effect_jisha_10.csb,[],[],[],[],observed table fields; activation not tested for every skin
+Kar98k - Foxfire [Lv 7],33,3311990213,5400330217,7,1,"{""2"": 13302115}",[13302115],"[""Effect/Effect_weapon/Kar98k/Skin/V21/fx_kar98k_v21_kill_adv""]",Effect/Effect_f/kar98kv21_die_adv_mat,Effect/Effect_f/kar98kv21_die_adv_mat,"{""2"": 13302168}",,,54003302111,,UIScript/node_ig_escape_bobao_skin_kill_common.csb,54003302109,54003302108,54003302110,UIScript/node_kill_effect_jisha_02.csb,[],[],[],[],observed table fields; activation not tested for every skin
+Kar98k - Netherflame [Lv 6],33,331100002,5400000506,6,1,"{""1"": 2362}",[2362],"[""Effect/Effect_weapon/Kar98k/Skin/Wjzr/fx_kar98k_wjzr_kills""]",Effect/Effect_f/jinbi_die_mat_98k,,,,,800018,,UIScript/node_ig_escape_bobao_skin_kill_vx11.csb,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Kar98k - Uncharted Winter [Lv 5],33,331199003,5400330035,5,0,,[],[],,,,,,,54003300303,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+KAR98K - Star Hunter [Lv 5],33,331199011,5400330115,5,0,,[],[],,,,,,,54003301103,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Kar98k - NeonGraff [Lv 5],33,331199014,5400330145,5,0,,[],[],,,,,,,54003301403,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Kar98k - Dreadbind [Lv 5],33,331199015,5400330155,5,0,,[],[],,,,,,,54004500203,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Kar98k - Fox [Lv 3],33,331199001,5400330013,3,0,,[],[],,,,,,,54003300103,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Kar98k - Sunrise [Lv 3],33,331199002,5400330023,3,0,,[],[],,,,,,,54003300203,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+KAR98K - Hellhound [Lv 3],33,331199005,5400330053,3,0,,[],[],,,,,,,600012,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Kar98k - Endbringer [Lv 3],33,331199006,5400330063,3,0,,[],[],,,,,,,600013,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Kar98k - Blood Vengeance [Lv 3],33,331199007,5400330073,3,0,,[],[],,,,,,,13260,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Kar98k - Ethereal Blue [Lv 3],33,331199008,5400330083,3,0,,[],[],,,,,,,54003300803,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Kar98k - Glory,33,331199009,5400330090,0,0,,[],[],,,,,,,,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Kar98k - Specterstrike [Lv 3],33,331199010,5400330103,3,0,,[],[],,,,,,,600002,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Kar98k - Lava [Lv 3],33,331199012,5400330123,3,0,,[],[],,,,,,,12048,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Kar98k - Venom [Lv 3],33,331199013,5400330133,3,0,,[],[],,,,,,,11209,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Kar98k - Glacier [Lv 3],33,331199017,5400330173,3,0,,[],[],,,,,,,11497,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Kar98k - Twilight [Lv 3],33,331199018,5400330183,3,0,,[],[],,,,,,,600024,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+PKM - VALLEY OUTLAW [Lv 5],34,341199007,5100340075,5,0,,[],[],,,,,,,51003400703,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+PKM - Redthorn [Lv 5],34,341199012,5100340125,5,0,,[],[],,,,,,,51003401203,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+PKM - Copperhead [Lv 5],34,341199015,5100340155,5,0,,[],[],,,,,,,52005200303,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+PKM - Undercurrent [Lv 3],34,341199001,5100340013,3,0,,[],[],,,,,,,600007,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+PKM - Scarlet Castle [Lv 3],34,341199002,5100340023,3,0,,[],[],,,,,,,51003400203,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+PKM - Venom [Lv 3],34,341199003,5100340033,3,0,,[],[],,,,,,,11209,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+PKM - Ruins [Lv 3],34,341199004,5100340043,3,0,,[],[],,,,,,,52001600103,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+PKM - Hellhound [Lv 3],34,341199006,5100340063,3,0,,[],[],,,,,,,600012,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+PKM - Blood Vengeance [Lv 3],34,341199008,5100340083,3,0,,[],[],,,,,,,13260,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+PKM - Specterstrike [Lv 3],34,341199009,5100340093,3,0,,[],[],,,,,,,600002,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+PKM - Sunrise [Lv 3],34,341199010,5100340103,3,0,,[],[],,,,,,,54003300203,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+PKM - Glory,34,341199011,5100340110,0,0,,[],[],,,,,,,,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Uzi - Star Chaser [Lv 6],35,351199005,5200350056,6,1,"{""1"": 3285}",[3285],"[""Effect/Effect_weapon/Uzi/Skin/Ys/fx_uzi_ys_kills""]",Effect/Effect_f/jinbi_die_mat_UZIv6,,,,,52003500504,,UIScript/node_ig_escape_bobao_skin_kill_vx18.csb,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Uzi - Holy Crown [Lv 6],35,351199006,5200350066,6,1,"{""1"": 3437}",[3437],"[""Effect/Effect_weapon/Uzi/Skin/Ys/fx_uzi_ys_adv_kills""]",Effect/Effect_f/jinbi_die_mat_UZIv6_adv,,,,,52003500504,,UIScript/node_ig_escape_bobao_skin_kill_vx18_2.csb,,,,,[6060000360],[200025],"[""Loot Crate - Dreamchaser""]","[{""item_id"": 6060000360, ""name"": ""Loot Crate - Dreamchaser"", ""model_id"": 200025, ""source_skin_item_ids"": [5200350066], ""association"": ""bound item in upgrade family; independently equipped deathbox cosmetic""}]",observed table fields; activation not tested for every skin
+Uzi - Scorpius [Lv 6],35,3511990122,5200350126,6,1,"{""2"": 13501215}",[13501215],"[""Effect/Effect_weapon/Uzi/Skin/UZIv12/fx_uziv12_kills""]",Effect/Effect_f/jinbi_die_mat_uziv12,,,,,52003501207,,UIScript/node_ig_escape_bobao_skin_kill_vx31.csb,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Uzi - Icescorp [Lv 6],35,3511990132,5200350136,6,1,"{""2"": 13501315}",[13501315],"[""Effect/Effect_weapon/Uzi/Skin/UZIv12/fx_uziv12adv_kills""]",Effect/Effect_f/jinbi_die_mat_uziv12_adv,,,,,52003501307,,UIScript/node_ig_escape_bobao_skin_kill_vx31_2.csb,,,,,[6060000660],[200052],"[""Loot Crate - Vicious Scorpion""]","[{""item_id"": 6060000660, ""name"": ""Loot Crate - Vicious Scorpion"", ""model_id"": 200052, ""source_skin_item_ids"": [5200350136], ""association"": ""bound item in upgrade family; independently equipped deathbox cosmetic""}]",observed table fields; activation not tested for every skin
+Uzi - Jadespike [Lv 5],35,351199003,5200350035,5,0,,[],[],,,,,,,52003500303,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Uzi - Cataclysm [Lv 5],35,351199008,5200350085,5,0,,[],[],,,,,,,600020,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+UZI - Fashion Arcade [Lv 5],35,351199010,5200350105,5,0,,[],[],,,,,,,52003501003,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Uzi - Starbreaker [Lv 5],35,351199018,5200350185,5,0,,[],[],,,,,,,54001300803,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Uzi - Blood Vengeance [Lv 3],35,351199001,5200350013,3,0,,[],[],,,,,,,13260,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Uzi - Specterstrike [Lv 3],35,351199002,5200350023,3,0,,[],[],,,,,,,600002,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Uzi - Undercurrent [Lv 3],35,351199004,5200350043,3,0,,[],[],,,,,,,600007,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Uzi - Glacier [Lv 3],35,351199007,5200350073,3,0,,[],[],,,,,,,11497,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Uzi - Amber [Lv 3],35,351199009,5200350093,3,0,,[],[],,,,,,,600024,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Uzi - Glory,35,351199011,5200350110,0,0,,[],[],,,,,,,,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Uzi - Twilight [Lv 3],35,351199016,5200350163,3,0,,[],[],,,,,,,600024,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+FN2000 - Requiem [Lv 6],37,3711990102,5100370106,6,1,"{""2"": 13701015}",[13701015],"[""Effect/Effect_weapon/AUG/Skin/Mopan/fx_aug_mopan_kill""]",Effect/Effect_f/jinbi_die_mat_Augv7,,,,,51003701007,,UIScript/node_ig_escape_bobao_skin_kill_vx07.csb,,,,,[6060000880],[200074],"[""Loot Crate - Cryo Crate""]","[{""item_id"": 6060000880, ""name"": ""Loot Crate - Cryo Crate"", ""model_id"": 200074, ""source_skin_item_ids"": [5100370106], ""association"": ""bound item in upgrade family; independently equipped deathbox cosmetic""}]",observed table fields; activation not tested for every skin
+FN2000 - Twin Dragons [Lv 5],37,3711990112,5100370115,5,1,"{""2"": 13701115}",[13701115],"[""Effect/Effect_weapon/FN2000/Skin/Sl/fx_fn_sl_kill""]",Effect/Effect_f/fn2000_sl_die_mat,,,,,51003701107,,UIScript/node_ig_escape_bobao_skin_kill_common.csb,51003701109,51003701108,51003701110,UIScript/node_kill_effect_jisha_05.csb,[],[],[],[],observed table fields; activation not tested for every skin
+FN2000 - Vessel [Lv 6],37,3711990122,5100370126,6,1,"{""2"": 13701215}",[13701215],"[""Effect/Effect_weapon/FN2000/Skin/FN2000v11/fx_fn2000v11_emite_fire_kill""]",Effect/Effect_f/jinbi_die_mat_FN2000v11,,,,,51003701206,,UIScript/node_ig_escape_bobao_skin_kill_common.csb,51003701209,51003701208,51003701210,UIScript/node_kill_effect_jisha_10.csb,[],[],[],[],observed table fields; activation not tested for every skin
+FN2000 - Vein [Lv 6],37,3711990132,5100370136,6,1,"{""2"": 13701315}",[13701315],"[""Effect/Effect_weapon/FN2000/Skin/FN2000v11/fx_fn2000v11_emite_fire_killadv""]",Effect/Effect_f/jinbi_die_mat_FN2000v11_adv,,,,,51003701306,,UIScript/node_ig_escape_bobao_skin_kill_vx20.csb,51003701309,51003701308,51003701310,UIScript/node_kill_effect_jisha_01.csb,[6060001030],[200089],"[""Loot Crate - Crisis Breach""]","[{""item_id"": 6060001030, ""name"": ""Loot Crate - Crisis Breach"", ""model_id"": 200089, ""source_skin_item_ids"": [5100370136], ""association"": ""bound item in upgrade family; independently equipped deathbox cosmetic""}]",observed table fields; activation not tested for every skin
+FN2000 - Limbo [Lv 5],37,371199005,5100370055,5,0,,[],[],,,,,,,51003700503,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+FN2000 - Phantomrift [Lv 5],37,371199008,5100370085,5,0,,[],[],,,,,,,52002400403,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+FN2000 - Flame Fox [Lv 5],37,371199009,5100370095,5,0,,[],[],,,,,,,5200801703,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+FN2000 - Hellhound [Lv 3],37,371199001,5100370013,3,0,,[],[],,,,,,,600012,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+FN2000 - Undercurrent [Lv 3],37,371199002,5100370023,3,0,,[],[],,,,,,,600007,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+FN2000 - Singularity [Lv 3],37,371199003,5100370033,3,0,,[],[],,,,,,,600013,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+FN2000 - Specterstrike [Lv 3],37,371199004,5100370043,3,0,,[],[],,,,,,,600002,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+FN2000 - Venom [Lv 3],37,371199006,5100370063,3,0,,[],[],,,,,,,11209,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+FN2000 - Glory,37,371199007,5100370070,0,0,,[],[],,,,,,,,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+FN2000 - Endbringer [Lv 3],37,371199014,5100370143,3,0,,[],[],,,,,,,600013,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Galil - Reaper [Lv 7],38,3811990107,5100380107,7,1,"{""2"": 13801015}",[13801015],"[""Effect/Effect_weapon/Galil/Skin/Galilv9/fx_galilv9_fire_kills""]",Effect/Effect_f/jinbi_die_mat_ysV9,,,93801020,93801019,800022,,UIScript/node_ig_escape_bobao_skin_kill_vx35.csb,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Galil - Aurelian [Lv 7],38,3811990142,5100380147,7,1,"{""2"": 13801415}",[13801415],"[""Effect/Effect_weapon/Galil/Skin/Galilv9/fx_galilv9_fire_kills_adv""]",Effect/Effect_f/jinbi_die_mat_ysV9_adv,,,93801417,93801416,800022,,UIScript/node_ig_escape_bobao_skin_kill_vx35_2.csb,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Galil - Pitch Hero [Lv 5],38,381199020,5100380205,5,0,,[],[],,,,,,,51003802003,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Galil - Noxdra [Lv 6],38,3811990035,5100380036,6,1,"{""2"": 3127}",[3127],"[""Effect/Effect_weapon/Galil/Skin/Ll/fx_galil_ll_kill""]",,,,,,800009,,UIScript/node_ig_escape_bobao_skin_kill_vx19.csb,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Galil - Inferno [Lv 6],38,3811990063,5100380066,6,1,"{""2"": 3461}",[3461],"[""Effect/Effect_weapon/Galil/Skin/Hl/fx_galil_hl_kill""]",,,,,,800009,,UIScript/node_ig_escape_bobao_skin_kill_vx19_2.csb,,,,,[6060000410],[200030],"[""Loot Crate - Golden Plume""]","[{""item_id"": 6060000410, ""name"": ""Loot Crate - Golden Plume"", ""model_id"": 200030, ""source_skin_item_ids"": [5100380066], ""association"": ""bound item in upgrade family; independently equipped deathbox cosmetic""}]",observed table fields; activation not tested for every skin
+Galil - Blight's Embrace [Lv 6],38,3811990212,5100380216,6,1,"{""1"": 13802115}",[13802115],"[""Effect/Effect_weapon/M4A1/Skin/Dzem/fx_m4a1_dzem_hit_s_ql_01""]",Effect/Effect_f/M4v19_die_mat,,,,,51003802107,,UIScript/node_ig_escape_bobao_skin_kill_vx03.csb,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Galil - Fright [Lv 6],38,3811990262,5100380266,6,1,"{""2"": 13802615}",[13802615],"[""Effect/Effect_weapon/Galil/Skin/V26/fx_galilv26_kill""]",Effect/Effect_f/galilv26_die_mat,,,,,51003802607,,UIScript/node_ig_escape_bobao_skin_kill_common.csb,51003802708,51003802709,51003802710,UIScript/node_kill_effect_jisha_12.csb,[],[],[],[],observed table fields; activation not tested for every skin
+Galil - Menace [Lv 6],38,3811990272,5100380276,6,1,"{""2"": 13802715}",[13802715],"[""Effect/Effect_weapon/Galil/Skin/V26/fx_galilv26_kill_adv""]",Effect/Effect_f/galilv26_die_adv_mat,,,,,51003802707,,UIScript/node_ig_escape_bobao_skin_kill_common.csb,51003802608,51003802609,51003802610,UIScript/node_kill_effect_jisha_04.csb,[6060001400],[200126],"[""Loot Crate - Infernal Onslaught""]","[{""item_id"": 6060001400, ""name"": ""Loot Crate - Infernal Onslaught"", ""model_id"": 200126, ""source_skin_item_ids"": [5100380276], ""association"": ""bound item in upgrade family; independently equipped deathbox cosmetic""}]",observed table fields; activation not tested for every skin
+Galil - Knight [Lv 5],38,381199004,5100380045,5,0,,[],[],,,,,,,51003800403,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Galil - Celestial Vein [Lv 5],38,381199011,5100380115,5,0,,[],[],,,,,,,51003801103,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Galil - Frosthowl [Lv 5],38,381199019,5100380195,5,0,,[],[],,,,,,,51003801903,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Galil - Elysium [Lv 5],38,381199022,5100380225,5,0,,[],[],,,,,,,51003802203,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Galil - Apocalypse [Lv 5],38,381199025,5100380255,5,0,,[],[],,,,,,,12001,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Galil - Undercurrent [Lv 3],38,381199001,5100380013,3,0,,[],[],,,,,,,600007,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Galil - Quantum Grid [Lv 3],38,381199002,5100380023,3,0,,[],[],,,,,,,600005,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Galil - Specterstrike [Lv 3],38,381199005,5100380053,3,0,,[],[],,,,,,,600002,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Galil - Pendulum of Fate [Lv 3],38,381199007,5100380073,3,0,,[],[],,,,,,,600025,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Galil - Hellhound [Lv 3],38,381199008,5100380083,3,0,,[],[],,,,,,,600012,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Galil - Blood Vengeance [Lv 3],38,381199009,5100380093,3,0,,[],[],,,,,,,13260,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Galil - Lava [Lv 3],38,381199012,5100380123,3,0,,[],[],,,,,,,12048,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Galil - Glory,38,381199013,5100380130,0,0,,[],[],,,,,,,,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Galil - Sunrise [Lv 3],38,381199017,5100380173,3,0,,[],[],,,,,,,54003300203,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Galil - Extinction [Lv 3],38,381199018,5100380183,3,0,,[],[],,,,,,,5200201003,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Galil - Ruins [Lv 3],38,381199023,5100380233,3,0,,[],[],,,,,,,52001600103,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+QBZ95 - EVA-01 [Lv 6],39,3911990106,5100390106,6,1,"{""2"": 4038}",[4038],"[""Effect/Effect_weapon/QBZ95/Skin/Chj/fx_qbz95_chj_kill""]",,,,,,800027,,UIScript/node_ig_escape_bobao_skin_kill_vx23.csb,,,,,[6060000450],[60009],"[""Loot Crate - EVA-01""]","[{""item_id"": 6060000450, ""name"": ""Loot Crate - EVA-01"", ""model_id"": 60009, ""source_skin_item_ids"": [5100390105], ""association"": ""bound item in upgrade family; independently equipped deathbox cosmetic""}]",observed table fields; activation not tested for every skin
+QBZ95 - Penetrator [Lv 7],39,3911990273,5100390277,7,1,"{""2"": 13902715}",[13902715],"[""Effect/Effect_weapon/QBZ95/Skin/V26/fx_qbz95_v26_kill""]",Effect/Effect_f/jinbi_die_mat_qbzv26,Effect/Effect_f/jinbi_die_mat_qbzv26,,93902718,,51003902708,,UIScript/node_ig_escape_bobao_skin_kill_common.csb,51003902710,51003902709,51003902711,UIScript/node_kill_effect_jisha_11.csb,[],[],[],[],observed table fields; activation not tested for every skin
+QBZ95 - Rosso Corsa [Lv 7],39,3911990283,5100390287,7,1,"{""2"": 13902815}",[13902815],"[""Effect/Effect_weapon/QBZ95/Skin/V26/fx_qbz95_v26_killadv""]",Effect/Effect_f/jinbi_die_mat_qbzv26_adv,Effect/Effect_f/jinbi_die_mat_qbzv26_adv,,93902818,,51003902808,,UIScript/node_ig_escape_bobao_skin_kill_common.csb,51003902810,51003902809,51003902811,UIScript/node_kill_effect_jisha_02.csb,[],[],[],[],observed table fields; activation not tested for every skin
+QBZ95 - Whisper [Lv 6],39,3911990124,5100390126,6,1,"{""2"": 13901221}",[13901221],"[""Effect/Effect_weapon/QBZ95/Skin/xezw/fx_qbz95_xezw_kills""]",Effect/Effect_f/jinbi_die_mat_QBZ95V9,,,,,800021,,UIScript/node_ig_escape_bobao_skin_kill_vx29.csb,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+QBZ95 - Seaside Serenade [Lv 6],39,3911990154,5100390156,6,1,"{""2"": 13901521}",[13901521],"[""Effect/Effect_weapon/QBZ95/Skin/xezw/fx_qbz95_xezw_adv_kills""]",Effect/Effect_f/jinbi_die_mat_QBZ95V9ADV,,,,,800021,,UIScript/node_ig_escape_bobao_skin_kill_vx29_2.csb,,,,,[6060000600],[200046],"[""Loot Crate - Demon Sealing Box""]","[{""item_id"": 6060000600, ""name"": ""Loot Crate - Demon Sealing Box"", ""model_id"": 200046, ""source_skin_item_ids"": [5100390156], ""association"": ""bound item in upgrade family; independently equipped deathbox cosmetic""}]",observed table fields; activation not tested for every skin
+QBZ95 - Genos [Lv 5],39,3911990252,5100390255,5,0,,[],[],,,,,,51003902506,,UIScript/node_ig_escape_bobao_skin_kill_common.csb,51003902509,51003902508,51003902510,UIScript/node_kill_effect_jisha_03.csb,[],[],[],[],observed table fields; activation not tested for every skin
+QBZ95 - Overclocking [Lv 5],39,391199002,5100390025,5,0,,[],[],,,,,,,51003900203,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+QBZ95 - Haunted Machine [Lv 5],39,391199009,5100390095,5,0,,[],[],,,,,,,51003900903,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+QBZ95 - JadeTempest [Lv 5],39,391199017,5100390175,5,0,,[],[],,,,,,,51003901703,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+QBZ95 - QuantumShell [Lv 5],39,391199018,5100390185,5,0,,[],[],,,,,,,52004300603,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+QBZ95 - Endless [Lv 5],39,391199021,5100390215,5,0,,[],[],,,,,,,51003902103,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+QBZ95 - Crimson Verdict [Lv 5],39,391199024,5100390245,5,0,,[],[],,,,,,,51003902403,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+QBZ95 - Venom [Lv 3],39,391199001,5100390013,3,0,,[],[],,,,,,,11209,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+QBZ95 - Celestial [Lv 3],39,391199003,5100390033,3,0,,[],[],,,,,,,600003,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+QBZ95 - Twilight [Lv 3],39,391199004,5100390043,3,0,,[],[],,,,,,,600024,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+QBZ95 - Undercurrent [Lv 3],39,391199005,5100390053,3,0,,[],[],,,,,,,600007,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+QBZ95 - Pendulum of Fate [Lv 3],39,391199006,5100390063,3,0,,[],[],,,,,,,600025,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+QBZ95 - Glacier [Lv 3],39,391199007,5100390073,3,0,,[],[],,,,,,,11497,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+QBZ95 - Specterstrike [Lv 3],39,391199008,5100390083,3,0,,[],[],,,,,,,600002,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+QBZ95 - Glory,39,391199011,5100390110,0,0,,[],[],,,,,,,,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+QBZ95 - Blood Vengeance [Lv 3],39,391199026,5100390263,3,0,,[],[],,,,,,,51003902603,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+QBZ95 - Explorer [Lv 3],39,391199029,5100390293,3,0,,[],[],,,,,,,600011,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+SVD - Reaper [Lv 7],40,4011990143,5400400147,7,1,"{""2"": 14001415}",[14001415],"[""Effect/Effect_weapon/Galil/Skin/Galilv9/fx_galilv9_fire_kills""]",Effect/Effect_f/jinbi_die_mat_QBZ95V9,,,,,54004001408,,UIScript/node_ig_escape_bobao_skin_kill_vx35.csb,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+SVD - MistyTide [Lv 5],40,401199008,5400400085,5,0,,[],[],,,,,,,54004000803,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+SVD - Lionheart [Lv 5],40,401199009,5400400095,5,0,,[],[],,,,,,,54004000903,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+SVD - Warrior [Lv 5],40,401199013,5400400135,5,0,,[],[],,,,,,,51003202003,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+SVD - Undercurrent [Lv 3],40,401199001,5400400013,3,0,,[],[],,,,,,,600007,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+SVD - Specterstrike [Lv 3],40,401199002,5400400023,3,0,,[],[],,,,,,,600002,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+SVD - Hellhound [Lv 3],40,401199003,5400400033,3,0,,[],[],,,,,,,600012,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+SVD - Twilight [Lv 3],40,401199004,5400400043,3,0,,[],[],,,,,,,600024,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+SVD - Pendulum of Fate [Lv 3],40,401199005,5400400053,3,0,,[],[],,,,,,,600025,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+SVD - Dreamy Ocean,40,401199006,5400400060,0,0,,[],[],,,,,,,,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+SVD - Blight's Embrace [Lv 3],40,401199007,5400400073,3,0,,[],[],,,,,,,13264,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+SVD - Glory,40,401199012,5400400120,0,0,,[],[],,,,,,,,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+RPK - Heatwire [Lv 5],41,411199006,5100410065,5,0,,[],[],,,,,,,51004100603,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+RPK - Vermilion Silence [Lv 5],41,411199011,5100410115,5,1,"{""2"": 14101115}",[14101115],"[""Effect/Effect_weapon/RPK/Skin/Xj/fx_rpk_xj_kill""]",Effect/Effect_f/jinbi_die_mat_Mp5v17,,,,,,51004101103,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+RPK - Flourish [Lv 6],41,4111990142,5100410146,6,1,"{""2"": 14101415}",[14101415],"[""Effect/Effect_weapon/RPK/Skin/V13/fx_rpk_v13_kill""]",Effect/Effect_f/rpkv13_die_mat,,,,,51004101406,,UIScript/node_ig_escape_bobao_skin_kill_common.csb,51004101407,51004101408,51004101409,UIScript/node_kill_effect_jisha_12.csb,[],[],[],[],observed table fields; activation not tested for every skin
+RPK - Evergreen [Lv 6],41,4111990152,5100410156,6,1,"{""2"": 14101515}",[14101515],"[""Effect/Effect_weapon/RPK/Skin/V13/fx_rpk_v13_killadv""]",Effect/Effect_f/rpkv13adv_die_mat,,,,,51004101506,,UIScript/node_ig_escape_bobao_skin_kill_common.csb,51004101507,51004101508,51004101509,UIScript/node_kill_effect_jisha_07.csb,[6060001300],[200116],"[""Loot Crate - Sacred Sage""]","[{""item_id"": 6060001300, ""name"": ""Loot Crate - Sacred Sage"", ""model_id"": 200116, ""source_skin_item_ids"": [5100410156], ""association"": ""bound item in upgrade family; independently equipped deathbox cosmetic""}]",observed table fields; activation not tested for every skin
+RPK - Iridian [Lv 5],41,411199009,5100410095,5,0,,[],[],,,,,,,51004400903,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+RPK - Warrior [Lv 5],41,411199012,5100410125,5,0,,[],[],,,,,,,51003202003,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+RPK - Glacier [Lv 3],41,411199001,5100410013,3,0,,[],[],,,,,,,11497,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+RPK - Specterstrike [Lv 3],41,411199002,5100410023,3,0,,[],[],,,,,,,600002,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+RPK - Infernal [Lv 3],41,411199003,5100410033,3,0,,[],[],,,,,,,600014,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+RPK - Glory,41,411199004,5100410040,0,0,,[],[],,,,,,,,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+M1887 - Destroyer [Lv 7],42,4211990163,5300420167,7,1,"{""2"": 14201615}",[14201615],"[""Effect/Effect_weapon/M1887/Skin/V18/fx_m1887_v18_kill""]",Effect/Effect_f/m1887_v18_mat,Effect/Effect_f/m1887_v18_mat,"{""2"": 14201663}",94201619,,53004201607,,UIScript/node_ig_escape_bobao_skin_kill_common.csb,53004201609,53004201608,53004201610,UIScript/node_kill_effect_jisha_01.csb,[],[],[],[],observed table fields; activation not tested for every skin
+M1887 - Executor [Lv 7],42,4211990173,5300420177,7,1,"{""2"": 14201715}",[14201715],"[""Effect/Effect_weapon/M1887/Skin/V18/fx_m1887_v18_killadv""]",Effect/Effect_f/m1887_v18_mat_adv,Effect/Effect_f/m1887_v18_mat_adv,"{""2"": 14201663}",94201719,,53004201707,,UIScript/node_ig_escape_bobao_skin_kill_common.csb,53004201709,53004201708,53004201710,UIScript/node_kill_effect_jisha_05.csb,[],[],[],[],observed table fields; activation not tested for every skin
+M1887 - Netherflame [Lv 6],42,4211990142,5300420146,6,1,"{""1"": 14201415}",[14201415],"[""Effect/Effect_weapon/Kar98k/Skin/Wjzr/fx_kar98k_wjzr_kills""]",Effect/Effect_f/jinbi_die_mat_98k,,,,,53004201406,,UIScript/node_ig_escape_bobao_skin_kill_vx11.csb,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+M1887 - Phantomrift [Lv 5],42,421199002,5300420025,5,0,,[],[],,,,,,,52002400403,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+M1887 - Dreadbind [Lv 5],42,421199012,5300420125,5,0,,[],[],,,,,,,54004500203,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+M1887 - QuantumShell [Lv 5],42,421199013,5300420135,5,0,,[],[],,,,,,,52004300603,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+M1887 - Elysium [Lv 5],42,421199018,5300420185,5,0,,[],[],,,,,,,54005300303,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+M1887 - Hellhound [Lv 3],42,421199001,5300420013,3,0,,[],[],,,,,,,600012,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+M1887 - Singularity [Lv 3],42,421199003,5300420033,3,0,,[],[],,,,,,,600013,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+M1887 - Abyss [Lv 3],42,421199006,5300420063,3,0,,[],[],,,,,,,52000008403,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+M1887 - Specterstrike [Lv 3],42,421199007,5300420073,3,0,,[],[],,,,,,,600002,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+M1887 - Glory,42,421199008,5300420080,0,0,,[],[],,,,,,,,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+M1887 - Glacier [Lv 3],42,421199009,5300420093,3,0,,[],[],,,,,,,11497,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+M1887 - Ruins [Lv 3],42,421199010,5300420103,3,0,,[],[],,,,,,,52001600103,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+M1887 - Blood Vengeance [Lv 3],42,421199011,5300420113,3,0,,[],[],,,,,,,13260,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+M1887 - Vicious Beast [Lv 3],42,421199019,5300420193,3,0,,[],[],,,,,,,600004,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+UMP45 - Forsaken [Lv 1],43,431199009,5200430090,1,0,"{""2"": 14300915}",[14300915],"[""Effect/Effect_weapon/UMP45/Skin/wlxq/fx_ump45_wlxq_emit_fire_kills""]",Effect/Effect_f/jinbi_die_mat_UMPV8,Effect/Effect_f/jinbi_die_mat_UMPV8,"{""2"": 14300930, ""3"": 14300931, ""4"": 14300932}",,,52004300907,,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+UMP45 - Revenant [Lv 1],43,431199010,5200430100,1,0,"{""2"": 14301015}",[14301015],"[""Effect/Effect_weapon/UMP45/Skin/wlxq/fx_ump45_wlxq_emit_fireadv_kills""]",Effect/Effect_f/jinbi_die_mat_UMPV8_adv,Effect/Effect_f/jinbi_die_mat_UMPV8_adv,"{""2"": 14301041, ""3"": 14301042, ""4"": 14301043}",,,52004301007,,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+UMP45 - Infinite [Lv 2],43,431199003,5200430032,2,0,"{""2"": 14300315}",[14300315],"[""Effect/Effect_weapon/UMP45/Skin/sjsh/fx_ump_sjsh_kills""]",Effect/Effect_f/jinbi_die_mat_UMP4501,,,,,52004300306,,UIScript/node_ig_escape_bobao_skin_kill_vx36.csb,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+UMP45 - Timeworn Prism [Lv 2],43,431199004,5200430042,2,0,"{""2"": 14300415}",[14300415],"[""Effect/Effect_weapon/UMP45/Skin/sjsh/fx_ump_sjshadv_kills""]",Effect/Effect_f/jinbi_die_mat_UMP4502,,,,,52004300406,,UIScript/node_ig_escape_bobao_skin_kill_vx36_2.csb,,,,,[6060000710],[200057],"[""Loot Crate - Sands of Time""]","[{""item_id"": 6060000710, ""name"": ""Loot Crate - Sands of Time"", ""model_id"": 200057, ""source_skin_item_ids"": [5200430046], ""association"": ""bound item in upgrade family; independently equipped deathbox cosmetic""}]",observed table fields; activation not tested for every skin
+UMP45 - New Vertical Maneuvering Equipment [Lv ,43,431199012,5200430122,2,0,"{""2"": 14301215}",[14301215],"[""Effect/Effect_weapon/UMP45/Skin/ltjd/fx_ump_ltjd_kill""]",Effect/Effect_f/ump_ltjd_die_mat,,,,,52004301207,,UIScript/node_ig_escape_bobao_skin_kill_common.csb,52004301209,52004301208,52004301210,UIScript/node_kill_effect_jisha_04.csb,[],[],[],[],observed table fields; activation not tested for every skin
+UMP45 - Oni Piercer [Lv 5],43,431199002,5200430025,5,0,,[],[],,,,,,,52004300203,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+UMP45 - Iridian [Lv 5],43,431199005,5200430055,5,0,,[],[],,,,,,,51004400903,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+UMP45 - QuantumShell [Lv 5],43,431199006,5200430065,5,0,,[],[],,,,,,,52004300603,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+UMP45 - Ascension [Lv 5],43,431199008,5200430085,5,0,,[],[],,,,,,,52004300803,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+UMP45 - Bunny Ops [Lv 5],43,431199015,5200430155,5,0,,[],[],,,,,,,52004301503,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+UMP45 - Pendulum of Fate [Lv 3],43,431199001,5200430013,3,0,,[],[],,,,,,,600025,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+UMP45 - Celestial [Lv 3],43,431199007,5200430073,3,0,,[],[],,,,,,,600003,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+UMP45 - Sunrise [Lv 3],43,431199011,5200430113,3,0,,[],[],,,,,,,54003300203,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+UMP45 - Hellhound [Lv 3],43,431199013,5200430133,3,0,,[],[],,,,,,,600012,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+UMP45 - Golden Samba [Lv 3],43,431199014,5200430143,3,0,,[],[],,,,,,,52004301403,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Spear - Freeze [Lv 1],44,441199012,5100440120,1,0,"{""2"": 14401215}",[14401215],"[""Effect/Effect_weapon/Spear/Skin/Wyw/fx_spear_wyw_kill""]",Effect/Effect_f/jinbi_die_mat_Spear_wyw,Effect/Effect_f/jinbi_die_mat_Spear_wyw,"{""2"": 14401224, ""3"": 14401225, ""4"": 14401226, ""5"": 14401227}",,,51004401207,,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Spear - Reign [Lv 1],44,441199013,5100440130,1,0,"{""2"": 14401315}",[14401315],"[""Effect/Effect_weapon/Spear/Skin/Wyw/fx_spear_wyw_killadv""]",Effect/Effect_f/jinbi_die_mat_Spear_wyw_adv,Effect/Effect_f/jinbi_die_mat_Spear_wyw_adv,"{""2"": 14401324, ""3"": 14401325, ""4"": 14401326, ""5"": 14401327}",,,51004401307,,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Spear - Relic [Lv 2],44,441199007,5100440072,2,0,"{""2"": 14400715}",[14400715],"[""Effect/Effect_weapon/Spear/Skin/Bjgl/fx_spear_bjgl_kill""]",Effect/Effect_f/spear_bjgl_die_mat,,,,,51004400706,,UIScript/node_ig_escape_bobao_skin_kill_vx39.csb,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Spear - Bonedusk [Lv 2],44,441199008,5100440082,2,0,"{""2"": 14400815}",[14400815],"[""Effect/Effect_weapon/Spear/Skin/Bjgl/fx_spear_bjglzz_kill""]",Effect/Effect_f/spear_bjglzz_die_mat,,,,,51004400806,,UIScript/node_ig_escape_bobao_skin_kill_vx39_2.csb,,,,,[6060000790],[200065],"[""Loot Crate - Sacred Relic Molten Casket""]","[{""item_id"": 6060000790, ""name"": ""Loot Crate - Sacred Relic Molten Casket"", ""model_id"": 200065, ""source_skin_item_ids"": [5100440086], ""association"": ""bound item in upgrade family; independently equipped deathbox cosmetic""}]",observed table fields; activation not tested for every skin
+Spear - Terrible Tornado [Lv 2],44,441199017,5100440172,2,0,,[],[],,,,,,51004401707,,UIScript/node_ig_escape_bobao_skin_kill_common.csb,51004401709,51004401708,51004401710,UIScript/node_kill_effect_jisha_07.csb,[],[],[],[],observed table fields; activation not tested for every skin
+Spear - Blossom [Lv 2],44,441199018,5100440182,2,0,,[],[],,,,,,51004401806,,UIScript/node_ig_escape_bobao_skin_kill_common.csb,51004401808,51004401807,51004401809,UIScript/node_kill_effect_jisha_12.csb,[],[],[],[],observed table fields; activation not tested for every skin
+Spear - Dreadbind [Lv 5],44,441199003,5100440035,5,0,,[],[],,,,,,,54004500203,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Spear - Iridian [Lv 5],44,441199009,5100440095,5,0,,[],[],,,,,,,51004400903,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Spear - Ship Shadow [Lv 5],44,441199014,5100440145,5,0,,[],[],,,,,,,51004401403,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Spear - Crimson Verdict [Lv 5],44,441199015,5100440155,5,0,,[],[],,,,,,,51004401503,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Spear - Pendulum of Fate [Lv 3],44,441199002,5100440023,3,0,,[],[],,,,,,,600025,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Spear - Venom [Lv 3],44,441199004,5100440043,3,0,,[],[],,,,,,,11209,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Spear - Glory,44,441199005,5100440050,0,0,,[],[],,,,,,,,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Spear - Specterstrike [Lv 3],44,441199006,5100440063,3,0,,[],[],,,,,,,600002,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Spear - Glacier [Lv 3],44,441199010,5100440103,3,0,,[],[],,,,,,,11497,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Spear - Hellhound [Lv 3],44,441199011,5100440113,3,0,,[],[],,,,,,,600012,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+M82 - Dark Matter [Lv 1],45,451199016,5400450160,1,0,"{""2"": 14501615}",[14501615],"[""Effect/Effect_weapon/M82/Skin/V12/fx_m82_v12_kill""]",Effect/Effect_f/jinbi_die_mat_ak47_v51,Effect/Effect_f/jinbi_die_mat_ak47_v51,,91002622,,54004501611,,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+M82 - Pumpknight [Lv 2],45,451199004,5400450042,2,0,"{""2"": 14500415}",[14500415],"[""Effect/Effect_weapon/M82/Skin/Pumpkin/fx_m82_pumpkin_kills""]",Effect/Effect_f/jinbi_die_mat_Barrett_pupk,,,,,800028,,UIScript/node_ig_escape_bobao_skin_kill_vx38.csb,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+M82 - Pumpwisp [Lv 2],45,451199005,5400450052,2,0,"{""2"": 14500515}",[14500515],"[""Effect/Effect_weapon/M82/Skin/Pumpkin/fx_m82_pumpkin_adv_kills""]",Effect/Effect_f/jinbi_die_mat_Barrett_pupk_adv,,,,,800028,,UIScript/node_ig_escape_bobao_skin_kill_vx38_2.csb,,,,,[6060000770],[200063],"[""Loot Crate - Nightmare Sanctum""]","[{""item_id"": 6060000770, ""name"": ""Loot Crate - Nightmare Sanctum"", ""model_id"": 200063, ""source_skin_item_ids"": [5400450056], ""association"": ""bound item in upgrade family; independently equipped deathbox cosmetic""}]",observed table fields; activation not tested for every skin
+M82 - Noxdra [Lv 2],45,451199010,5400450102,2,0,"{""2"": 14501015}",[14501015],"[""Effect/Effect_weapon/Galil/Skin/Ll/fx_galil_ll_kill""]",,,,,,54004501006,,UIScript/node_ig_escape_bobao_skin_kill_vx19.csb,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+M82 - The First Generation Vice-President [Lv 2,45,451199011,5400450112,2,0,"{""2"": 14501115}",[14501115],"[""Effect/None,effect_id=14501115""]",,,,,,54004501107,,UIScript/node_ig_escape_bobao_skin_kill_common.csb,54004501109,54004501108,54004501110,UIScript/node_kill_effect_jisha_04.csb,[],[],[],[],observed table fields; activation not tested for every skin
+M82 - Dreadbind [Lv 5],45,451199002,5400450025,5,0,,[],[],,,,,,,54004500203,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+M82 - JadeTempest [Lv 5],45,451199006,5400450065,5,0,,[],[],,,,,,,52004800203,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+M82 - QuantumShell [Lv 5],45,451199007,5400450075,5,0,,[],[],,,,,,,52004300603,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+M82 - Radioactive [Lv 3],45,451199003,5400450033,3,0,,[],[],,,,,,,5300600703,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+M82 - Sunrise [Lv 3],45,451199008,5400450083,3,0,,[],[],,,,,,,54003300203,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+M82 - Twilight [Lv 3],45,451199009,5400450093,3,0,,[],[],,,,,,,600024,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+M82 - Endbringer [Lv 3],45,451199013,5400450133,3,0,,[],[],,,,,,,600013,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+M82 - Specterstrike [Lv 3],45,451199014,5400450143,3,0,,[],[],,,,,,,13028,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+M82 - Hellhound [Lv 3],45,451199015,5400450153,3,0,,[],[],,,,,,,600012,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+MP7 - Burning [Lv 2],48,481199003,5200480032,2,0,"{""2"": 14800315}",[14800315],"[""Effect/Effect_weapon/Mp7/Skin/Rsjt/fx_mp7_rsjt_fire_kill""]",Effect/Effect_f/jinbi_die_mat_Mp7_rsjt,,,,,52004800306,,UIScript/node_ig_escape_bobao_skin_kill_common.csb,52004800311,52004800310,52004800312,UIScript/node_kill_effect_jisha_07.csb,[],[],[],[],observed table fields; activation not tested for every skin
+MP7 - Spectre [Lv 2],48,481199004,5200480042,2,0,"{""2"": 14800415}",[14800415],"[""Effect/Effect_weapon/Mp7/Skin/Rsjt/fx_mp7_rsjt_fire_kill_adv""]",Effect/Effect_f/jinbi_die_mat_Mp7_rsjt,,,,,52004800406,,UIScript/node_ig_escape_bobao_skin_kill_common.csb,52004800408,52004800407,52004800409,UIScript/node_kill_effect_jisha_07.csb,[6060000960],[200082],"[""Loot Crate - Winter's Secret""]","[{""item_id"": 6060000960, ""name"": ""Loot Crate - Winter's Secret"", ""model_id"": 200082, ""source_skin_item_ids"": [5200480046], ""association"": ""bound item in upgrade family; independently equipped deathbox cosmetic""}]",observed table fields; activation not tested for every skin
+MP7 - Keisuke Baji × Chifuyu Matsuno [Lv 2],48,481199007,5200480072,2,0,"{""2"": 14800715}",[14800715],"[""Effect/Effect_weapon/Mp7/Skin/Syqd/fx_mp7_syqd_kill""]",Effect/Effect_f/mp7_syqd_die_mat,,,,,52004800706,,UIScript/node_ig_escape_bobao_skin_kill_common.csb,52004800808,52004800807,52004800809,UIScript/node_kill_effect_jisha_09.csb,[],[],[],[],observed table fields; activation not tested for every skin
+MP7 - Netherflame [Lv 2],48,481199009,5200480092,2,0,"{""1"": 14201415}",[14201415],"[""Effect/Effect_weapon/Kar98k/Skin/Wjzr/fx_kar98k_wjzr_kills""]",Effect/Effect_f/jinbi_die_mat_98k,,,,,52004800906,,UIScript/node_ig_escape_bobao_skin_kill_vx11.csb,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+MP7 - Tidesong [Lv 2],48,481199013,5200480132,2,0,"{""2"": 14801315}",[14801315],"[""Effect/None,effect_id=14801315""]",,,,,,52004801306,52004801303,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+MP7 - JadeTempest [Lv 5],48,481199002,5200480025,5,0,,[],[],,,,,,,52004800203,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+MP7 - Verdant Gleam [Lv 5],48,481199006,5200480065,5,0,,[],[],,,,,,,52004800603,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+MP7 - Hellbound [Lv 5],48,481199010,5200480105,5,0,,[],[],,,,,,,11168,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+MP7 - Elysium [Lv 5],48,481199011,5200480115,5,0,,[],[],,,,,,,52004801103,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+MP7 - Specterstrike [Lv 3],48,481199001,5200480013,3,0,,[],[],,,,,,,600002,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+MP7 - Celestial [Lv 3],48,481199005,5200480053,3,0,,[],[],,,,,,,600003,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+S868 - JadeTempest [Lv 5],49,491199002,5300490025,5,0,,[],[],,,,,,,52004800203,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+S868 - Crimson Verdict [Lv 5],49,491199005,5300490055,5,0,,[],[],,,,,,,53004900503,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+S868 - Undercurrent [Lv 3],49,491199001,5300490013,3,0,,[],[],,,,,,,600007,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+S868 - Glacier [Lv 3],49,491199003,5300490033,3,0,,[],[],,,,,,,11497,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Bizon - The Mad Serpent of Ash [Lv 2],50,501199003,5200500032,2,0,"{""2"": 15000315}",[15000315],"[""Effect/Effect_weapon/Bizon/Skin/Hkzs/fx_bizon_hkzs_kill""]",Effect/Effect_f/bizon_khzs_die_mat,,,,,52005000307,,UIScript/node_ig_escape_bobao_skin_kill_common.csb,52005000309,52005000308,52005000310,UIScript/node_kill_effect_jisha_04.csb,[],[],[],[],observed table fields; activation not tested for every skin
+Bizon - Seraph [Lv 2],50,501199009,5200500092,2,0,"{""1"": 1559}",[1559],"[""Effect/Effect_weapon/M700/Skin/heaven/fx_m700_heaven_Death_kills""]",Effect/Effect_f/jinbi_die_mat_M700v23,,,,,52005000908,,UIScript/node_ig_escape_bobao_skin_kill_vx06.csb,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Bizon - JadeTempest [Lv 5],50,501199002,5200500025,5,0,,[],[],,,,,,,52004800203,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Bizon - Mind Calculation [Lv 5],50,501199004,5200500045,5,0,,[],[],,,,,,,51005100303,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Bizon - Copperhead [Lv 5],50,501199006,5200500065,5,0,,[],[],,,,,,,52005000603,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Bizon - Crimson Verdict [Lv 5],50,501199008,5200500085,5,0,,[],[],,,,,,,52005000803,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Bizon - Blood Vengeance [Lv 3],50,501199001,5200500013,3,0,,[],[],,,,,,,13260,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Bizon - Sunrise [Lv 3],50,501199005,5200500053,3,0,,[],[],,,,,,,54003300203,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Bizon - Sunrise [Lv 3],50,501199007,5200500073,3,0,,[],[],,,,,,,54003300203,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Bizon - Glory,50,501199011,5200500110,0,0,,[],[],,,,,,,,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+HK416 - The Invincible Mikey [Lv 2],51,511199002,5100510022,2,0,"{""2"": 15100215}",[15100215],"[""Effect/Effect_weapon/HK416/Mikey/fx_hk416_mikey_kill""]",,,,,,51005100206,,UIScript/node_ig_escape_bobao_skin_kill_common.csb,51005100208,51005100207,51005100209,UIScript/node_kill_effect_jisha_02.csb,[],[],[],[],observed table fields; activation not tested for every skin
+HK416 - Neural Calculus [Lv 5],51,511199003,5100510035,5,0,,[],[],,,,,,,51005100303,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+HK416 - Copperhead [Lv 5],51,511199005,5100510055,5,0,,[],[],,,,,,,51005100503,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+HK416 - Splashes [Lv 5],51,511199010,5100510105,5,0,,[],[],,,,,,,51005101003,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+HK416 - Hellhound [Lv 3],51,511199001,5100510013,3,0,,[],[],,,,,,,600012,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+HK416 - Undercurrent [Lv 3],51,511199007,5100510073,3,0,,[],[],,,,,,,600007,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+HK416 - Sunrise [Lv 3],51,511199009,5100510093,3,0,,[],[],,,,,,,54003300203,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+HK416 - Lava [Lv 3],51,511199011,5100510113,3,0,,[],[],,,,,,,12048,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Thompson - Unplugged [Lv 2],52,521199004,5200520042,2,0,"{""2"": 15200415}",[15200415],"[""Effect/Effect_weapon/Thompson/Skin/V3/fx_thompson_v3_kill""]",Effect/Effect_f/jinbi_die_mat_Thompson_v3,,,,,52005200406,,UIScript/node_ig_escape_bobao_skin_kill_common.csb,52005200408,52005200409,52005200410,UIScript/node_kill_effect_jisha_07.csb,[],[],[],[],observed table fields; activation not tested for every skin
+Thompson - Resurrected [Lv 2],52,521199005,5200520052,2,0,"{""2"": 15200515}",[15200515],"[""Effect/Effect_weapon/Thompson/Skin/V3/fx_thompson_v3adv_kill""]",Effect/Effect_f/jinbi_die_mat_Thompson_v3adv,,,,,52005200506,,UIScript/node_ig_escape_bobao_skin_kill_common.csb,52005200508,52005200509,52005200510,UIScript/node_kill_effect_jisha_02.csb,[6060001230],[200109],"[""Loot Crate - Breakpoint Log""]","[{""item_id"": 6060001230, ""name"": ""Loot Crate - Breakpoint Log"", ""model_id"": 200109, ""source_skin_item_ids"": [5200520056], ""association"": ""bound item in upgrade family; independently equipped deathbox cosmetic""}]",observed table fields; activation not tested for every skin
+Thompson - Chroma Surge [Lv 5],52,521199002,5200520025,5,0,,[],[],,,,,,,52005200203,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Thompson - Copperhead [Lv 5],52,521199003,5200520035,5,0,,[],[],,,,,,,52005200303,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Thompson - Explorer [Lv 3],52,521199001,5200520013,3,0,,[],[],,,,,,,600011,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Thompson - Pendulum of Fate [Lv 3],52,521199007,5200520073,3,0,,[],[],,,,,,,600025,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+SKS - Mumen Rider [Lv 4],53,531199002,5400530024,4,0,,[],[],,,,,,,54005300203,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+SKS - Elysium [Lv 5],53,531199003,5400530035,5,0,,[],[],,,,,,,54005300303,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+SKS - Hellbound [Lv 5],53,531199004,5400530045,5,0,,[],[],,,,,,,11168,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+SKS - Sunrise [Lv 3],53,531199001,5400530013,3,0,,[],[],,,,,,,54003300203,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+SKS - Twilight [Lv 3],53,531199005,5400530053,3,0,,[],[],,,,,,,600024,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Scorpion - Fang Pumpkin [Lv 5],54,541199002,5200540025,5,0,,[],[],,,,,,,52002401403,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Scorpion - Lava [Lv 3],54,541199001,5200540013,3,0,,[],[],,,,,,,12048,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+Scorpion - Explorer [Lv 3],54,541199004,5200540043,3,0,,[],[],,,,,,,600011,,,,,,[],[],[],[],observed table fields; activation not tested for every skin
+G36 - Explorer [Lv 3],55,551199001,5100550013,3,0,,[],[],,,,,,,600011,,,,,,[],[],[],[],observed table fields; activation not tested for every skin

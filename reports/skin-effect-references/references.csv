@@ -1,0 +1,434 @@
+﻿kind,skin,selected_item_id,template_id,selected_level,source_item_id,source_level,field,reference_id,role,confidence
+Character,ETHAN - Cyberhunter,3001010038,0,2,3001010038,2,bind_items,6120000120,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Character,ZERO - Agent Zero,3001130030,0,2,3001130030,2,bind_items,6120000250,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Character,RAN - Rave,3001100027,0,2,3001100027,2,bind_items,6120000210,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Character,NACHO - EDM,3110000264,0,2,3110000264,2,bind_items,6120000230,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Character,VOLT - Overlord,3001140039,0,2,3001140039,2,bind_items,6120000280,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Character,ETHAN - Attack on Titan,3000010106,0,1,3000010106,1,bind_items,6120000350,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Character,ETHAN - Scout Regiment - Eren,3000010109,0,3,3000010113,2,bind_items,6130000030,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Character,ETHAN - Alien Walker,3000010112,0,3,3000010111,2,bind_items,6120000110,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Character,JET - Flameborne,3001020022,0,2,3001020022,2,bind_items,6120000140,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Character,ETHAN  - EVA-01,3001010022,0,3,3001010030,2,bind_items,6042000086,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Character,ETHAN - Enzo: Rising Star,3001010042,0,2,3001010042,2,bind_items,6120000500,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Character,Ethan - Mumen Rider,3001010040,0,2,3001010040,2,bind_items,6120000470,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Character,ETHAN - Eren: Born Free,3001010421,0,3,3001010411,2,bind_items,6120000520,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Character,ETHAN - Eren: Born Free,3001010421,0,3,3001010411,2,bind_items,6130000200,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Character,JET - Comet,3001020020,0,3,3001020019,2,bind_items,6120000130,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Character,JET - Psycho Clown,3001020261,0,2,3001020261,2,bind_items,6120000550,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Character,JET - Psycho Clown,3001020261,0,2,3001020261,2,bind_items,6130000230,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Character,NOVA - Scarlet Queen,3001030024,0,2,3001030024,2,bind_items,6120000150,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Character,NOVA - Nightmare,3001030013,0,3,3001030012,2,bind_items,6120000100,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Character,NOVA - Thorn Rose,3001030025,0,2,3001030025,2,bind_items,6120000160,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Character,NOVA - Missa's Shark Skin,3001030301,0,2,3001030301,2,bind_items,6130000170,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Character,NOVA - Shardcrown,3001030361,0,4,3001030341,2,bind_items,6120000590,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Character,NOVA - Shardcrown,3001030361,0,4,3001030361,4,bind_items,3001030311,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Character,NOVA - Shardcrown,3001030361,0,4,3001030361,4,bind_items,6180000020,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Character,NOVA - Shardcrown,3001030361,0,4,3001030361,4,bind_items,6050000307,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Character,NOVA - Shardcrown,3001030421,0,4,3001030421,4,bind_items,3001030321,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Character,VAL - Cleopatra,3001040191,0,3,3001040181,2,bind_items,6120000510,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Character,HANK - Golden Killer,3001050026,0,2,3001050026,2,bind_items,6120000170,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Character,HANK - Doom,3001050024,0,3,3001050023,2,bind_items,6120000430,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Character,HANK - JuegaGerman,3001050271,0,2,3001050271,2,bind_items,6130000190,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Character,HANK - Mr. Iguana,3001050291,0,2,3001050291,2,bind_items,6130000240,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Character,SPIKE - Twilight Baron,3001060013,0,2,3001060013,2,bind_items,6120000180,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Character,SPIKE - Ken Ryuguji,3001060008,0,1,3001060008,1,bind_items,6120000390,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Character,E.M.T. - Rei Skin,3001070005,0,2,3001070005,2,bind_items,6042000093,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Character,KRAKEN - 8-Bit Enforcer,3001080017,0,2,3001080017,2,bind_items,6120000200,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Character,KRAKEN - Void Cloak,3001080012,0,3,3001080011,2,bind_items,6120000190,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Character,KRAKEN - Vanish,3001080201,0,3,3001080191,2,bind_items,6120000600,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Character,RAN - Scout Regiment - Mikasa,3001100007,0,3,3001100010,2,bind_items,6130000010,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Character,RAN - Rukia Kuchiki,3001100025,0,2,3001100025,2,bind_items,6130000100,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Character,RAN - Deer Spirit,3001100028,0,2,3001100028,2,bind_items,6120000220,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Character,RAN - Mikasa:Angel,3001100291,0,2,3001100291,2,bind_items,6130000220,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Character,ZERO - Scout Regiment - Levi,3001130009,0,3,3001130008,2,bind_items,6050000031,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Character,ZERO - Nullifier,3001130031,0,2,3001130031,2,bind_items,6120000260,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Character,ZERO - Odashadow,3001130022,0,3,3001130021,2,bind_items,6120000240,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Character,ZERO - Ichigo Kurosaki,3001130027,0,2,3001130027,2,bind_items,6130000110,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Character,ZERO - Levi: Battle-Hardened,3001130351,0,2,3001130351,2,bind_items,6130000210,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Character,ZERO - Dark Matter,3001130381,0,3,3001130371,2,bind_items,6120000570,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Character,VOLT - Armored Titan,3001140008,0,1,3001140008,1,bind_items,6120000380,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Character,VOLT - DeathClaw,3001140013,0,3,3001140012,2,bind_items,6120000270,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Character,VOLT - Izana Kurokawa,3001140034,0,3,3001140033,1,bind_items,6120000410,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Character,VOLT - Mantra,3001140037,0,3,3001140036,2,bind_items,6120000540,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Character,EMMA - Hexa,3001150050,0,2,3001150050,2,bind_items,6120000310,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Character,EMMA - ENERGY BLOOM,3001150051,0,2,3001150051,2,bind_items,6120000320,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Character,EMMA - BEAR PAJAMAS,3001150052,0,2,3001150052,2,bind_items,6120000330,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Character,EMMA - Elizabeth,3001150047,0,2,3001150047,2,bind_items,6042000244,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Character,EMMA - Royal,3001150038,0,3,3001150036,2,bind_items,6120000290,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Character,EMMA - Elizabeth (Goddess),3001150046,0,3,3001150034,1,bind_items,6120000360,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Character,EMMA - Elizabeth (Goddess),3001150046,0,3,3001150045,2,bind_items,6130000130,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Character,EMMA - Elizabeth (Goddess),3001150046,0,3,3001150046,3,bind_items,6042000240,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Character,EMMA - Luxie,3001150043,0,3,3001150042,2,bind_items,6120000300,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Character,KATYA - Asuka,3001170007,0,2,3001170007,2,bind_items,6042000085,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Character,KATYA - VEXX,3001170016,0,2,3001170016,2,bind_items,6120000340,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Character,KATYA - Glint,3001170014,0,3,3001170013,2,bind_items,6120000420,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Character,KATYA - Female Titan,3001170171,0,2,3001170171,2,bind_items,6120000530,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Character,Jack - The Strongest Hero,3001190012,0,2,3001190012,2,bind_items,6120000440,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Character,Jack - The Strongest Hero,3001190012,0,2,3001190012,2,bind_items,6130000150,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Character,JACK - Fernanfloo,3001190141,0,2,3001190141,2,bind_items,6130000180,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Character,LUCIAN - Meliodas,3001220016,0,2,3001220016,2,bind_items,6042000242,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Character,LUCIAN - Meliodas (Demon),3001220015,0,3,3001220011,1,bind_items,6120000370,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Character,LUCIAN - Meliodas (Demon),3001220015,0,3,3001220014,2,bind_items,6130000120,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Character,LUCIAN - Meliodas (Demon),3001220015,0,3,3001220015,3,bind_items,6042000243,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Character,ALONDRA - Jumper: Arc,3001240014,0,3,3001240013,2,bind_items,6120000480,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Character,NACHO - Manjiro Sano: Bloody Halloween,3110000262,0,3,3110000261,1,bind_items,6120000400,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Character,Nacho - Genos: Limit Break,3110000267,0,3,3110000272,2,bind_items,6120000450,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Character,Nacho - Genos: Limit Break,3110000267,0,3,3110000272,2,bind_items,6130000160,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Character,NACHO - Enzo: Coronation,3110000263,0,3,3110000270,2,bind_items,6130000140,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,KAG-6 - Glacier,5100000500,141100004,3,5100000500,3,kill_hud_id,11497,Kill-feed/HUD reference; not a kill VFX or deathbox ID,observed-field
+Gun,KAG-6 - Glacier,5100000500,141100004,3,5100000490,2,kill_hud_id,11497,Kill-feed/HUD reference; not a kill VFX or deathbox ID,observed-field
+Gun,AK47 - Hellbound,5100000270,101100006,5,5100000270,5,kill_hud_id,11168,Kill-feed/HUD reference; not a kill VFX or deathbox ID,observed-field
+Gun,AK47 - Hellbound,5100000270,101100006,5,5100000270,5,hit_effect,1,Hit-effect reference; not evidence of an elimination effect,observed-field
+Gun,AK47 - Hellbound,5100000270,101100006,5,5100000260,4,kill_hud_id,11168,Kill-feed/HUD reference; not a kill VFX or deathbox ID,observed-field
+Gun,AK47 - Hellbound,5100000270,101100006,5,5100000250,3,kill_hud_id,11168,Kill-feed/HUD reference; not a kill VFX or deathbox ID,observed-field
+Gun,AK47 - Hellbound,5100000270,101100006,5,5100000240,2,kill_hud_id,11168,Kill-feed/HUD reference; not a kill VFX or deathbox ID,observed-field
+Gun,SCAR - Venom,5100000300,231100005,3,5100000300,3,kill_hud_id,11209,Kill-feed/HUD reference; not a kill VFX or deathbox ID,observed-field
+Gun,SCAR - Venom,5100000300,231100005,3,5100000290,2,kill_hud_id,11209,Kill-feed/HUD reference; not a kill VFX or deathbox ID,observed-field
+Gun,URB - Neko,5200000340,161100008,3,5200000330,2,kill_hud_id,11275,Kill-feed/HUD reference; not a kill VFX or deathbox ID,observed-field
+Gun,URB - Neko,5200000340,161100008,3,5200000340,3,kill_hud_id,11275,Kill-feed/HUD reference; not a kill VFX or deathbox ID,observed-field
+Gun,M4A1 - Year of the Dragon,5100000410,11100011,5,5100000410,5,kill_hud_id,11429,Kill-feed/HUD reference; not a kill VFX or deathbox ID,observed-field
+Gun,M4A1 - Year of the Dragon,5100000410,11100011,5,5100000410,5,hit_effect,1,Hit-effect reference; not evidence of an elimination effect,observed-field
+Gun,M4A1 - Year of the Dragon,5100000410,11100011,5,5100000400,4,kill_hud_id,11429,Kill-feed/HUD reference; not a kill VFX or deathbox ID,observed-field
+Gun,M4A1 - Year of the Dragon,5100000410,11100011,5,5100000390,3,kill_hud_id,11429,Kill-feed/HUD reference; not a kill VFX or deathbox ID,observed-field
+Gun,M4A1 - Year of the Dragon,5100000410,11100011,5,5100000380,2,kill_hud_id,11429,Kill-feed/HUD reference; not a kill VFX or deathbox ID,observed-field
+Gun,AK47 - Midnight Terror,5100000550,101100010,5,5100000550,5,kill_hud_id,11560,Kill-feed/HUD reference; not a kill VFX or deathbox ID,observed-field
+Gun,AK47 - Midnight Terror,5100000550,101100010,5,5100000550,5,hit_effect,1,Hit-effect reference; not evidence of an elimination effect,observed-field
+Gun,AK47 - Midnight Terror,5100000550,101100010,5,5100000540,4,kill_hud_id,11560,Kill-feed/HUD reference; not a kill VFX or deathbox ID,observed-field
+Gun,AK47 - Midnight Terror,5100000550,101100010,5,5100000530,3,kill_hud_id,11560,Kill-feed/HUD reference; not a kill VFX or deathbox ID,observed-field
+Gun,AK47 - Midnight Terror,5100000550,101100010,5,5100000520,2,kill_hud_id,11560,Kill-feed/HUD reference; not a kill VFX or deathbox ID,observed-field
+Gun,AR97 - Neon,5100000580,271100001,3,5100000580,3,kill_hud_id,11642,Kill-feed/HUD reference; not a kill VFX or deathbox ID,observed-field
+Gun,AR97 - Neon,5100000580,271100001,3,5100000570,2,kill_hud_id,11642,Kill-feed/HUD reference; not a kill VFX or deathbox ID,observed-field
+Gun,KAG-6 - Dynamite,5100000750,141100009,6,5100000750,6,bind_items,6040010000,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,KAG-6 - Dynamite,5100000750,141100009,6,5100000750,6,bind_items,1100004200,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,M4A1 - Viridian Dream,5100000690,11100014,3,5100000680,2,kill_hud_id,11688,Kill-feed/HUD reference; not a kill VFX or deathbox ID,observed-field
+Gun,M4A1 - Viridian Dream,5100000690,11100014,3,5100000690,3,kill_hud_id,11688,Kill-feed/HUD reference; not a kill VFX or deathbox ID,observed-field
+Gun,SCAR - Force of Nature,5100000670,231100010,5,5100000670,5,kill_hud_id,11722,Kill-feed/HUD reference; not a kill VFX or deathbox ID,observed-field
+Gun,SCAR - Force of Nature,5100000670,231100010,5,5100000670,5,hit_effect,1,Hit-effect reference; not evidence of an elimination effect,observed-field
+Gun,SCAR - Force of Nature,5100000670,231100010,5,5100000660,4,kill_hud_id,11722,Kill-feed/HUD reference; not a kill VFX or deathbox ID,observed-field
+Gun,SCAR - Force of Nature,5100000670,231100010,5,5100000650,3,kill_hud_id,11722,Kill-feed/HUD reference; not a kill VFX or deathbox ID,observed-field
+Gun,SCAR - Force of Nature,5100000670,231100010,5,5100000640,2,kill_hud_id,11722,Kill-feed/HUD reference; not a kill VFX or deathbox ID,observed-field
+Gun,M4A1 - Apocalypse,5100000850,11100016,5,5100000850,5,kill_hud_id,11722,Kill-feed/HUD reference; not a kill VFX or deathbox ID,observed-field
+Gun,M4A1 - Apocalypse,5100000850,11100016,5,5100000850,5,hit_effect,1,Hit-effect reference; not evidence of an elimination effect,observed-field
+Gun,M4A1 - Apocalypse,5100000850,11100016,5,5100000840,4,kill_hud_id,11722,Kill-feed/HUD reference; not a kill VFX or deathbox ID,observed-field
+Gun,M4A1 - Apocalypse,5100000850,11100016,5,5100000830,3,kill_hud_id,11722,Kill-feed/HUD reference; not a kill VFX or deathbox ID,observed-field
+Gun,M4A1 - Apocalypse,5100000850,11100016,5,5100000820,2,kill_hud_id,11722,Kill-feed/HUD reference; not a kill VFX or deathbox ID,observed-field
+Gun,M4A1 - Blight's Embrace,5100000950,11100018,6,5100000950,6,bind_items,6040010010,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,M4A1 - Blight's Embrace,5100000950,11100018,6,5100000950,6,bind_items,1100004440,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,M4A1 - Sacred Embrace,5100001600,11100020,6,5100001600,6,bind_items,6060000040,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,M4A1 - Sacred Embrace,5100001600,11100020,6,5100001600,6,bind_items,6040010020,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,M4A1 - Vicious Beast,5100001093,11100022,3,5100001093,3,kill_hud_id,11722,Kill-feed/HUD reference; not a kill VFX or deathbox ID,observed-field
+Gun,M4A1 - Vicious Beast,5100001093,11100022,3,5100001092,2,kill_hud_id,11722,Kill-feed/HUD reference; not a kill VFX or deathbox ID,observed-field
+Gun,M4A1 - Reaper,5100001113,11100023,3,5100001112,2,kill_hud_id,11722,Kill-feed/HUD reference; not a kill VFX or deathbox ID,observed-field
+Gun,M4A1 - Reaper,5100001113,11100023,3,5100001113,3,kill_hud_id,11722,Kill-feed/HUD reference; not a kill VFX or deathbox ID,observed-field
+Gun,SCAR - Dominator,5100001180,231100016,6,5100001180,6,bind_items,6040010050,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,SCAR - Dominator,5100001180,231100016,6,5100001180,6,bind_items,1100231580,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,M4A1 - Glacier,5100001193,11100024,3,5100001193,3,kill_hud_id,11722,Kill-feed/HUD reference; not a kill VFX or deathbox ID,observed-field
+Gun,M4A1 - Glacier,5100001193,11100024,3,5100001192,2,kill_hud_id,11722,Kill-feed/HUD reference; not a kill VFX or deathbox ID,observed-field
+Gun,AR97 - Venom,5100001253,271100006,3,5100001253,3,kill_hud_id,11642,Kill-feed/HUD reference; not a kill VFX or deathbox ID,observed-field
+Gun,AR97 - Venom,5100001253,271100006,3,5100001252,2,kill_hud_id,11642,Kill-feed/HUD reference; not a kill VFX or deathbox ID,observed-field
+Gun,KAG-6 - Explorer,5100001293,141100013,3,5100001293,3,kill_hud_id,11497,Kill-feed/HUD reference; not a kill VFX or deathbox ID,observed-field
+Gun,KAG-6 - Explorer,5100001293,141100013,3,5100001292,2,kill_hud_id,11497,Kill-feed/HUD reference; not a kill VFX or deathbox ID,observed-field
+Gun,AK47 - Void,5100001315,101100016,5,5100001314,4,kill_hud_id,11168,Kill-feed/HUD reference; not a kill VFX or deathbox ID,observed-field
+Gun,AK47 - Void,5100001315,101100016,5,5100001313,3,kill_hud_id,11168,Kill-feed/HUD reference; not a kill VFX or deathbox ID,observed-field
+Gun,AK47 - Void,5100001315,101100016,5,5100001312,2,kill_hud_id,11168,Kill-feed/HUD reference; not a kill VFX or deathbox ID,observed-field
+Gun,AK47 - Void,5100001315,101100016,5,5100001315,5,kill_hud_id,11168,Kill-feed/HUD reference; not a kill VFX or deathbox ID,observed-field
+Gun,AK47 - Void,5100001315,101100016,5,5100001315,5,hit_effect,1,Hit-effect reference; not evidence of an elimination effect,observed-field
+Gun,AUG - Lapis Lazuli,5100001323,291100002,3,5100001323,3,kill_hud_id,11642,Kill-feed/HUD reference; not a kill VFX or deathbox ID,observed-field
+Gun,AUG - Lapis Lazuli,5100001323,291100002,3,5100001322,2,kill_hud_id,11642,Kill-feed/HUD reference; not a kill VFX or deathbox ID,observed-field
+Gun,SCAR - Molten Core,5100001365,231100019,5,5100001363,3,kill_hud_id,11168,Kill-feed/HUD reference; not a kill VFX or deathbox ID,observed-field
+Gun,SCAR - Molten Core,5100001365,231100019,5,5100001362,2,kill_hud_id,11168,Kill-feed/HUD reference; not a kill VFX or deathbox ID,observed-field
+Gun,SCAR - Molten Core,5100001365,231100019,5,5100001365,5,kill_hud_id,11168,Kill-feed/HUD reference; not a kill VFX or deathbox ID,observed-field
+Gun,SCAR - Molten Core,5100001365,231100019,5,5100001365,5,hit_effect,1,Hit-effect reference; not evidence of an elimination effect,observed-field
+Gun,SCAR - Molten Core,5100001365,231100019,5,5100001364,4,kill_hud_id,11168,Kill-feed/HUD reference; not a kill VFX or deathbox ID,observed-field
+Gun,AUG - REQUIEM,5100001486,291100006,6,5100001486,6,bind_items,6040010080,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,AUG - REQUIEM,5100001486,291100006,6,5100001486,6,bind_items,1100291660,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,AK47 - Chiaroscuro,5100001526,101100022,6,5100001526,6,bind_items,6040010100,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,AK47 - Chiaroscuro,5100001526,101100022,6,5100001526,6,bind_items,1100103830,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,AUG - Sunburst,5100001546,291100008,6,5100001546,6,bind_items,6040010090,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,AUG - Sunburst,5100001546,291100008,6,5100001546,6,bind_items,6060000180,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,SCAR - Liberator,5100001660,231100022,6,5100001660,6,bind_items,6040010060,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,SCAR - Liberator,5100001660,231100022,6,5100001660,6,bind_items,6060000130,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,KAG-6 - Icicle,5100001675,141100012,5,5100001673,3,kill_hud_id,11722,Kill-feed/HUD reference; not a kill VFX or deathbox ID,observed-field
+Gun,KAG-6 - Icicle,5100001675,141100012,5,5100001672,2,kill_hud_id,11722,Kill-feed/HUD reference; not a kill VFX or deathbox ID,observed-field
+Gun,KAG-6 - Icicle,5100001675,141100012,5,5100001675,5,kill_hud_id,11722,Kill-feed/HUD reference; not a kill VFX or deathbox ID,observed-field
+Gun,KAG-6 - Icicle,5100001675,141100012,5,5100001675,5,hit_effect,1,Hit-effect reference; not evidence of an elimination effect,observed-field
+Gun,KAG-6 - Icicle,5100001675,141100012,5,5100001674,4,kill_hud_id,11722,Kill-feed/HUD reference; not a kill VFX or deathbox ID,observed-field
+Gun,AR97 - Bounty Hunter,5100001683,271100005,3,5100001683,3,kill_hud_id,11642,Kill-feed/HUD reference; not a kill VFX or deathbox ID,observed-field
+Gun,AR97 - Bounty Hunter,5100001683,271100005,3,5100001682,2,kill_hud_id,11642,Kill-feed/HUD reference; not a kill VFX or deathbox ID,observed-field
+Gun,AUG - Bounty Hunter,5100001693,291100001,3,5100001693,3,kill_hud_id,11642,Kill-feed/HUD reference; not a kill VFX or deathbox ID,observed-field
+Gun,AUG - Bounty Hunter,5100001693,291100001,3,5100001692,2,kill_hud_id,11642,Kill-feed/HUD reference; not a kill VFX or deathbox ID,observed-field
+Gun,AK47 - Overload,5100100106,101199010,6,5100100106,6,bind_items,6042000082,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,AK47 - Overload,5100100106,101199010,6,5100100106,6,bind_items,1100102950,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,AK47 - Prismatic Mirage,5100100116,101199011,6,5100100116,6,bind_items,6042000083,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,AK47 - Prismatic Mirage,5100100116,101199011,6,5100100116,6,bind_items,6060000480,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,AK47 - Hellride,5100100157,1011990155,7,5100100157,7,bind_items,6160000042,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,AK47 - Hellride,5100100157,1011990155,7,5100100156,6,bind_items,6042000200,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,AK47 - Hellride,5100100157,1011990155,7,5100100156,6,bind_items,1100104590,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,AK47 - Hellride,5100100157,1011990155,7,5100100156,6,bind_items,6150000100,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,AK47 - Hellride,5100100167,1011990165,7,5100100167,7,bind_items,6042000201,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,AK47 - Hellride,5100100167,1011990165,7,5100100167,7,bind_items,6150000110,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,AK47 - Hellride,5100100167,1011990165,7,5100100167,7,bind_items,6160000043,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,AK47 - Hellride,5100100167,1011990165,7,5100100166,6,bind_items,6042000201,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,AK47 - Hellride,5100100167,1011990165,7,5100100166,6,bind_items,6150000110,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,AK47 - Dark Matter,5100100268,1011990263,8,5100100260,1,bind_items,6170000010,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,M4A1 - Tiadraco,510010117,11199011,7,510010116,6,bind_items,6042000097,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,M4A1 - Tiadraco,510010117,11199011,7,510010116,6,bind_items,1100013220,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,M4A1 - Tiadraco,510010117,11199011,7,510010116,6,bind_items,6150000040,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,M4A1 - Tiadraco,510010117,11199011,7,510010117,7,bind_items,6160000020,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,M4A1 - Eternal Oracle,510010207,11199020,7,510010206,6,bind_items,6042000098,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,M4A1 - Eternal Oracle,510010207,11199020,7,510010206,6,bind_items,6150000050,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,M4A1 - Eternal Oracle,510010207,11199020,7,510010207,7,bind_items,6042000098,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,M4A1 - Eternal Oracle,510010207,11199020,7,510010207,7,bind_items,6150000050,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,M4A1 - Eternal Oracle,510010207,11199020,7,510010207,7,bind_items,6160000021,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,M4A1 - Royal,510010276,111990272,6,510010276,6,bind_items,1100015040,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,KAG-6 - Inkforge,5100140116,141199011,6,5100140116,6,bind_items,6040010220,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,KAG-6 - Inkforge,5100140116,141199011,6,5100140116,6,bind_items,1100142800,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,KAG-6 - Divine Machine,5100140126,141199012,6,5100140126,6,bind_items,6040010230,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,KAG-6 - Divine Machine,5100140126,141199012,6,5100140126,6,bind_items,6060000390,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,KAG-6 - Star Chaser,5100140206,1411990202,6,5100140206,6,bind_items,6140000270,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,KAG-6 - Star Chaser,5100140206,1411990202,6,5100140206,6,bind_items,1100142170,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,SCAR - Stellar,5100230067,231199006,7,5100230066,6,bind_items,6040010160,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,SCAR - Stellar,5100230067,231199006,7,5100230066,6,bind_items,1100231980,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,SCAR - Stellar,5100230067,231199006,7,5100230066,6,bind_items,6150000020,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,SCAR - Stellar,5100230067,231199006,7,5100230067,7,bind_items,6160000010,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,SCAR - Bone Stellar,5100230077,231199007,7,5100230076,6,bind_items,6040010170,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,SCAR - Bone Stellar,5100230077,231199007,7,5100230076,6,bind_items,6150000030,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,SCAR - Bone Stellar,5100230077,231199007,7,5100230077,7,bind_items,6040010170,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,SCAR - Bone Stellar,5100230077,231199007,7,5100230077,7,bind_items,6150000030,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,SCAR - Bone Stellar,5100230077,231199007,7,5100230077,7,bind_items,6160000011,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,AUG - Empyrean,5100290096,2911990095,6,5100290096,6,bind_items,6140000020,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,AUG - Empyrean,5100290096,2911990095,6,5100290096,6,bind_items,1100291100,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,AUG - Riptide,5100290207,2911990203,7,5100290207,7,bind_items,6160000046,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,AUG - Riptide,5100290207,2911990203,7,5100290206,6,bind_items,6042000248,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,AUG - Riptide,5100290207,2911990203,7,5100290206,6,bind_items,1100295310,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,AUG - Riptide,5100290207,2911990203,7,5100290206,6,bind_items,6150000140,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,AUG - Roar,5100290217,2911990213,7,5100290217,7,bind_items,6042000249,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,AUG - Roar,5100290217,2911990213,7,5100290217,7,bind_items,6150000150,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,AUG - Roar,5100290217,2911990213,7,5100290217,7,bind_items,6160000047,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,AUG - Roar,5100290217,2911990213,7,5100290216,6,bind_items,6042000249,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,AUG - Roar,5100290217,2911990213,7,5100290216,6,bind_items,6150000150,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,FN2000 - Requiem,5100370106,3711990102,6,5100370106,6,bind_items,6060000880,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,FN2000 - Requiem,5100370106,3711990102,6,5100370106,6,bind_items,1100371660,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,FN2000 - Vessel,5100370126,3711990122,6,5100370126,6,bind_items,6042000309,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,FN2000 - Vessel,5100370126,3711990122,6,5100370126,6,bind_items,1100376070,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,FN2000 - Vein,5100370136,3711990132,6,5100370136,6,bind_items,6042000310,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,FN2000 - Vein,5100370136,3711990132,6,5100370136,6,bind_items,6060001030,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,Galil - Noxdra,5100380036,3811990035,6,5100380036,6,bind_items,6040010200,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,Galil - Noxdra,5100380036,3811990035,6,5100380036,6,bind_items,1100382500,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,Galil - Inferno,5100380066,3811990063,6,5100380066,6,bind_items,6040010210,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,Galil - Inferno,5100380066,3811990063,6,5100380066,6,bind_items,6060000410,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,Galil - Reaper,5100380107,3811990107,7,5100380107,7,bind_items,6160000040,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,Galil - Reaper,5100380107,3811990107,7,5100380106,6,bind_items,6042000161,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,Galil - Reaper,5100380107,3811990107,7,5100380106,6,bind_items,1100383570,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,Galil - Reaper,5100380107,3811990107,7,5100380106,6,bind_items,6150000080,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,Galil - Aurelian,5100380147,3811990142,7,5100380147,7,bind_items,6042000162,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,Galil - Aurelian,5100380147,3811990142,7,5100380147,7,bind_items,6150000090,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,Galil - Aurelian,5100380147,3811990142,7,5100380147,7,bind_items,6160000041,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,Galil - Aurelian,5100380147,3811990142,7,5100380146,6,bind_items,6042000162,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,Galil - Aurelian,5100380147,3811990142,7,5100380146,6,bind_items,6150000090,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,Galil - Blight's Embrace,5100380216,3811990212,6,5100380216,6,bind_items,6140000340,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,Galil - Fright,5100380266,3811990262,6,5100380266,6,bind_items,6042000391,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,Galil - Fright,5100380266,3811990262,6,5100380266,6,bind_items,1100385690,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,Galil - Menace,5100380276,3811990272,6,5100380276,6,bind_items,6042000392,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,Galil - Menace,5100380276,3811990272,6,5100380276,6,bind_items,6060001400,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,QBZ95 - EVA-01,5100390106,3911990106,6,5100390106,6,bind_items,6042000111,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,QBZ95 - EVA-01,5100390106,3911990106,6,5100390105,5,bind_items,6042000104,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,QBZ95 - EVA-01,5100390106,3911990106,6,5100390105,5,bind_items,6060000450,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,QBZ95 - Whisper,5100390126,3911990124,6,5100390126,6,bind_items,6042000116,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,QBZ95 - Whisper,5100390126,3911990124,6,5100390126,6,bind_items,1100393260,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,KAG-6 - Matrix,5100390137,3911990132,7,5100390136,6,bind_items,6042000120,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,KAG-6 - Matrix,5100390137,3911990132,7,5100390136,6,bind_items,1100143650,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,KAG-6 - Matrix,5100390137,3911990132,7,5100390136,6,bind_items,6150000060,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,KAG-6 - Matrix,5100390137,3911990132,7,5100390137,7,bind_items,6160000030,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,KAG-6 - Verdicube,5100390147,3911990142,7,5100390146,6,bind_items,6042000121,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,KAG-6 - Verdicube,5100390147,3911990142,7,5100390146,6,bind_items,6150000070,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,KAG-6 - Verdicube,5100390147,3911990142,7,5100390147,7,bind_items,6042000121,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,KAG-6 - Verdicube,5100390147,3911990142,7,5100390147,7,bind_items,6150000070,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,KAG-6 - Verdicube,5100390147,3911990142,7,5100390147,7,bind_items,6160000031,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,QBZ95 - Seaside Serenade,5100390156,3911990154,6,5100390156,6,bind_items,6042000117,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,QBZ95 - Seaside Serenade,5100390156,3911990154,6,5100390156,6,bind_items,6060000600,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,QBZ95 - Penetrator,5100390277,3911990273,7,5100390277,7,bind_items,6160000070,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,QBZ95 - Penetrator,5100390277,3911990273,7,5100390276,6,bind_items,6042000333,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,QBZ95 - Penetrator,5100390277,3911990273,7,5100390276,6,bind_items,1100396210,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,QBZ95 - Penetrator,5100390277,3911990273,7,5100390276,6,bind_items,6150000220,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,QBZ95 - Rosso Corsa,5100390287,3911990283,7,5100390287,7,bind_items,6042000334,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,QBZ95 - Rosso Corsa,5100390287,3911990283,7,5100390287,7,bind_items,6150000230,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,QBZ95 - Rosso Corsa,5100390287,3911990283,7,5100390287,7,bind_items,6160000071,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,QBZ95 - Rosso Corsa,5100390287,3911990283,7,5100390286,6,bind_items,6042000334,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,QBZ95 - Rosso Corsa,5100390287,3911990283,7,5100390286,6,bind_items,6150000230,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,RPK - Flourish,5100410146,4111990142,6,5100410146,6,bind_items,6042000373,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,RPK - Flourish,5100410146,4111990142,6,5100410146,6,bind_items,1700415970,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,RPK - Evergreen,5100410156,4111990152,6,5100410156,6,bind_items,6042000374,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,RPK - Evergreen,5100410156,4111990152,6,5100410156,6,bind_items,6060001300,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,Spear - Relic,5100440076,4411990072,6,5100440076,6,bind_items,6042000198,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,Spear - Relic,5100440076,4411990072,6,5100440076,6,bind_items,1100444580,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,Spear - Bonedusk,5100440086,4411990082,6,5100440086,6,bind_items,6042000199,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,Spear - Bonedusk,5100440086,4411990082,6,5100440086,6,bind_items,6060000790,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,Spear - Freeze,5100440127,4411990123,7,5100440127,7,bind_items,6160000050,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,Spear - Freeze,5100440127,4411990123,7,5100440126,6,bind_items,6042000298,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,Spear - Freeze,5100440127,4411990123,7,5100440126,6,bind_items,1100446040,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,Spear - Freeze,5100440127,4411990123,7,5100440126,6,bind_items,6150000180,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,Spear - Reign,5100440137,4411990133,7,5100440137,7,bind_items,6042000299,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,Spear - Reign,5100440137,4411990133,7,5100440137,7,bind_items,6150000190,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,Spear - Reign,5100440137,4411990133,7,5100440137,7,bind_items,6160000051,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,Spear - Reign,5100440137,4411990133,7,5100440136,6,bind_items,6042000299,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,Spear - Reign,5100440137,4411990133,7,5100440136,6,bind_items,6150000190,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,URB - Radiant,5200000200,161100002,4,5200000200,4,kill_hud_id,11133,Kill-feed/HUD reference; not a kill VFX or deathbox ID,observed-field
+Gun,URB - Radiant,5200000200,161100002,4,5200000190,3,kill_hud_id,11133,Kill-feed/HUD reference; not a kill VFX or deathbox ID,observed-field
+Gun,URB - Radiant,5200000200,161100002,4,5200000180,2,kill_hud_id,11133,Kill-feed/HUD reference; not a kill VFX or deathbox ID,observed-field
+Gun,P90 - Blood Crystal,5200000250,241100002,5,5200000250,5,kill_hud_id,11251,Kill-feed/HUD reference; not a kill VFX or deathbox ID,observed-field
+Gun,P90 - Blood Crystal,5200000250,241100002,5,5200000250,5,hit_effect,1,Hit-effect reference; not evidence of an elimination effect,observed-field
+Gun,P90 - Blood Crystal,5200000250,241100002,5,5200000240,4,kill_hud_id,11251,Kill-feed/HUD reference; not a kill VFX or deathbox ID,observed-field
+Gun,P90 - Blood Crystal,5200000250,241100002,5,5200000230,3,kill_hud_id,11251,Kill-feed/HUD reference; not a kill VFX or deathbox ID,observed-field
+Gun,P90 - Blood Crystal,5200000250,241100002,5,5200000220,2,kill_hud_id,11251,Kill-feed/HUD reference; not a kill VFX or deathbox ID,observed-field
+Gun,Vector - Aquarium,5200000380,81100006,3,5200000380,3,kill_hud_id,11396,Kill-feed/HUD reference; not a kill VFX or deathbox ID,observed-field
+Gun,Vector - Aquarium,5200000380,81100006,3,5200000370,2,kill_hud_id,11396,Kill-feed/HUD reference; not a kill VFX or deathbox ID,observed-field
+Gun,P90 - Nebula,5200000430,241100004,3,5200000430,3,kill_hud_id,11619,Kill-feed/HUD reference; not a kill VFX or deathbox ID,observed-field
+Gun,P90 - Nebula,5200000430,241100004,3,5200000420,2,kill_hud_id,11619,Kill-feed/HUD reference; not a kill VFX or deathbox ID,observed-field
+Gun,URB - Neon,5200000480,161100010,3,5200000480,3,kill_hud_id,11642,Kill-feed/HUD reference; not a kill VFX or deathbox ID,observed-field
+Gun,URB - Neon,5200000480,161100010,3,5200000470,2,kill_hud_id,11642,Kill-feed/HUD reference; not a kill VFX or deathbox ID,observed-field
+Gun,P90 - Iridescent,5200000673,241100007,3,5200000673,3,kill_hud_id,11619,Kill-feed/HUD reference; not a kill VFX or deathbox ID,observed-field
+Gun,P90 - Iridescent,5200000673,241100007,3,5200000672,2,kill_hud_id,11619,Kill-feed/HUD reference; not a kill VFX or deathbox ID,observed-field
+Gun,P90 - Empyrean,5200000686,241100010,6,5200000686,6,bind_items,6040010030,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,P90 - Empyrean,5200000686,241100010,6,5200000686,6,bind_items,1200241100,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,P90 - Elysian,5200000696,241100011,6,5200000696,6,bind_items,6040010040,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,P90 - Elysian,5200000696,241100011,6,5200000696,6,bind_items,6060000070,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,MP5 - Starlitscar,5200000856,21100011,6,5200000856,6,bind_items,6040010120,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,MP5 - Starlitscar,5200000856,21100011,6,5200000856,6,bind_items,6060000240,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,Vector - Shadowdrake,5200170086,81199007,6,5200170086,6,bind_items,6040010140,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,Vector - Shadowdrake,5200170086,81199007,6,5200170086,6,bind_items,1200081890,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,INP-9 - Golden Elegy,5200170206,1711990202,6,5200170206,6,bind_items,6042000315,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,INP-9 - Golden Elegy,5200170206,1711990202,6,5200170206,6,bind_items,1200175290,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,INP-9 - Immortal Lament,5200170216,1711990212,6,5200170216,6,bind_items,6042000316,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,INP-9 - Immortal Lament,5200170216,1711990212,6,5200170216,6,bind_items,6060001190,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,MP5 - Bloodrift,520020056,21199005,6,520020056,6,bind_items,6040010110,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,MP5 - Bloodrift,520020056,21199005,6,520020056,6,bind_items,1200021850,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,MP5 - Empyrean,520020096,211990095,6,520020096,6,bind_items,6140000090,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,MP5 - Empyrean,520020096,211990095,6,520020096,6,bind_items,1200021100,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,MP5 - Dominator,520020156,211990156,6,520020156,6,bind_items,6140000130,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,MP5 - Dominator,520020156,211990156,6,520020156,6,bind_items,1200021580,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,MP5 - Guard,520020197,211990193,7,520020196,6,bind_items,6042000238,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,MP5 - Guard,520020197,211990193,7,520020196,6,bind_items,1200025040,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,MP5 - Guard,520020197,211990193,7,520020196,6,bind_items,6150000120,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,MP5 - Guard,520020197,211990193,7,520020197,7,bind_items,6160000044,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,MP5 - Void Delirium,520020207,211990203,7,520020206,6,bind_items,6042000239,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,MP5 - Void Delirium,520020207,211990203,7,520020206,6,bind_items,6150000130,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,MP5 - Void Delirium,520020207,211990203,7,520020207,7,bind_items,6042000239,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,MP5 - Void Delirium,520020207,211990203,7,520020207,7,bind_items,6150000130,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,MP5 - Void Delirium,520020207,211990203,7,520020207,7,bind_items,6160000045,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,P90 - Maestro,5200240186,2411990182,6,5200240186,6,bind_items,1200243420,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,P90 - King of the World,5200240196,2411990192,6,5200240196,6,bind_items,1200246190,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,Uzi - Star Chaser,5200350056,351199005,6,5200350056,6,bind_items,6040010180,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,Uzi - Star Chaser,5200350056,351199005,6,5200350056,6,bind_items,1200352170,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,Uzi - Holy Crown,5200350066,351199006,6,5200350066,6,bind_items,6040010190,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,Uzi - Holy Crown,5200350066,351199006,6,5200350066,6,bind_items,6060000360,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,Uzi - Scorpius,5200350126,3511990122,6,5200350126,6,bind_items,6042000134,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,Uzi - Scorpius,5200350126,3511990122,6,5200350126,6,bind_items,1200353600,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,Uzi - Icescorp,5200350136,3511990132,6,5200350136,6,bind_items,6042000135,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,Uzi - Icescorp,5200350136,3511990132,6,5200350136,6,bind_items,6060000660,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,UMP45 - Infinite,5200430036,4311990032,6,5200430036,6,bind_items,6042000167,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,UMP45 - Infinite,5200430036,4311990032,6,5200430036,6,bind_items,1200433580,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,UMP45 - Timeworn Prism,5200430046,4311990042,6,5200430046,6,bind_items,6042000168,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,UMP45 - Timeworn Prism,5200430046,4311990042,6,5200430046,6,bind_items,6060000710,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,UMP45 - Forsaken,5200430097,4311990093,7,5200430096,6,bind_items,6042000272,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,UMP45 - Forsaken,5200430097,4311990093,7,5200430096,6,bind_items,1200435570,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,UMP45 - Forsaken,5200430097,4311990093,7,5200430096,6,bind_items,6150000160,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,UMP45 - Forsaken,5200430097,4311990093,7,5200430097,7,bind_items,6160000048,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,UMP45 - Revenant,5200430107,4311990103,7,5200430107,7,bind_items,6042000273,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,UMP45 - Revenant,5200430107,4311990103,7,5200430107,7,bind_items,6150000170,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,UMP45 - Revenant,5200430107,4311990103,7,5200430107,7,bind_items,6160000049,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,UMP45 - Revenant,5200430107,4311990103,7,5200430106,6,bind_items,6042000273,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,UMP45 - Revenant,5200430107,4311990103,7,5200430106,6,bind_items,6150000170,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,MP7 - Burning,5200480036,4811990032,6,5200480036,6,bind_items,6042000275,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,MP7 - Burning,5200480036,4811990032,6,5200480036,6,bind_items,1200485720,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,MP7 - Spectre,5200480046,4811990042,6,5200480046,6,bind_items,6042000276,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,MP7 - Spectre,5200480046,4811990042,6,5200480046,6,bind_items,6060000960,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,Bizon - Seraph,5200500096,5011990092,6,5200500096,6,bind_items,6140000330,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,Bizon - Seraph,5200500096,5011990092,6,5200500096,6,bind_items,1200501620,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,Thompson - Unplugged,5200520046,5211990042,6,5200520046,6,bind_items,6042000349,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,Thompson - Unplugged,5200520046,5211990042,6,5200520046,6,bind_items,1200526300,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,Thompson - Resurrected,5200520056,5211990052,6,5200520056,6,bind_items,6042000350,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,Thompson - Resurrected,5200520056,5211990052,6,5200520056,6,bind_items,6060001230,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,Vector - Frost Oblivion,520080096,81199009,6,520080096,6,bind_items,6040010150,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,Vector - Frost Oblivion,520080096,81199009,6,520080096,6,bind_items,6060000300,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,Vector - Polarity,520080207,811990203,7,520080206,6,bind_items,6042000359,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,Vector - Polarity,520080207,811990203,7,520080206,6,bind_items,1200086200,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,Vector - Polarity,520080207,811990203,7,520080206,6,bind_items,6150000270,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,Vector - Polarity,520080207,811990203,7,520080207,7,bind_items,6160000090,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,Origin-12 - Thunderclaw,5300000250,61100011,5,5300000250,5,kill_hud_id,11722,Kill-feed/HUD reference; not a kill VFX or deathbox ID,observed-field
+Gun,Origin-12 - Thunderclaw,5300000250,61100011,5,5300000250,5,hit_effect,1,Hit-effect reference; not evidence of an elimination effect,observed-field
+Gun,Origin-12 - Thunderclaw,5300000250,61100011,5,5300000240,4,kill_hud_id,11722,Kill-feed/HUD reference; not a kill VFX or deathbox ID,observed-field
+Gun,Origin-12 - Thunderclaw,5300000250,61100011,5,5300000230,3,kill_hud_id,11722,Kill-feed/HUD reference; not a kill VFX or deathbox ID,observed-field
+Gun,Origin-12 - Thunderclaw,5300000250,61100011,5,5300000220,2,kill_hud_id,11722,Kill-feed/HUD reference; not a kill VFX or deathbox ID,observed-field
+Gun,Origin-12 - Glacier,5300000273,61100012,3,5300000273,3,kill_hud_id,11722,Kill-feed/HUD reference; not a kill VFX or deathbox ID,observed-field
+Gun,Origin-12 - Glacier,5300000273,61100012,3,5300000272,2,kill_hud_id,11722,Kill-feed/HUD reference; not a kill VFX or deathbox ID,observed-field
+Gun,Origin-12 - Lava,5300000283,61100013,3,5300000283,3,kill_hud_id,11722,Kill-feed/HUD reference; not a kill VFX or deathbox ID,observed-field
+Gun,Origin-12 - Lava,5300000283,61100013,3,5300000282,2,kill_hud_id,11722,Kill-feed/HUD reference; not a kill VFX or deathbox ID,observed-field
+Gun,Origin-12 - Undercurrent,5300000293,61100014,3,5300000293,3,kill_hud_id,11722,Kill-feed/HUD reference; not a kill VFX or deathbox ID,observed-field
+Gun,Origin-12 - Undercurrent,5300000293,61100014,3,5300000292,2,kill_hud_id,11722,Kill-feed/HUD reference; not a kill VFX or deathbox ID,observed-field
+Gun,M1887 - Netherflame,5300420146,4211990142,6,5300420146,6,bind_items,6140000220,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,M1887 - Netherflame,5300420146,4211990142,6,5300420146,6,bind_items,1300421880,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,M1887 - Destroyer,5300420167,4211990163,7,5300420167,7,bind_items,6160000060,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,M1887 - Destroyer,5300420167,4211990163,7,5300420166,6,bind_items,6042000313,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,M1887 - Destroyer,5300420167,4211990163,7,5300420166,6,bind_items,1300423000,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,M1887 - Destroyer,5300420167,4211990163,7,5300420166,6,bind_items,6150000200,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,M1887 - Executor,5300420177,4211990173,7,5300420177,7,bind_items,6042000314,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,M1887 - Executor,5300420177,4211990173,7,5300420177,7,bind_items,6150000210,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,M1887 - Executor,5300420177,4211990173,7,5300420177,7,bind_items,6160000061,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,M1887 - Executor,5300420177,4211990173,7,5300420176,6,bind_items,6042000314,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,M1887 - Executor,5300420177,4211990173,7,5300420176,6,bind_items,6150000210,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,Bow - Radiant,5400000210,221100001,2,5400000210,2,kill_hud_id,11133,Kill-feed/HUD reference; not a kill VFX or deathbox ID,observed-field
+Gun,Kala - Glacier,5400000300,131100004,3,5400000300,3,kill_hud_id,11497,Kill-feed/HUD reference; not a kill VFX or deathbox ID,observed-field
+Gun,Kala - Glacier,5400000300,131100004,3,5400000290,2,kill_hud_id,11497,Kill-feed/HUD reference; not a kill VFX or deathbox ID,observed-field
+Gun,M700 - Power Surge,5400000280,181100008,5,5400000280,5,kill_hud_id,11541,Kill-feed/HUD reference; not a kill VFX or deathbox ID,observed-field
+Gun,M700 - Power Surge,5400000280,181100008,5,5400000280,5,hit_effect,1,Hit-effect reference; not evidence of an elimination effect,observed-field
+Gun,M700 - Power Surge,5400000280,181100008,5,5400000270,4,kill_hud_id,11541,Kill-feed/HUD reference; not a kill VFX or deathbox ID,observed-field
+Gun,M700 - Power Surge,5400000280,181100008,5,5400000270,4,hit_effect,1,Hit-effect reference; not evidence of an elimination effect,observed-field
+Gun,M700 - Power Surge,5400000280,181100008,5,5400000260,3,kill_hud_id,11541,Kill-feed/HUD reference; not a kill VFX or deathbox ID,observed-field
+Gun,M700 - Power Surge,5400000280,181100008,5,5400000250,2,kill_hud_id,11541,Kill-feed/HUD reference; not a kill VFX or deathbox ID,observed-field
+Gun,M700 - Boitatá,5400000455,181100016,5,5400000455,5,kill_hud_id,11541,Kill-feed/HUD reference; not a kill VFX or deathbox ID,observed-field
+Gun,M700 - Boitatá,5400000455,181100016,5,5400000455,5,hit_effect,1,Hit-effect reference; not evidence of an elimination effect,observed-field
+Gun,M700 - Boitatá,5400000455,181100016,5,5400000454,4,kill_hud_id,11541,Kill-feed/HUD reference; not a kill VFX or deathbox ID,observed-field
+Gun,M700 - Boitatá,5400000455,181100016,5,5400000454,4,hit_effect,1,Hit-effect reference; not evidence of an elimination effect,observed-field
+Gun,M700 - Boitatá,5400000455,181100016,5,5400000453,3,kill_hud_id,11541,Kill-feed/HUD reference; not a kill VFX or deathbox ID,observed-field
+Gun,M700 - Boitatá,5400000455,181100016,5,5400000452,2,kill_hud_id,11541,Kill-feed/HUD reference; not a kill VFX or deathbox ID,observed-field
+Gun,M700 - Seraph,5400000496,181100019,6,5400000496,6,bind_items,6040010070,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,M700 - Seraph,5400000496,181100019,6,5400000496,6,bind_items,1400181620,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,Kar98k - Netherflame,5400000506,331100002,6,5400000506,6,bind_items,6040010130,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,Kar98k - Netherflame,5400000506,331100002,6,5400000506,6,bind_items,1400331880,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,Kala - Requiem,5400130076,1311990075,6,5400130076,6,bind_items,6140000100,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,Kala - Requiem,5400130076,1311990075,6,5400130076,6,bind_items,1400131660,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,Kala - Whisper,5400130126,1311990122,6,5400130126,6,bind_items,6140000310,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,M700 - Warlock,5400180167,1811990163,7,5400180167,7,bind_items,6160000080,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,M700 - Warlock,5400180167,1811990163,7,5400180166,6,bind_items,6042000346,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,M700 - Warlock,5400180167,1811990163,7,5400180166,6,bind_items,1400182990,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,M700 - Warlock,5400180167,1811990163,7,5400180166,6,bind_items,6150000240,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,M700 - Bloodlock,5400180177,1811990173,7,5400180177,7,bind_items,6042000347,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,M700 - Bloodlock,5400180177,1811990173,7,5400180177,7,bind_items,6150000250,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,M700 - Bloodlock,5400180177,1811990173,7,5400180177,7,bind_items,6160000081,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,M700 - Bloodlock,5400180177,1811990173,7,5400180176,6,bind_items,6042000347,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,M700 - Bloodlock,5400180177,1811990173,7,5400180176,6,bind_items,6150000250,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,Kar98k - Shuriken,5400330207,3311990203,7,5400330207,7,bind_items,6160000100,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,Kar98k - Shuriken,5400330207,3311990203,7,5400330206,6,bind_items,6042000378,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,Kar98k - Shuriken,5400330207,3311990203,7,5400330206,6,bind_items,1400336290,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,Kar98k - Shuriken,5400330207,3311990203,7,5400330206,6,bind_items,6150000290,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,Kar98k - Foxfire,5400330217,3311990213,7,5400330217,7,bind_items,6160000110,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,Kar98k - Foxfire,5400330217,3311990213,7,5400330216,6,bind_items,6042000379,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,Kar98k - Foxfire,5400330217,3311990213,7,5400330216,6,bind_items,1400336490,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,Kar98k - Foxfire,5400330217,3311990213,7,5400330216,6,bind_items,6150000300,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,M82 - Pumpknight,5400450046,4511990042,6,5400450046,6,bind_items,6042000185,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,M82 - Pumpknight,5400450046,4511990042,6,5400450046,6,bind_items,1400454230,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,M82 - Pumpwisp,5400450056,4511990052,6,5400450056,6,bind_items,6042000186,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,M82 - Pumpwisp,5400450056,4511990052,6,5400450056,6,bind_items,6060000770,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,M82 - Noxdra,5400450106,4511990102,6,5400450106,6,bind_items,6140000280,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,M82 - Dark Matter,5400450168,4511990163,8,5400450160,1,bind_items,6170000011,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,Glock - Radiant,5500000170,41100003,3,5500000170,3,kill_hud_id,11133,Kill-feed/HUD reference; not a kill VFX or deathbox ID,observed-field
+Gun,Glock - Radiant,5500000170,41100003,3,5500000160,2,kill_hud_id,11133,Kill-feed/HUD reference; not a kill VFX or deathbox ID,observed-field
+Gun,Desert Eagle - Scorpius,5500150126,1511990122,6,5500150126,6,bind_items,6140000300,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Gun,M4A1 - Dragon Dance,5100000420,11100012,,5100000420,,kill_hud_id,11430,Kill-feed/HUD reference; not a kill VFX or deathbox ID,observed-field
+Gun,M4A1 - Dragon Dance,5100000420,11100012,,5100000420,,hit_effect,1,Hit-effect reference; not evidence of an elimination effect,observed-field
+Gun,Bow - Radiant,5400000220,221100001,,5400000220,,kill_hud_id,11133,Kill-feed/HUD reference; not a kill VFX or deathbox ID,observed-field
+Knife,Katana - Radiant,2030000030,31000002,,2030000030,,kill_hud_id,11349,Kill-feed/HUD reference; not a kill VFX or deathbox ID,observed-field
+Knife,Katana - Radiant,2030000030,31000002,,2030000030,,hit_effect,1,Hit-effect reference; not evidence of an elimination effect,observed-field
+Knife,Zanpakuto - Zangetsu,2030000150,31000014,,2030000150,,bind_items,2030000140,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Knife,Zanpakuto - Sodenoshirayuki,2030000160,31000015,,2030000160,,bind_items,2030000170,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role

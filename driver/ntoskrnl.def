@@ -1,0 +1,25 @@
+LIBRARY ntoskrnl.exe
+EXPORTS
+    IoCreateDevice
+    IoCreateDriver
+    IoCreateSymbolicLink
+    IoDeleteDevice
+    IoDeleteSymbolicLink
+    IofCompleteRequest
+    KeStackAttachProcess
+    KeUnstackDetachProcess
+    MmCopyVirtualMemory
+    ObOpenObjectByPointer
+    ObfDereferenceObject
+    PsGetCurrentProcess
+    PsGetProcessPeb
+    PsLookupProcessByProcessId
+    RtlCopyMemory
+    RtlCreateUserThread
+    RtlInitUnicodeString
+    ZwAllocateVirtualMemory
+    ZwClose
+    ZwFreeVirtualMemory
+    ZwProtectVirtualMemory
+    __C_specific_handler
+    memcpy

@@ -1,0 +1,569 @@
+{
+  "captured_at_unix": 1793851722.3363853,
+  "in_hall": false,
+  "space_type": "Space",
+  "sources": {
+    "combat_avatars": {
+      "type": "dict",
+      "count": 3
+    },
+    "entities": {
+      "type": "dict",
+      "count": 11
+    }
+  },
+  "local_player_type": "PlayerCombatAvatarSquadFight",
+  "local_player": {
+    "id": "auwAUcWVOnfqD4FL",
+    "combat_team_id": "auwAUVO8h5DblT+1",
+    "team_id": {
+      "error": "AttributeError"
+    },
+    "hp": 125.0,
+    "server_hp": 125.0,
+    "cur_maxhp": 125.0,
+    "max_hp": {
+      "error": "AttributeError"
+    },
+    "maxhp": 125.0,
+    "armor": 50.0,
+    "server_armor": 50.0,
+    "combat_state": 0,
+    "position": [
+      -171.8692626953125,
+      39.58779525756836,
+      136.1762237548828
+    ],
+    "pos": [
+      -171.8692626953125,
+      39.58779525756836,
+      136.1762237548828
+    ],
+    "IsPlayerCombatAvatar": true,
+    "IsRobotCombatAvatar": false,
+    "IsDummyCombatAvatar": false,
+    "IsCombatAvatar": true
+  },
+  "entities": [
+    {
+      "type": "PlayerCombatAvatarSquadFight",
+      "source": "combat_avatars",
+      "local": true,
+      "fields": {
+        "id": "auwAUcWVOnfqD4FL",
+        "combat_team_id": "auwAUVO8h5DblT+1",
+        "team_id": {
+          "error": "AttributeError"
+        },
+        "hp": 125.0,
+        "server_hp": 125.0,
+        "cur_maxhp": 125.0,
+        "max_hp": {
+          "error": "AttributeError"
+        },
+        "maxhp": 125.0,
+        "armor": 50.0,
+        "server_armor": 50.0,
+        "combat_state": 0,
+        "position": [
+          -171.8692626953125,
+          39.58779525756836,
+          136.1762237548828
+        ],
+        "pos": [
+          -171.8692626953125,
+          39.58779525756836,
+          136.1762237548828
+        ],
+        "IsPlayerCombatAvatar": true,
+        "IsRobotCombatAvatar": false,
+        "IsDummyCombatAvatar": false,
+        "IsCombatAvatar": true
+      }
+    },
+    {
+      "type": "CombatAvatarSquadFight",
+      "source": "combat_avatars",
+      "local": false,
+      "fields": {
+        "id": "auwAUcWVOnfqD4Ek",
+        "combat_team_id": "auwAUVO8h5DblT+0",
+        "team_id": {
+          "error": "AttributeError"
+        },
+        "hp": 189.0,
+        "server_hp": 189.0,
+        "cur_maxhp": 225.0,
+        "max_hp": {
+          "error": "AttributeError"
+        },
+        "maxhp": 125.0,
+        "armor": 0.0,
+        "server_armor": 0.0,
+        "combat_state": 1,
+        "position": [
+          -171.66502380371094,
+          39.58779525756836,
+          144.10482788085938
+        ],
+        "pos": [
+          -171.66502380371094,
+          39.58779525756836,
+          144.10482788085938
+        ],
+        "IsPlayerCombatAvatar": false,
+        "IsRobotCombatAvatar": false,
+        "IsDummyCombatAvatar": false,
+        "IsCombatAvatar": true
+      }
+    },
+    {
+      "type": "CombatAvatarSquadFight",
+      "source": "combat_avatars",
+      "local": false,
+      "fields": {
+        "id": "auwAUcWVOnfqD4FI",
+        "combat_team_id": "auwAUVO8h5DblT+0",
+        "team_id": {
+          "error": "AttributeError"
+        },
+        "hp": 125.0,
+        "server_hp": 125.0,
+        "cur_maxhp": 125.0,
+        "max_hp": {
+          "error": "AttributeError"
+        },
+        "maxhp": 125.0,
+        "armor": 50.0,
+        "server_armor": 50.0,
+        "combat_state": 0,
+        "position": [
+          -131.8000030517578,
+          39.587799072265625,
+          110.5999984741211
+        ],
+        "pos": [
+          -131.8000030517578,
+          39.587799072265625,
+          110.5999984741211
+        ],
+        "IsPlayerCombatAvatar": false,
+        "IsRobotCombatAvatar": false,
+        "IsDummyCombatAvatar": false,
+        "IsCombatAvatar": true
+      }
+    },
+    {
+      "type": "CombatTeamEntity_SquadFight",
+      "source": "entities",
+      "local": false,
+      "fields": {
+        "id": "auwAUVO8h5DblT+1",
+        "combat_team_id": {
+          "error": "AttributeError"
+        },
+        "team_id": {
+          "error": "AttributeError"
+        },
+        "hp": {
+          "error": "AttributeError"
+        },
+        "server_hp": {
+          "error": "AttributeError"
+        },
+        "cur_maxhp": {
+          "error": "AttributeError"
+        },
+        "max_hp": {
+          "error": "AttributeError"
+        },
+        "maxhp": {
+          "error": "AttributeError"
+        },
+        "armor": {
+          "error": "AttributeError"
+        },
+        "server_armor": {
+          "error": "AttributeError"
+        },
+        "combat_state": {
+          "error": "AttributeError"
+        },
+        "position": {
+          "error": "AttributeError"
+        },
+        "pos": [
+          -10000.0,
+          -1000.0,
+          -10000.0
+        ],
+        "IsPlayerCombatAvatar": false,
+        "IsRobotCombatAvatar": false,
+        "IsDummyCombatAvatar": false,
+        "IsCombatAvatar": false
+      }
+    },
+    {
+      "type": "GameLogicSquadFight",
+      "source": "entities",
+      "local": false,
+      "fields": {
+        "id": "auwAUcWVOnfqD4DI",
+        "combat_team_id": {
+          "error": "AttributeError"
+        },
+        "team_id": {
+          "error": "AttributeError"
+        },
+        "hp": {
+          "error": "AttributeError"
+        },
+        "server_hp": {
+          "error": "AttributeError"
+        },
+        "cur_maxhp": {
+          "error": "AttributeError"
+        },
+        "max_hp": {
+          "error": "AttributeError"
+        },
+        "maxhp": {
+          "error": "AttributeError"
+        },
+        "armor": {
+          "error": "AttributeError"
+        },
+        "server_armor": {
+          "error": "AttributeError"
+        },
+        "combat_state": {
+          "error": "AttributeError"
+        },
+        "position": {
+          "error": "AttributeError"
+        },
+        "pos": [
+          -10000.0,
+          -1000.0,
+          -10000.0
+        ],
+        "IsPlayerCombatAvatar": false,
+        "IsRobotCombatAvatar": false,
+        "IsDummyCombatAvatar": false,
+        "IsCombatAvatar": false
+      }
+    },
+    {
+      "type": "Bomb",
+      "source": "entities",
+      "local": false,
+      "fields": {
+        "id": "auwAuMWVOnfqD5XU",
+        "combat_team_id": {
+          "error": "AttributeError"
+        },
+        "team_id": {
+          "error": "AttributeError"
+        },
+        "hp": {
+          "error": "AttributeError"
+        },
+        "server_hp": {
+          "error": "AttributeError"
+        },
+        "cur_maxhp": {
+          "error": "AttributeError"
+        },
+        "max_hp": {
+          "error": "AttributeError"
+        },
+        "maxhp": {
+          "error": "AttributeError"
+        },
+        "armor": {
+          "error": "AttributeError"
+        },
+        "server_armor": {
+          "error": "AttributeError"
+        },
+        "combat_state": {
+          "error": "AttributeError"
+        },
+        "position": [
+          -10000.0,
+          -1000.0,
+          -10000.0
+        ],
+        "pos": [
+          -10000.0,
+          -1000.0,
+          -10000.0
+        ],
+        "IsPlayerCombatAvatar": false,
+        "IsRobotCombatAvatar": false,
+        "IsDummyCombatAvatar": false,
+        "IsCombatAvatar": false
+      }
+    },
+    {
+      "type": "FlagSF",
+      "source": "entities",
+      "local": false,
+      "fields": {
+        "id": "auwBFsWVOnfqD68s",
+        "combat_team_id": {
+          "error": "AttributeError"
+        },
+        "team_id": {
+          "error": "AttributeError"
+        },
+        "hp": {
+          "error": "AttributeError"
+        },
+        "server_hp": {
+          "error": "AttributeError"
+        },
+        "cur_maxhp": {
+          "error": "AttributeError"
+        },
+        "max_hp": {
+          "error": "AttributeError"
+        },
+        "maxhp": {
+          "error": "AttributeError"
+        },
+        "armor": {
+          "error": "AttributeError"
+        },
+        "server_armor": {
+          "error": "AttributeError"
+        },
+        "combat_state": {
+          "error": "AttributeError"
+        },
+        "position": [
+          -159.1999969482422,
+          39.59000015258789,
+          117.9000015258789
+        ],
+        "pos": [
+          -159.1999969482422,
+          39.59000015258789,
+          117.9000015258789
+        ],
+        "IsPlayerCombatAvatar": false,
+        "IsRobotCombatAvatar": false,
+        "IsDummyCombatAvatar": false,
+        "IsCombatAvatar": false
+      }
+    },
+    {
+      "type": "FollowerInteractionEntity",
+      "source": "entities",
+      "local": false,
+      "fields": {
+        "id": "auwBFTPw5UWInLyW",
+        "combat_team_id": {
+          "error": "AttributeError"
+        },
+        "team_id": {
+          "error": "AttributeError"
+        },
+        "hp": {
+          "error": "AttributeError"
+        },
+        "server_hp": {
+          "error": "AttributeError"
+        },
+        "cur_maxhp": {
+          "error": "AttributeError"
+        },
+        "max_hp": {
+          "error": "AttributeError"
+        },
+        "maxhp": {
+          "error": "AttributeError"
+        },
+        "armor": {
+          "error": "AttributeError"
+        },
+        "server_armor": {
+          "error": "AttributeError"
+        },
+        "combat_state": {
+          "error": "AttributeError"
+        },
+        "position": [
+          -171.8692626953125,
+          39.58779525756836,
+          136.1762237548828
+        ],
+        "pos": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "IsPlayerCombatAvatar": false,
+        "IsRobotCombatAvatar": false,
+        "IsDummyCombatAvatar": false,
+        "IsCombatAvatar": false
+      }
+    },
+    {
+      "type": "WaterSnare",
+      "source": "entities",
+      "local": false,
+      "fields": {
+        "id": "WTZeAkyaJKVVpQYlwF",
+        "combat_team_id": {
+          "error": "AttributeError"
+        },
+        "team_id": {
+          "error": "AttributeError"
+        },
+        "hp": {
+          "error": "AttributeError"
+        },
+        "server_hp": {
+          "error": "AttributeError"
+        },
+        "cur_maxhp": {
+          "error": "AttributeError"
+        },
+        "max_hp": {
+          "error": "AttributeError"
+        },
+        "maxhp": {
+          "error": "AttributeError"
+        },
+        "armor": {
+          "error": "AttributeError"
+        },
+        "server_armor": {
+          "error": "AttributeError"
+        },
+        "combat_state": {
+          "error": "AttributeError"
+        },
+        "position": [
+          0.0,
+          -23.149999618530273,
+          0.0
+        ],
+        "pos": [
+          0.0,
+          -23.149999618530273,
+          0.0
+        ],
+        "IsPlayerCombatAvatar": false,
+        "IsRobotCombatAvatar": false,
+        "IsDummyCombatAvatar": false,
+        "IsCombatAvatar": false
+      }
+    },
+    {
+      "type": "Bomb",
+      "source": "entities",
+      "local": false,
+      "fields": {
+        "id": "auwBHMWVOnfqD7CY",
+        "combat_team_id": {
+          "error": "AttributeError"
+        },
+        "team_id": {
+          "error": "AttributeError"
+        },
+        "hp": {
+          "error": "AttributeError"
+        },
+        "server_hp": {
+          "error": "AttributeError"
+        },
+        "cur_maxhp": {
+          "error": "AttributeError"
+        },
+        "max_hp": {
+          "error": "AttributeError"
+        },
+        "maxhp": {
+          "error": "AttributeError"
+        },
+        "armor": {
+          "error": "AttributeError"
+        },
+        "server_armor": {
+          "error": "AttributeError"
+        },
+        "combat_state": {
+          "error": "AttributeError"
+        },
+        "position": [
+          -10000.0,
+          -1000.0,
+          -10000.0
+        ],
+        "pos": [
+          -10000.0,
+          -1000.0,
+          -10000.0
+        ],
+        "IsPlayerCombatAvatar": false,
+        "IsRobotCombatAvatar": false,
+        "IsDummyCombatAvatar": false,
+        "IsCombatAvatar": false
+      }
+    },
+    {
+      "type": "Airdrop",
+      "source": "entities",
+      "local": false,
+      "fields": {
+        "id": "auwBOsWVOnfqD8Oa",
+        "combat_team_id": {
+          "error": "AttributeError"
+        },
+        "team_id": {
+          "error": "AttributeError"
+        },
+        "hp": {
+          "error": "AttributeError"
+        },
+        "server_hp": {
+          "error": "AttributeError"
+        },
+        "cur_maxhp": {
+          "error": "AttributeError"
+        },
+        "max_hp": {
+          "error": "AttributeError"
+        },
+        "maxhp": {
+          "error": "AttributeError"
+        },
+        "armor": {
+          "error": "AttributeError"
+        },
+        "server_armor": {
+          "error": "AttributeError"
+        },
+        "combat_state": {
+          "error": "AttributeError"
+        },
+        "position": [
+          -143.05377197265625,
+          39.59122848510742,
+          141.97012329101562
+        ],
+        "pos": [
+          -143.05377197265625,
+          39.59122848510742,
+          141.97012329101562
+        ],
+        "IsPlayerCombatAvatar": false,
+        "IsRobotCombatAvatar": false,
+        "IsDummyCombatAvatar": false,
+        "IsCombatAvatar": false
+      }
+    }
+  ]
+}

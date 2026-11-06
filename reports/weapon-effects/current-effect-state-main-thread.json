@@ -1,0 +1,46 @@
+{
+  "guise_id": 11100018,
+  "guise_item_id": 5100000950,
+  "gun_id": 1,
+  "weapon_id": 1,
+  "weapon_guid": "auwQV5f2Mkm/fgLL",
+  "is_fps_weapon": true,
+  "show_guise_bullet_trace": false,
+  "show_guise_hit_effect": false,
+  "new_fire_sfx_id": 818,
+  "new_fire_ads_sfx_id": 819,
+  "new_fire_shell_sfx_id": 558,
+  "local_id": "auwNn5f2Mkm/fSqp",
+  "extra_guise_item_id": 5100000950,
+  "recent_kill_info": [
+    {},
+    {},
+    {},
+    {},
+    {},
+    {}
+  ],
+  "descriptors": {
+    "guise_template_data": {
+      "type": "cached_property",
+      "attributes": [
+        "__doc__",
+        "func"
+      ]
+    },
+    "show_guise_bullet_trace": {
+      "type": "cached_property",
+      "attributes": [
+        "__doc__",
+        "func"
+      ]
+    },
+    "show_guise_hit_effect": {
+      "type": "cached_property",
+      "attributes": [
+        "__doc__",
+        "func"
+      ]
+    }
+  }
+}

@@ -1,0 +1,49 @@
+[
+  {
+    "snapshot": "snapshot-20261105-1.json",
+    "status": "pass",
+    "avatars": [
+      {
+        "type": "PlayerCombatAvatarSquadFight",
+        "eligible": true,
+        "max_hp": 125.0
+      },
+      {
+        "type": "CombatAvatarSquadFight",
+        "eligible": true,
+        "max_hp": 225.0
+      },
+      {
+        "type": "CombatAvatarSquadFight",
+        "eligible": true,
+        "max_hp": 125.0
+      }
+    ]
+  },
+  {
+    "snapshot": "snapshot-20261105-2.json",
+    "status": "pass",
+    "avatars": [
+      {
+        "type": "ReplayCombatAvatarSquadFight",
+        "eligible": true,
+        "max_hp": 125.0
+      },
+      {
+        "type": "CombatAvatarSquadFight",
+        "eligible": true,
+        "max_hp": 125.0
+      },
+      {
+        "type": "CombatAvatarSquadFight",
+        "eligible": true,
+        "max_hp": 125.0
+      },
+      {
+        "type": "CombatAvatarSquadFight",
+        "eligible": true,
+        "max_hp": 125.0
+      }
+    ]
+  }
+]

@@ -1,0 +1,45 @@
+[
+  {
+    "name": "show_guise_bullet_trace",
+    "names": [
+      "owner",
+      "GetWeaponByGuid",
+      "weapon_guid",
+      "display_guise_item_id",
+      "cdata_util",
+      "ItemId2BaseLevelItem",
+      "get",
+      "LocalConfig",
+      "guise_bullet_traces",
+      "item_feature_data",
+      "data"
+    ],
+    "code": "361           RESUME                   0\n\n363           LOAD_FAST_BORROW         0 (self)\n              LOAD_ATTR                0 (owner)\n              LOAD_ATTR                3 (GetWeaponByGuid + NULL|self)\n              LOAD_FAST_BORROW         0 (self)\n              LOAD_ATTR                4 (weapon_guid)\n              CALL                     1\n              STORE_FAST               1 (cur_weapon)\n\n364           LOAD_FAST_BORROW         1 (cur_weapon)\n              LOAD_ATTR                6 (display_guise_item_id)\n              STORE_FAST               2 (guise_item_id)\n\n365           LOAD_GLOBAL              8 (cdata_util)\n              LOAD_ATTR               10 (ItemId2BaseLevelItem)\n              PUSH_NULL\n              CALL                     0\n              LOAD_ATTR               13 (get + NULL|self)\n              LOAD_FAST_BORROW         2 (guise_item_id)\n              LOAD_CONST               3 ((0, 0))\n              CALL                     2\n              LOAD_SMALL_INT           0\n              BINARY_OP               26 ([])\n              STORE_FAST               3 (base_item_id)\n\n366           LOAD_GLOBAL             14 (LocalConfig)\n              LOAD_ATTR               16 (guise_bullet_traces)\n              LOAD_ATTR               13 (get + NULL|self)\n              LOAD_FAST_BORROW         3 (base_item_id)\n              LOAD_SMALL_INT           1\n              CALL                     2\n              STORE_FAST               4 (enable_guise_bullet_trace)\n\n367           LOAD_FAST                4 (enable_guise_bullet_trace)\n              COPY                     1\n              TO_BOOL\n              POP_JUMP_IF_FALSE       49 (to L1)\n              NOT_TAKEN\n              POP_TOP\n              LOAD_GLOBAL             18 (item_feature_data)\n              LOAD_ATTR               20 (data)\n              LOAD_ATTR               13 (get + NULL|self)\n              LOAD_FAST_BORROW         2 (guise_item_id)\n              BUILD_MAP                0\n              CALL                     2\n              LOAD_ATTR               13 (get + NULL|self)\n              LOAD_CONST               1 ('bullet_trace')\n              LOAD_CONST               2 (False)\n              CALL                     2\n      L1:     RETURN_VALUE\n"
+  },
+  {
+    "name": "show_guise_hit_effect",
+    "names": [
+      "owner",
+      "GetWeaponByGuid",
+      "weapon_guid",
+      "display_guise_item_id",
+      "cdata_util",
+      "ItemId2BaseLevelItem",
+      "get",
+      "LocalConfig",
+      "guise_hit_effects",
+      "item_feature_data",
+      "data"
+    ],
+    "code": "369           RESUME                   0\n\n371           LOAD_FAST_BORROW         0 (self)\n              LOAD_ATTR                0 (owner)\n              LOAD_ATTR                3 (GetWeaponByGuid + NULL|self)\n              LOAD_FAST_BORROW         0 (self)\n              LOAD_ATTR                4 (weapon_guid)\n              CALL                     1\n              STORE_FAST               1 (cur_weapon)\n\n372           LOAD_FAST_BORROW         1 (cur_weapon)\n              LOAD_ATTR                6 (display_guise_item_id)\n              STORE_FAST               2 (guise_item_id)\n\n373           LOAD_GLOBAL              8 (cdata_util)\n              LOAD_ATTR               10 (ItemId2BaseLevelItem)\n              PUSH_NULL\n              CALL                     0\n              LOAD_ATTR               13 (get + NULL|self)\n              LOAD_FAST_BORROW         2 (guise_item_id)\n              LOAD_CONST               3 ((0, 0))\n              CALL                     2\n              LOAD_SMALL_INT           0\n              BINARY_OP               26 ([])\n              STORE_FAST               3 (base_item_id)\n\n374           LOAD_GLOBAL             14 (LocalConfig)\n              LOAD_ATTR               16 (guise_hit_effects)\n              LOAD_ATTR               13 (get + NULL|self)\n              LOAD_FAST_BORROW         3 (base_item_id)\n              LOAD_SMALL_INT           1\n              CALL                     2\n              STORE_FAST               4 (enable_guise_hit_effect)\n\n375           LOAD_FAST                4 (enable_guise_hit_effect)\n              COPY                     1\n              TO_BOOL\n              POP_JUMP_IF_FALSE       49 (to L1)\n              NOT_TAKEN\n              POP_TOP\n              LOAD_GLOBAL             18 (item_feature_data)\n              LOAD_ATTR               20 (data)\n              LOAD_ATTR               13 (get + NULL|self)\n              LOAD_FAST_BORROW         2 (guise_item_id)\n              BUILD_MAP                0\n              CALL                     2\n              LOAD_ATTR               13 (get + NULL|self)\n              LOAD_CONST               1 ('hit_effect')\n              LOAD_CONST               2 (False)\n              CALL                     2\n      L1:     RETURN_VALUE\n"
+  },
+  {
+    "name": "skin_hit_object_effect_dict",
+    "names": [
+      "show_guise_hit_effect",
+      "guise_template_data",
+      "get"
+    ],
+    "code": "341           RESUME                   0\n\n343           LOAD_FAST_BORROW         0 (self)\n              LOAD_ATTR                0 (show_guise_hit_effect)\n              TO_BOOL\n              POP_JUMP_IF_TRUE         3 (to L1)\n              NOT_TAKEN\n\n344           BUILD_MAP                0\n              RETURN_VALUE\n\n345   L1:     LOAD_FAST_BORROW         0 (self)\n              LOAD_ATTR                2 (guise_template_data)\n              LOAD_ATTR                5 (get + NULL|self)\n              LOAD_CONST               0 ('skin_hit_object_effect_id')\n              BUILD_MAP                0\n              CALL                     2\n              RETURN_VALUE\n"
+  }
+]

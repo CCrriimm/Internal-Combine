@@ -1,0 +1,955 @@
+[
+  {
+    "inventory_skin": "KAG-6 - Inkforge [Lv 4]",
+    "selection": 1411990112,
+    "match_status": "exact source template match",
+    "skin": "KAG-6 - Inkforge [Lv 6]",
+    "gun_id": 14,
+    "template_id": 1411990112,
+    "source_item_id": 5100140114,
+    "menu_upgrade_level": 6,
+    "kill_effect_feature_flag": 0,
+    "kill_fx_map": {
+      "2": 3582
+    },
+    "kill_fx_ids": [
+      3582
+    ],
+    "kill_fx_paths": [
+      "Effect/Effect_weapon/Kag/Skin/InkMecha/fx_kag_inkmecha_kill"
+    ],
+    "kill_material": "Effect/Effect_f/jinbi_die_mat_inkmecha_KAGv6",
+    "team_kill_material": null,
+    "team_dead_fx": null,
+    "team_extra_model_id": null,
+    "single_extra_model_id": null,
+    "kill_feed_icon": 51001401107,
+    "kill_hud_id_raw": null,
+    "kill_hud_csb": "UIScript/node_ig_escape_bobao_skin_kill_vx20.csb",
+    "new_kill_hud_bg": null,
+    "new_kill_hud_fx": null,
+    "new_kill_hud_head": null,
+    "new_kill_hud_vx_node": null,
+    "deathbox_item_ids": [],
+    "deathbox_model_ids": [],
+    "deathbox_names": [],
+    "deathbox_refs": [],
+    "role_status": "observed table fields; activation not tested for every skin"
+  },
+  {
+    "inventory_skin": "AUG - Riptide [Lv 5]",
+    "selection": 2911990203,
+    "match_status": "exact source template match",
+    "skin": "AUG - Riptide [Lv 7]",
+    "gun_id": 29,
+    "template_id": 2911990203,
+    "source_item_id": 5100290205,
+    "menu_upgrade_level": 7,
+    "kill_effect_feature_flag": 0,
+    "kill_fx_map": {
+      "2": 12902015
+    },
+    "kill_fx_ids": [
+      12902015
+    ],
+    "kill_fx_paths": [
+      "Effect/Effect_weapon/AUG/Skin/Hs/fx_aug_hs_fire_kills"
+    ],
+    "kill_material": "Effect/Effect_f/jinbi_die_mat_augv23",
+    "team_kill_material": "Effect/Effect_f/jinbi_die_mat_augv23",
+    "team_dead_fx": {
+      "2": 12902019,
+      "3": 12902020
+    },
+    "team_extra_model_id": 92902023,
+    "single_extra_model_id": null,
+    "kill_feed_icon": 51002902007,
+    "kill_hud_id_raw": null,
+    "kill_hud_csb": "UIScript/node_ig_escape_bobao_skin_kill_common.csb",
+    "new_kill_hud_bg": 51002902009,
+    "new_kill_hud_fx": 51002902008,
+    "new_kill_hud_head": 51002902010,
+    "new_kill_hud_vx_node": "UIScript/node_kill_effect_jisha_09.csb",
+    "deathbox_item_ids": [],
+    "deathbox_model_ids": [],
+    "deathbox_names": [],
+    "deathbox_refs": [],
+    "role_status": "observed table fields; activation not tested for every skin"
+  },
+  {
+    "inventory_skin": "AUG - Riptide [Lv 5]",
+    "selection": 2911990203,
+    "match_status": "exact source template match",
+    "skin": "AUG - Riptide [Lv 7]",
+    "gun_id": 29,
+    "template_id": 2911990203,
+    "source_item_id": 5100290206,
+    "menu_upgrade_level": 7,
+    "kill_effect_feature_flag": 1,
+    "kill_fx_map": {
+      "2": 12902015
+    },
+    "kill_fx_ids": [
+      12902015
+    ],
+    "kill_fx_paths": [
+      "Effect/Effect_weapon/AUG/Skin/Hs/fx_aug_hs_fire_kills"
+    ],
+    "kill_material": "Effect/Effect_f/jinbi_die_mat_augv23",
+    "team_kill_material": "Effect/Effect_f/jinbi_die_mat_augv23",
+    "team_dead_fx": {
+      "2": 12902019,
+      "3": 12902020
+    },
+    "team_extra_model_id": 92902023,
+    "single_extra_model_id": null,
+    "kill_feed_icon": 51002902007,
+    "kill_hud_id_raw": null,
+    "kill_hud_csb": "UIScript/node_ig_escape_bobao_skin_kill_common.csb",
+    "new_kill_hud_bg": 51002902009,
+    "new_kill_hud_fx": 51002902008,
+    "new_kill_hud_head": 51002902010,
+    "new_kill_hud_vx_node": "UIScript/node_kill_effect_jisha_09.csb",
+    "deathbox_item_ids": [],
+    "deathbox_model_ids": [],
+    "deathbox_names": [],
+    "deathbox_refs": [],
+    "role_status": "observed table fields; activation not tested for every skin"
+  },
+  {
+    "inventory_skin": "AUG - Riptide [Lv 5]",
+    "selection": 2911990203,
+    "match_status": "exact source template match",
+    "skin": "AUG - Riptide [Lv 7]",
+    "gun_id": 29,
+    "template_id": 2911990203,
+    "source_item_id": 5100290207,
+    "menu_upgrade_level": 7,
+    "kill_effect_feature_flag": 1,
+    "kill_fx_map": {
+      "2": 12902015
+    },
+    "kill_fx_ids": [
+      12902015
+    ],
+    "kill_fx_paths": [
+      "Effect/Effect_weapon/AUG/Skin/Hs/fx_aug_hs_fire_kills"
+    ],
+    "kill_material": "Effect/Effect_f/jinbi_die_mat_augv23",
+    "team_kill_material": "Effect/Effect_f/jinbi_die_mat_augv23",
+    "team_dead_fx": {
+      "2": 12902019,
+      "3": 12902020
+    },
+    "team_extra_model_id": 92902023,
+    "single_extra_model_id": null,
+    "kill_feed_icon": 51002902007,
+    "kill_hud_id_raw": null,
+    "kill_hud_csb": "UIScript/node_ig_escape_bobao_skin_kill_common.csb",
+    "new_kill_hud_bg": 51002902009,
+    "new_kill_hud_fx": 51002902008,
+    "new_kill_hud_head": 51002902010,
+    "new_kill_hud_vx_node": "UIScript/node_kill_effect_jisha_09.csb",
+    "deathbox_item_ids": [],
+    "deathbox_model_ids": [],
+    "deathbox_names": [],
+    "deathbox_refs": [],
+    "role_status": "observed table fields; activation not tested for every skin"
+  },
+  {
+    "inventory_skin": "AK47 - Dark Matter [Lv 8]",
+    "selection": 1011990263,
+    "match_status": "exact source template match",
+    "skin": "AK47 - Dark Matter [Lv 8]",
+    "gun_id": 10,
+    "template_id": 1011990263,
+    "source_item_id": 5100100265,
+    "menu_upgrade_level": 8,
+    "kill_effect_feature_flag": 0,
+    "kill_fx_map": {
+      "2": 11002615
+    },
+    "kill_fx_ids": [
+      11002615
+    ],
+    "kill_fx_paths": [
+      "Effect/Effect_weapon/Ak47/Skin/V51/fx_ak47_v51_kill"
+    ],
+    "kill_material": "Effect/Effect_f/jinbi_die_mat_ak47_v51",
+    "team_kill_material": "Effect/Effect_f/jinbi_die_mat_ak47_v51",
+    "team_dead_fx": null,
+    "team_extra_model_id": 91002622,
+    "single_extra_model_id": null,
+    "kill_feed_icon": 51001002611,
+    "kill_hud_id_raw": null,
+    "kill_hud_csb": "UIScript/node_ig_escape_bobao_skin_kill_common.csb",
+    "new_kill_hud_bg": 51001002609,
+    "new_kill_hud_fx": 51001002608,
+    "new_kill_hud_head": 51001002610,
+    "new_kill_hud_vx_node": "UIScript/node_kill_effect_jisha_15.csb",
+    "deathbox_item_ids": [],
+    "deathbox_model_ids": [],
+    "deathbox_names": [],
+    "deathbox_refs": [],
+    "role_status": "observed table fields; activation not tested for every skin"
+  },
+  {
+    "inventory_skin": "AK47 - Dark Matter [Lv 8]",
+    "selection": 1011990263,
+    "match_status": "exact source template match",
+    "skin": "AK47 - Dark Matter [Lv 8]",
+    "gun_id": 10,
+    "template_id": 1011990263,
+    "source_item_id": 5100100266,
+    "menu_upgrade_level": 8,
+    "kill_effect_feature_flag": 1,
+    "kill_fx_map": {
+      "2": 11002615
+    },
+    "kill_fx_ids": [
+      11002615
+    ],
+    "kill_fx_paths": [
+      "Effect/Effect_weapon/Ak47/Skin/V51/fx_ak47_v51_kill"
+    ],
+    "kill_material": "Effect/Effect_f/jinbi_die_mat_ak47_v51",
+    "team_kill_material": "Effect/Effect_f/jinbi_die_mat_ak47_v51",
+    "team_dead_fx": null,
+    "team_extra_model_id": 91002622,
+    "single_extra_model_id": null,
+    "kill_feed_icon": 51001002611,
+    "kill_hud_id_raw": null,
+    "kill_hud_csb": "UIScript/node_ig_escape_bobao_skin_kill_common.csb",
+    "new_kill_hud_bg": 51001002609,
+    "new_kill_hud_fx": 51001002608,
+    "new_kill_hud_head": 51001002610,
+    "new_kill_hud_vx_node": "UIScript/node_kill_effect_jisha_15.csb",
+    "deathbox_item_ids": [],
+    "deathbox_model_ids": [],
+    "deathbox_names": [],
+    "deathbox_refs": [],
+    "role_status": "observed table fields; activation not tested for every skin"
+  },
+  {
+    "inventory_skin": "AK47 - Dark Matter [Lv 8]",
+    "selection": 1011990263,
+    "match_status": "exact source template match",
+    "skin": "AK47 - Dark Matter [Lv 8]",
+    "gun_id": 10,
+    "template_id": 1011990263,
+    "source_item_id": 5100100267,
+    "menu_upgrade_level": 8,
+    "kill_effect_feature_flag": 1,
+    "kill_fx_map": {
+      "2": 11002615
+    },
+    "kill_fx_ids": [
+      11002615
+    ],
+    "kill_fx_paths": [
+      "Effect/Effect_weapon/Ak47/Skin/V51/fx_ak47_v51_kill"
+    ],
+    "kill_material": "Effect/Effect_f/jinbi_die_mat_ak47_v51",
+    "team_kill_material": "Effect/Effect_f/jinbi_die_mat_ak47_v51",
+    "team_dead_fx": null,
+    "team_extra_model_id": 91002622,
+    "single_extra_model_id": null,
+    "kill_feed_icon": 51001002611,
+    "kill_hud_id_raw": null,
+    "kill_hud_csb": "UIScript/node_ig_escape_bobao_skin_kill_common.csb",
+    "new_kill_hud_bg": 51001002609,
+    "new_kill_hud_fx": 51001002608,
+    "new_kill_hud_head": 51001002610,
+    "new_kill_hud_vx_node": "UIScript/node_kill_effect_jisha_15.csb",
+    "deathbox_item_ids": [],
+    "deathbox_model_ids": [],
+    "deathbox_names": [],
+    "deathbox_refs": [],
+    "role_status": "observed table fields; activation not tested for every skin"
+  },
+  {
+    "inventory_skin": "AK47 - Dark Matter [Lv 8]",
+    "selection": 1011990263,
+    "match_status": "exact source template match",
+    "skin": "AK47 - Dark Matter [Lv 8]",
+    "gun_id": 10,
+    "template_id": 1011990263,
+    "source_item_id": 5100100268,
+    "menu_upgrade_level": 8,
+    "kill_effect_feature_flag": 1,
+    "kill_fx_map": {
+      "2": 11002615
+    },
+    "kill_fx_ids": [
+      11002615
+    ],
+    "kill_fx_paths": [
+      "Effect/Effect_weapon/Ak47/Skin/V51/fx_ak47_v51_kill"
+    ],
+    "kill_material": "Effect/Effect_f/jinbi_die_mat_ak47_v51",
+    "team_kill_material": "Effect/Effect_f/jinbi_die_mat_ak47_v51",
+    "team_dead_fx": null,
+    "team_extra_model_id": 91002622,
+    "single_extra_model_id": null,
+    "kill_feed_icon": 51001002611,
+    "kill_hud_id_raw": null,
+    "kill_hud_csb": "UIScript/node_ig_escape_bobao_skin_kill_common.csb",
+    "new_kill_hud_bg": 51001002609,
+    "new_kill_hud_fx": 51001002608,
+    "new_kill_hud_head": 51001002610,
+    "new_kill_hud_vx_node": "UIScript/node_kill_effect_jisha_15.csb",
+    "deathbox_item_ids": [],
+    "deathbox_model_ids": [],
+    "deathbox_names": [],
+    "deathbox_refs": [],
+    "role_status": "observed table fields; activation not tested for every skin"
+  },
+  {
+    "inventory_skin": "M700 - Bloodlock [Lv 7]",
+    "selection": 1811990173,
+    "match_status": "exact source template match",
+    "skin": "M700 - Bloodlock [Lv 7]",
+    "gun_id": 18,
+    "template_id": 1811990173,
+    "source_item_id": 5400180175,
+    "menu_upgrade_level": 7,
+    "kill_effect_feature_flag": 0,
+    "kill_fx_map": {
+      "2": 11801715
+    },
+    "kill_fx_ids": [
+      11801715
+    ],
+    "kill_fx_paths": [
+      "Effect/Effect_weapon/M700/Skin/V39/fx_m700_v39_kill_adv"
+    ],
+    "kill_material": "Effect/Effect_f/jinbi_die_mat_m700_v39_adv",
+    "team_kill_material": "Effect/Effect_f/jinbi_die_mat_m700_v39_adv",
+    "team_dead_fx": null,
+    "team_extra_model_id": 91801716,
+    "single_extra_model_id": null,
+    "kill_feed_icon": 54001801706,
+    "kill_hud_id_raw": null,
+    "kill_hud_csb": "UIScript/node_ig_escape_bobao_skin_kill_common.csb",
+    "new_kill_hud_bg": 54001801708,
+    "new_kill_hud_fx": 54001801707,
+    "new_kill_hud_head": 54001801709,
+    "new_kill_hud_vx_node": "UIScript/node_kill_effect_jisha_01.csb",
+    "deathbox_item_ids": [],
+    "deathbox_model_ids": [],
+    "deathbox_names": [],
+    "deathbox_refs": [],
+    "role_status": "observed table fields; activation not tested for every skin"
+  },
+  {
+    "inventory_skin": "M700 - Bloodlock [Lv 7]",
+    "selection": 1811990173,
+    "match_status": "exact source template match",
+    "skin": "M700 - Bloodlock [Lv 7]",
+    "gun_id": 18,
+    "template_id": 1811990173,
+    "source_item_id": 5400180176,
+    "menu_upgrade_level": 7,
+    "kill_effect_feature_flag": 1,
+    "kill_fx_map": {
+      "2": 11801715
+    },
+    "kill_fx_ids": [
+      11801715
+    ],
+    "kill_fx_paths": [
+      "Effect/Effect_weapon/M700/Skin/V39/fx_m700_v39_kill_adv"
+    ],
+    "kill_material": "Effect/Effect_f/jinbi_die_mat_m700_v39_adv",
+    "team_kill_material": "Effect/Effect_f/jinbi_die_mat_m700_v39_adv",
+    "team_dead_fx": null,
+    "team_extra_model_id": 91801716,
+    "single_extra_model_id": null,
+    "kill_feed_icon": 54001801706,
+    "kill_hud_id_raw": null,
+    "kill_hud_csb": "UIScript/node_ig_escape_bobao_skin_kill_common.csb",
+    "new_kill_hud_bg": 54001801708,
+    "new_kill_hud_fx": 54001801707,
+    "new_kill_hud_head": 54001801709,
+    "new_kill_hud_vx_node": "UIScript/node_kill_effect_jisha_01.csb",
+    "deathbox_item_ids": [],
+    "deathbox_model_ids": [],
+    "deathbox_names": [],
+    "deathbox_refs": [],
+    "role_status": "observed table fields; activation not tested for every skin"
+  },
+  {
+    "inventory_skin": "M700 - Bloodlock [Lv 7]",
+    "selection": 1811990173,
+    "match_status": "exact source template match",
+    "skin": "M700 - Bloodlock [Lv 7]",
+    "gun_id": 18,
+    "template_id": 1811990173,
+    "source_item_id": 5400180177,
+    "menu_upgrade_level": 7,
+    "kill_effect_feature_flag": 1,
+    "kill_fx_map": {
+      "2": 11801715
+    },
+    "kill_fx_ids": [
+      11801715
+    ],
+    "kill_fx_paths": [
+      "Effect/Effect_weapon/M700/Skin/V39/fx_m700_v39_kill_adv"
+    ],
+    "kill_material": "Effect/Effect_f/jinbi_die_mat_m700_v39_adv",
+    "team_kill_material": "Effect/Effect_f/jinbi_die_mat_m700_v39_adv",
+    "team_dead_fx": null,
+    "team_extra_model_id": 91801716,
+    "single_extra_model_id": null,
+    "kill_feed_icon": 54001801706,
+    "kill_hud_id_raw": null,
+    "kill_hud_csb": "UIScript/node_ig_escape_bobao_skin_kill_common.csb",
+    "new_kill_hud_bg": 54001801708,
+    "new_kill_hud_fx": 54001801707,
+    "new_kill_hud_head": 54001801709,
+    "new_kill_hud_vx_node": "UIScript/node_kill_effect_jisha_01.csb",
+    "deathbox_item_ids": [],
+    "deathbox_model_ids": [],
+    "deathbox_names": [],
+    "deathbox_refs": [],
+    "role_status": "observed table fields; activation not tested for every skin"
+  },
+  {
+    "inventory_skin": "P90 - Empyrean [Lv 6]",
+    "selection": 241100010,
+    "match_status": "exact source template match",
+    "skin": "P90 - Empyrean [Lv 6]",
+    "gun_id": 24,
+    "template_id": 241100010,
+    "source_item_id": 5200000685,
+    "menu_upgrade_level": 6,
+    "kill_effect_feature_flag": 1,
+    "kill_fx_map": {
+      "1": 1065
+    },
+    "kill_fx_ids": [
+      1065
+    ],
+    "kill_fx_paths": [
+      "Effect/Effect_weapon/P90/Skin/BlackGlod/fx_p90_blackgold_specialkill"
+    ],
+    "kill_material": "Effect/Effect_f/jinbi_die_mat_P90v9",
+    "team_kill_material": null,
+    "team_dead_fx": null,
+    "team_extra_model_id": null,
+    "single_extra_model_id": null,
+    "kill_feed_icon": 800016,
+    "kill_hud_id_raw": null,
+    "kill_hud_csb": "UIScript/node_ig_escape_bobao_skin_kill_vx04.csb",
+    "new_kill_hud_bg": null,
+    "new_kill_hud_fx": null,
+    "new_kill_hud_head": null,
+    "new_kill_hud_vx_node": null,
+    "deathbox_item_ids": [],
+    "deathbox_model_ids": [],
+    "deathbox_names": [],
+    "deathbox_refs": [],
+    "role_status": "observed table fields; activation not tested for every skin"
+  },
+  {
+    "inventory_skin": "P90 - Empyrean [Lv 6]",
+    "selection": 241100010,
+    "match_status": "exact source template match",
+    "skin": "P90 - Empyrean [Lv 6]",
+    "gun_id": 24,
+    "template_id": 241100010,
+    "source_item_id": 5200000686,
+    "menu_upgrade_level": 6,
+    "kill_effect_feature_flag": 1,
+    "kill_fx_map": {
+      "1": 1065
+    },
+    "kill_fx_ids": [
+      1065
+    ],
+    "kill_fx_paths": [
+      "Effect/Effect_weapon/P90/Skin/BlackGlod/fx_p90_blackgold_specialkill"
+    ],
+    "kill_material": "Effect/Effect_f/jinbi_die_mat_P90v9",
+    "team_kill_material": null,
+    "team_dead_fx": null,
+    "team_extra_model_id": null,
+    "single_extra_model_id": null,
+    "kill_feed_icon": 800016,
+    "kill_hud_id_raw": null,
+    "kill_hud_csb": "UIScript/node_ig_escape_bobao_skin_kill_vx04.csb",
+    "new_kill_hud_bg": null,
+    "new_kill_hud_fx": null,
+    "new_kill_hud_head": null,
+    "new_kill_hud_vx_node": null,
+    "deathbox_item_ids": [],
+    "deathbox_model_ids": [],
+    "deathbox_names": [],
+    "deathbox_refs": [],
+    "role_status": "observed table fields; activation not tested for every skin"
+  },
+  {
+    "inventory_skin": "Galil - Aurelian [Lv 7]",
+    "selection": 3811990142,
+    "match_status": "exact source template match",
+    "skin": "Galil - Aurelian [Lv 7]",
+    "gun_id": 38,
+    "template_id": 3811990142,
+    "source_item_id": 5100380145,
+    "menu_upgrade_level": 7,
+    "kill_effect_feature_flag": 0,
+    "kill_fx_map": {
+      "2": 13801415
+    },
+    "kill_fx_ids": [
+      13801415
+    ],
+    "kill_fx_paths": [
+      "Effect/Effect_weapon/Galil/Skin/Galilv9/fx_galilv9_fire_kills_adv"
+    ],
+    "kill_material": "Effect/Effect_f/jinbi_die_mat_ysV9_adv",
+    "team_kill_material": null,
+    "team_dead_fx": null,
+    "team_extra_model_id": 93801417,
+    "single_extra_model_id": 93801416,
+    "kill_feed_icon": 800022,
+    "kill_hud_id_raw": null,
+    "kill_hud_csb": "UIScript/node_ig_escape_bobao_skin_kill_vx35_2.csb",
+    "new_kill_hud_bg": null,
+    "new_kill_hud_fx": null,
+    "new_kill_hud_head": null,
+    "new_kill_hud_vx_node": null,
+    "deathbox_item_ids": [],
+    "deathbox_model_ids": [],
+    "deathbox_names": [],
+    "deathbox_refs": [],
+    "role_status": "observed table fields; activation not tested for every skin"
+  },
+  {
+    "inventory_skin": "Galil - Aurelian [Lv 7]",
+    "selection": 3811990142,
+    "match_status": "exact source template match",
+    "skin": "Galil - Aurelian [Lv 7]",
+    "gun_id": 38,
+    "template_id": 3811990142,
+    "source_item_id": 5100380146,
+    "menu_upgrade_level": 7,
+    "kill_effect_feature_flag": 1,
+    "kill_fx_map": {
+      "2": 13801415
+    },
+    "kill_fx_ids": [
+      13801415
+    ],
+    "kill_fx_paths": [
+      "Effect/Effect_weapon/Galil/Skin/Galilv9/fx_galilv9_fire_kills_adv"
+    ],
+    "kill_material": "Effect/Effect_f/jinbi_die_mat_ysV9_adv",
+    "team_kill_material": null,
+    "team_dead_fx": null,
+    "team_extra_model_id": 93801417,
+    "single_extra_model_id": 93801416,
+    "kill_feed_icon": 800022,
+    "kill_hud_id_raw": null,
+    "kill_hud_csb": "UIScript/node_ig_escape_bobao_skin_kill_vx35_2.csb",
+    "new_kill_hud_bg": null,
+    "new_kill_hud_fx": null,
+    "new_kill_hud_head": null,
+    "new_kill_hud_vx_node": null,
+    "deathbox_item_ids": [],
+    "deathbox_model_ids": [],
+    "deathbox_names": [],
+    "deathbox_refs": [],
+    "role_status": "observed table fields; activation not tested for every skin"
+  },
+  {
+    "inventory_skin": "Galil - Aurelian [Lv 7]",
+    "selection": 3811990142,
+    "match_status": "exact source template match",
+    "skin": "Galil - Aurelian [Lv 7]",
+    "gun_id": 38,
+    "template_id": 3811990142,
+    "source_item_id": 5100380147,
+    "menu_upgrade_level": 7,
+    "kill_effect_feature_flag": 1,
+    "kill_fx_map": {
+      "2": 13801415
+    },
+    "kill_fx_ids": [
+      13801415
+    ],
+    "kill_fx_paths": [
+      "Effect/Effect_weapon/Galil/Skin/Galilv9/fx_galilv9_fire_kills_adv"
+    ],
+    "kill_material": "Effect/Effect_f/jinbi_die_mat_ysV9_adv",
+    "team_kill_material": null,
+    "team_dead_fx": null,
+    "team_extra_model_id": 93801417,
+    "single_extra_model_id": 93801416,
+    "kill_feed_icon": 800022,
+    "kill_hud_id_raw": null,
+    "kill_hud_csb": "UIScript/node_ig_escape_bobao_skin_kill_vx35_2.csb",
+    "new_kill_hud_bg": null,
+    "new_kill_hud_fx": null,
+    "new_kill_hud_head": null,
+    "new_kill_hud_vx_node": null,
+    "deathbox_item_ids": [],
+    "deathbox_model_ids": [],
+    "deathbox_names": [],
+    "deathbox_refs": [],
+    "role_status": "observed table fields; activation not tested for every skin"
+  },
+  {
+    "inventory_skin": "M4A1 - Blight's Embrace [Lv 6]",
+    "selection": 11100018,
+    "match_status": "exact source template match",
+    "skin": "M4A1 - Blight's Embrace [Lv 6]",
+    "gun_id": 1,
+    "template_id": 11100018,
+    "source_item_id": 5100000940,
+    "menu_upgrade_level": 6,
+    "kill_effect_feature_flag": 1,
+    "kill_fx_map": {
+      "1": 900
+    },
+    "kill_fx_ids": [
+      900
+    ],
+    "kill_fx_paths": [
+      "Effect/Effect_weapon/M4A1/Skin/Dzem/fx_m4a1_dzem_hit_s_ql_01"
+    ],
+    "kill_material": "Effect/Effect_f/M4v19_die_mat",
+    "team_kill_material": null,
+    "team_dead_fx": null,
+    "team_extra_model_id": null,
+    "single_extra_model_id": null,
+    "kill_feed_icon": 800010,
+    "kill_hud_id_raw": null,
+    "kill_hud_csb": "UIScript/node_ig_escape_bobao_skin_kill_vx03.csb",
+    "new_kill_hud_bg": null,
+    "new_kill_hud_fx": null,
+    "new_kill_hud_head": null,
+    "new_kill_hud_vx_node": null,
+    "deathbox_item_ids": [],
+    "deathbox_model_ids": [],
+    "deathbox_names": [],
+    "deathbox_refs": [],
+    "role_status": "observed table fields; activation not tested for every skin"
+  },
+  {
+    "inventory_skin": "M4A1 - Blight's Embrace [Lv 6]",
+    "selection": 11100018,
+    "match_status": "exact source template match",
+    "skin": "M4A1 - Blight's Embrace [Lv 6]",
+    "gun_id": 1,
+    "template_id": 11100018,
+    "source_item_id": 5100000950,
+    "menu_upgrade_level": 6,
+    "kill_effect_feature_flag": 1,
+    "kill_fx_map": {
+      "1": 900
+    },
+    "kill_fx_ids": [
+      900
+    ],
+    "kill_fx_paths": [
+      "Effect/Effect_weapon/M4A1/Skin/Dzem/fx_m4a1_dzem_hit_s_ql_01"
+    ],
+    "kill_material": "Effect/Effect_f/M4v19_die_mat",
+    "team_kill_material": null,
+    "team_dead_fx": null,
+    "team_extra_model_id": null,
+    "single_extra_model_id": null,
+    "kill_feed_icon": 800010,
+    "kill_hud_id_raw": null,
+    "kill_hud_csb": "UIScript/node_ig_escape_bobao_skin_kill_vx03.csb",
+    "new_kill_hud_bg": null,
+    "new_kill_hud_fx": null,
+    "new_kill_hud_head": null,
+    "new_kill_hud_vx_node": null,
+    "deathbox_item_ids": [],
+    "deathbox_model_ids": [],
+    "deathbox_names": [],
+    "deathbox_refs": [],
+    "role_status": "observed table fields; activation not tested for every skin"
+  },
+  {
+    "inventory_skin": "Vector - Warp Neon [Lv 5]",
+    "selection": 81199013,
+    "match_status": "exact source template match",
+    "skin": "Vector - Warp Neon [Lv 5]",
+    "gun_id": 8,
+    "template_id": 81199013,
+    "source_item_id": 520080130,
+    "menu_upgrade_level": 5,
+    "kill_effect_feature_flag": 0,
+    "kill_fx_map": null,
+    "kill_fx_ids": [],
+    "kill_fx_paths": [],
+    "kill_material": null,
+    "team_kill_material": null,
+    "team_dead_fx": null,
+    "team_extra_model_id": null,
+    "single_extra_model_id": null,
+    "kill_feed_icon": null,
+    "kill_hud_id_raw": null,
+    "kill_hud_csb": null,
+    "new_kill_hud_bg": null,
+    "new_kill_hud_fx": null,
+    "new_kill_hud_head": null,
+    "new_kill_hud_vx_node": null,
+    "deathbox_item_ids": [],
+    "deathbox_model_ids": [],
+    "deathbox_names": [],
+    "deathbox_refs": [],
+    "role_status": "observed table fields; activation not tested for every skin"
+  },
+  {
+    "inventory_skin": "Vector - Warp Neon [Lv 5]",
+    "selection": 81199013,
+    "match_status": "exact source template match",
+    "skin": "Vector - Warp Neon [Lv 5]",
+    "gun_id": 8,
+    "template_id": 81199013,
+    "source_item_id": 520080132,
+    "menu_upgrade_level": 5,
+    "kill_effect_feature_flag": 0,
+    "kill_fx_map": null,
+    "kill_fx_ids": [],
+    "kill_fx_paths": [],
+    "kill_material": null,
+    "team_kill_material": null,
+    "team_dead_fx": null,
+    "team_extra_model_id": null,
+    "single_extra_model_id": null,
+    "kill_feed_icon": null,
+    "kill_hud_id_raw": 5200801303,
+    "kill_hud_csb": null,
+    "new_kill_hud_bg": null,
+    "new_kill_hud_fx": null,
+    "new_kill_hud_head": null,
+    "new_kill_hud_vx_node": null,
+    "deathbox_item_ids": [],
+    "deathbox_model_ids": [],
+    "deathbox_names": [],
+    "deathbox_refs": [],
+    "role_status": "observed table fields; activation not tested for every skin"
+  },
+  {
+    "inventory_skin": "Vector - Warp Neon [Lv 5]",
+    "selection": 81199013,
+    "match_status": "exact source template match",
+    "skin": "Vector - Warp Neon [Lv 5]",
+    "gun_id": 8,
+    "template_id": 81199013,
+    "source_item_id": 520080133,
+    "menu_upgrade_level": 5,
+    "kill_effect_feature_flag": 0,
+    "kill_fx_map": null,
+    "kill_fx_ids": [],
+    "kill_fx_paths": [],
+    "kill_material": null,
+    "team_kill_material": null,
+    "team_dead_fx": null,
+    "team_extra_model_id": null,
+    "single_extra_model_id": null,
+    "kill_feed_icon": null,
+    "kill_hud_id_raw": 5200801303,
+    "kill_hud_csb": null,
+    "new_kill_hud_bg": null,
+    "new_kill_hud_fx": null,
+    "new_kill_hud_head": null,
+    "new_kill_hud_vx_node": null,
+    "deathbox_item_ids": [],
+    "deathbox_model_ids": [],
+    "deathbox_names": [],
+    "deathbox_refs": [],
+    "role_status": "observed table fields; activation not tested for every skin"
+  },
+  {
+    "inventory_skin": "Vector - Warp Neon [Lv 5]",
+    "selection": 81199013,
+    "match_status": "exact source template match",
+    "skin": "Vector - Warp Neon [Lv 5]",
+    "gun_id": 8,
+    "template_id": 81199013,
+    "source_item_id": 520080134,
+    "menu_upgrade_level": 5,
+    "kill_effect_feature_flag": 0,
+    "kill_fx_map": null,
+    "kill_fx_ids": [],
+    "kill_fx_paths": [],
+    "kill_material": null,
+    "team_kill_material": null,
+    "team_dead_fx": null,
+    "team_extra_model_id": null,
+    "single_extra_model_id": null,
+    "kill_feed_icon": null,
+    "kill_hud_id_raw": 5200801303,
+    "kill_hud_csb": null,
+    "new_kill_hud_bg": null,
+    "new_kill_hud_fx": null,
+    "new_kill_hud_head": null,
+    "new_kill_hud_vx_node": null,
+    "deathbox_item_ids": [],
+    "deathbox_model_ids": [],
+    "deathbox_names": [],
+    "deathbox_refs": [],
+    "role_status": "observed table fields; activation not tested for every skin"
+  },
+  {
+    "inventory_skin": "Vector - Warp Neon [Lv 5]",
+    "selection": 81199013,
+    "match_status": "exact source template match",
+    "skin": "Vector - Warp Neon [Lv 5]",
+    "gun_id": 8,
+    "template_id": 81199013,
+    "source_item_id": 520080135,
+    "menu_upgrade_level": 5,
+    "kill_effect_feature_flag": 0,
+    "kill_fx_map": null,
+    "kill_fx_ids": [],
+    "kill_fx_paths": [],
+    "kill_material": null,
+    "team_kill_material": null,
+    "team_dead_fx": null,
+    "team_extra_model_id": null,
+    "single_extra_model_id": null,
+    "kill_feed_icon": null,
+    "kill_hud_id_raw": 5200801303,
+    "kill_hud_csb": null,
+    "new_kill_hud_bg": null,
+    "new_kill_hud_fx": null,
+    "new_kill_hud_head": null,
+    "new_kill_hud_vx_node": null,
+    "deathbox_item_ids": [],
+    "deathbox_model_ids": [],
+    "deathbox_names": [],
+    "deathbox_refs": [],
+    "role_status": "observed table fields; activation not tested for every skin"
+  },
+  {
+    "inventory_skin": "MP5 - Guard [Lv 7]",
+    "selection": 211990193,
+    "match_status": "exact source template match",
+    "skin": "MP5 - Guard [Lv 7]",
+    "gun_id": 2,
+    "template_id": 211990193,
+    "source_item_id": 520020195,
+    "menu_upgrade_level": 7,
+    "kill_effect_feature_flag": 0,
+    "kill_fx_map": {
+      "2": 1201915
+    },
+    "kill_fx_ids": [
+      1201915
+    ],
+    "kill_fx_paths": [
+      "Effect/Effect_weapon/Mp5/Skin/v7_sq/fx_mp5_sq_kill"
+    ],
+    "kill_material": "Effect/Effect_f/jinbi_die_mat_MP5V32",
+    "team_kill_material": "Effect/Effect_f/jinbi_die_mat_MP5V32",
+    "team_dead_fx": {
+      "2": 1201924,
+      "3": 1201925,
+      "4": 1201926
+    },
+    "team_extra_model_id": null,
+    "single_extra_model_id": null,
+    "kill_feed_icon": 5200201911,
+    "kill_hud_id_raw": null,
+    "kill_hud_csb": "UIScript/node_ig_escape_bobao_skin_kill_common.csb",
+    "new_kill_hud_bg": 5200201909,
+    "new_kill_hud_fx": 5200201908,
+    "new_kill_hud_head": 5200201910,
+    "new_kill_hud_vx_node": "UIScript/node_kill_effect_jisha_05.csb",
+    "deathbox_item_ids": [],
+    "deathbox_model_ids": [],
+    "deathbox_names": [],
+    "deathbox_refs": [],
+    "role_status": "observed table fields; activation not tested for every skin"
+  },
+  {
+    "inventory_skin": "MP5 - Guard [Lv 7]",
+    "selection": 211990193,
+    "match_status": "exact source template match",
+    "skin": "MP5 - Guard [Lv 7]",
+    "gun_id": 2,
+    "template_id": 211990193,
+    "source_item_id": 520020196,
+    "menu_upgrade_level": 7,
+    "kill_effect_feature_flag": 1,
+    "kill_fx_map": {
+      "2": 1201915
+    },
+    "kill_fx_ids": [
+      1201915
+    ],
+    "kill_fx_paths": [
+      "Effect/Effect_weapon/Mp5/Skin/v7_sq/fx_mp5_sq_kill"
+    ],
+    "kill_material": "Effect/Effect_f/jinbi_die_mat_MP5V32",
+    "team_kill_material": "Effect/Effect_f/jinbi_die_mat_MP5V32",
+    "team_dead_fx": {
+      "2": 1201924,
+      "3": 1201925,
+      "4": 1201926
+    },
+    "team_extra_model_id": null,
+    "single_extra_model_id": null,
+    "kill_feed_icon": 5200201911,
+    "kill_hud_id_raw": null,
+    "kill_hud_csb": "UIScript/node_ig_escape_bobao_skin_kill_common.csb",
+    "new_kill_hud_bg": 5200201909,
+    "new_kill_hud_fx": 5200201908,
+    "new_kill_hud_head": 5200201910,
+    "new_kill_hud_vx_node": "UIScript/node_kill_effect_jisha_05.csb",
+    "deathbox_item_ids": [],
+    "deathbox_model_ids": [],
+    "deathbox_names": [],
+    "deathbox_refs": [],
+    "role_status": "observed table fields; activation not tested for every skin"
+  },
+  {
+    "inventory_skin": "MP5 - Guard [Lv 7]",
+    "selection": 211990193,
+    "match_status": "exact source template match",
+    "skin": "MP5 - Guard [Lv 7]",
+    "gun_id": 2,
+    "template_id": 211990193,
+    "source_item_id": 520020197,
+    "menu_upgrade_level": 7,
+    "kill_effect_feature_flag": 1,
+    "kill_fx_map": {
+      "2": 1201915
+    },
+    "kill_fx_ids": [
+      1201915
+    ],
+    "kill_fx_paths": [
+      "Effect/Effect_weapon/Mp5/Skin/v7_sq/fx_mp5_sq_kill"
+    ],
+    "kill_material": "Effect/Effect_f/jinbi_die_mat_MP5V32",
+    "team_kill_material": "Effect/Effect_f/jinbi_die_mat_MP5V32",
+    "team_dead_fx": {
+      "2": 1201924,
+      "3": 1201925,
+      "4": 1201926
+    },
+    "team_extra_model_id": null,
+    "single_extra_model_id": null,
+    "kill_feed_icon": 5200201911,
+    "kill_hud_id_raw": null,
+    "kill_hud_csb": "UIScript/node_ig_escape_bobao_skin_kill_common.csb",
+    "new_kill_hud_bg": 5200201909,
+    "new_kill_hud_fx": 5200201908,
+    "new_kill_hud_head": 5200201910,
+    "new_kill_hud_vx_node": "UIScript/node_kill_effect_jisha_05.csb",
+    "deathbox_item_ids": [],
+    "deathbox_model_ids": [],
+    "deathbox_names": [],
+    "deathbox_refs": [],
+    "role_status": "observed table fields; activation not tested for every skin"
+  }
+]

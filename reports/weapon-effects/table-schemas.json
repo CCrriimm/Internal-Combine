@@ -1,0 +1,1491 @@
+{
+  "schemas": [
+    {
+      "module": "gclient.data.gun_skin_template_data",
+      "type": "bindict",
+      "rows": 29721,
+      "keys": [
+        "gun_id",
+        "gun_skin_part_mat_list",
+        "gun_skin_part_tiling_list",
+        "gun_skin_part_type_list",
+        "gun_skin_type",
+        "id",
+        "skin_name"
+      ],
+      "sample_ids": [
+        "510100180",
+        "400100140",
+        "290100100"
+      ]
+    },
+    {
+      "module": "gclient.data.gun_skin_optic_data",
+      "type": "bindict",
+      "rows": 516,
+      "keys": [
+        "basepoint1",
+        "hardpoint1",
+        "has_unique_recticle",
+        "id",
+        "model_id1_replace_id",
+        "name",
+        "optic_b_model_replace_id",
+        "optic_b_off_model_id",
+        "optic_f_off_model_id",
+        "optic_sight_bone_pos",
+        "skin_optic_attachment_attri_id",
+        "skin_optic_base_attachment_id",
+        "skin_optic_effect",
+        "skin_optic_effect_permanent",
+        "skin_optic_icon_id",
+        "skin_optic_model_id",
+        "skin_optic_offset",
+        "skin_part_optic_effect"
+      ],
+      "sample_ids": [
+        "21025",
+        "59",
+        "2390251"
+      ]
+    },
+    {
+      "module": "gclient.data.lobby_item_upgrade_data",
+      "type": "bindict",
+      "rows": 792,
+      "keys": [
+        "1",
+        "2",
+        "3"
+      ],
+      "sample_ids": [
+        "5100140050",
+        "510010070",
+        "5400400030"
+      ]
+    },
+    {
+      "module": "gclient.data.gun_skin_material_data",
+      "type": "bindict",
+      "rows": 664,
+      "keys": [
+        "dlc_id",
+        "dlc_pack_ids",
+        "id",
+        "pre_mat_param_name",
+        "pre_mat_param_value",
+        "texture_param_name",
+        "texture_param_path"
+      ],
+      "sample_ids": [
+        "300",
+        "600",
+        "359"
+      ]
+    },
+    {
+      "module": "gclient.data.lobby_gun_skin_item_data",
+      "type": "bindict",
+      "rows": 0,
+      "keys": [],
+      "sample_ids": []
+    },
+    {
+      "module": "gclient.data.lobby_item_upgrade_extra_data",
+      "type": "bindict",
+      "rows": 0,
+      "keys": [],
+      "sample_ids": []
+    },
+    {
+      "module": "gclient.data.mat_id_to_gun_skin_item_data",
+      "type": "bindict",
+      "rows": 645,
+      "keys": [],
+      "sample_ids": [
+        "300",
+        "600",
+        "359"
+      ]
+    },
+    {
+      "module": "gclient.data.random_box_data",
+      "type": "bindict",
+      "rows": 3,
+      "keys": [
+        "1",
+        "10",
+        "11",
+        "12",
+        "13",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9"
+      ],
+      "sample_ids": [
+        "400013",
+        "400003",
+        "400012"
+      ]
+    },
+    {
+      "module": "gclient.data.all_gain_box_data",
+      "type": "bindict",
+      "rows": 9,
+      "keys": [
+        "1",
+        "10",
+        "11",
+        "12",
+        "13",
+        "14",
+        "15",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9"
+      ],
+      "sample_ids": [
+        "4200000160",
+        "4200000460",
+        "4200000140"
+      ]
+    },
+    {
+      "module": "gclient.data.box_item_id_2_item_info_data",
+      "type": "bindict",
+      "rows": 20,
+      "keys": [],
+      "sample_ids": [
+        "4250000010",
+        "4200000760",
+        "4200000750"
+      ]
+    },
+    {
+      "module": "gclient.data.act_gun_skin_recall_setting_data",
+      "type": "bindict",
+      "rows": 3,
+      "keys": [
+        "dailytasknum",
+        "hint1",
+        "hint2",
+        "id",
+        "progressitem",
+        "title",
+        "weeklytasknum"
+      ],
+      "sample_ids": [
+        "1209",
+        "13001",
+        "1353"
+      ]
+    },
+    {
+      "module": "gclient.data.blasting_shop_skill_data",
+      "type": "bindict",
+      "rows": 20,
+      "keys": [
+        "id",
+        "item_id",
+        "name",
+        "skill",
+        "talent"
+      ],
+      "sample_ids": [
+        "113",
+        "108",
+        "103"
+      ]
+    },
+    {
+      "module": "gclient.data.box_show_data",
+      "type": "bindict",
+      "rows": 244,
+      "keys": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5"
+      ],
+      "sample_ids": [
+        "4209000050",
+        "4250000010",
+        "4120001900"
+      ]
+    },
+    {
+      "module": "gclient.data.equip_data",
+      "type": "bindict",
+      "rows": 326,
+      "keys": [
+        "anim_data_id",
+        "anim_speed_data_id",
+        "big_icon_id",
+        "can_in_backpack",
+        "default_attach",
+        "default_attach_tps",
+        "equip_case",
+        "equip_movement_speed",
+        "equip_type",
+        "gun_media_bnk",
+        "gun_sound_list",
+        "hall_lobby_pose_data_map_weapon_id",
+        "hand_graph",
+        "hand_tach_point",
+        "icon_id",
+        "id",
+        "is_tps_bonefilter_arm",
+        "kill_tip_icon",
+        "level_show_rotation",
+        "little_helper",
+        "melee_extra_model_attach",
+        "melee_extra_model_attach_avatar",
+        "melee_extra_model_id",
+        "melee_weapon_id",
+        "mod_id",
+        "model_id",
+        "move_action_type",
+        "name",
+        "screenshot_rotate",
+        "small_icon_id",
+        "spell_id",
+        "sub_model_attach",
+        "sub_model_id",
+        "tps_graph",
+        "tps_move_action_type",
+        "warehouse_show_rotation",
+        "watch_model_offset"
+      ],
+      "sample_ids": [
+        "59",
+        "659",
+        "118"
+      ]
+    },
+    {
+      "module": "gclient.data.feature_icon_data",
+      "type": "bindict",
+      "rows": 941,
+      "keys": [
+        "airdrop_team_weapon_icon",
+        "base_icon",
+        "bind_items_1_icon",
+        "bind_items_2_icon",
+        "bind_items_3_icon",
+        "bullet_trace_icon",
+        "float_cannon_icon",
+        "high_iron_sight_icon",
+        "hit_effect_icon",
+        "id",
+        "inspect_anim_icon",
+        "iron_sight_icon",
+        "kill_effect_icon",
+        "kill_hud_id_icon",
+        "kill_num_icon",
+        "new_appear_icon",
+        "raise_anim_icon",
+        "raise_anim_name",
+        "recevier_show_ammo_icon",
+        "reload_transform_icon",
+        "show_unlock_feature_node_bg",
+        "show_unlock_feature_node_select_banner",
+        "show_unlock_feature_node_select_bg",
+        "sky_box_icon",
+        "sound_effect_icon",
+        "sp_effect_icon",
+        "special_airdrop_icon",
+        "special_skin_part_icon",
+        "team_dead_fx_icon",
+        "tip_fire_icon",
+        "unlock_feature_node_bg",
+        "unlock_feature_node_select_banner",
+        "unlock_feature_node_select_bg",
+        "unlock_item_icon",
+        "unlock_part_icon"
+      ],
+      "sample_ids": [
+        "5100140050",
+        "510010070",
+        "5500150080"
+      ]
+    },
+    {
+      "module": "gclient.data.game_logic_moba_titan_2_transform_data",
+      "type": "bindict",
+      "rows": 2,
+      "keys": [
+        "action_graph",
+        "basic_graph",
+        "big_jump_drive_duration",
+        "big_jump_top_speed",
+        "big_jump_top_speed_y",
+        "birth_graph",
+        "button_text",
+        "camera_graph",
+        "charctrl_scale",
+        "charctrl_step_offset_scale",
+        "clear_normal_skills",
+        "death_graph",
+        "duration",
+        "duration_warning_effect_id",
+        "hide_weapon_slots",
+        "hook_body_bones",
+        "hook_fallback_height",
+        "hook_neck_bones",
+        "hp",
+        "hurt_graph",
+        "id",
+        "inject_item_id",
+        "jump_duration",
+        "jump_landing_damage",
+        "jump_landing_radius",
+        "jump_params",
+        "jump_preview_down_vel_y",
+        "jump_preview_drop_test_height",
+        "jump_preview_effect_id",
+        "jump_preview_enabled",
+        "jump_preview_model_id",
+        "jump_preview_raycast_down",
+        "jump_preview_raycast_up",
+        "jump_preview_scale",
+        "jump_speed",
+        "jump_vec_y",
+        "preview_jump_params",
+        "preview_jump_speed",
+        "preview_jump_vec_y",
+        "resource_id",
+        "run_speed_ratio",
+        "skill_items",
+        "skill_slots",
+        "special_attack_item",
+        "stomp_capsule_forward_offset",
+        "stomp_capsule_halfheight",
+        "stomp_capsule_height_offset",
+        "stomp_capsule_radius",
+        "stomp_capsule_side_offset",
+        "stomp_damage",
+        "stomp_strike_interval",
+        "transform_graph",
+        "transformed_camera_id",
+        "turn_camera_diff_threshold",
+        "turn_event_interval",
+        "turn_yaw_stop_threshold"
+      ],
+      "sample_ids": [
+        "60022",
+        "60021"
+      ]
+    },
+    {
+      "module": "gclient.data.gun_skin_set_fx_color_config_data",
+      "type": "bindict",
+      "rows": 8,
+      "keys": [
+        "color_set_name",
+        "id",
+        "surface_Shader"
+      ],
+      "sample_ids": [
+        "101199029",
+        "451199019",
+        "101199028"
+      ]
+    },
+    {
+      "module": "gclient.data.gun_skin_special_attr_data",
+      "type": "bindict",
+      "rows": 5,
+      "keys": [
+        "1"
+      ],
+      "sample_ids": [
+        "1011990110",
+        "381199014",
+        "1011990100"
+      ]
+    },
+    {
+      "module": "gclient.data.hero_data",
+      "type": "bindict",
+      "rows": 26,
+      "keys": [
+        "beard_offset",
+        "begin",
+        "begin_utc_stamp",
+        "core_slot_1",
+        "core_slot_2",
+        "core_slot_3",
+        "core_slot_4",
+        "core_slot_5",
+        "core_slot_6",
+        "emote_grid_count",
+        "gun_pose_id",
+        "hero_all_skill",
+        "hero_cabbard_tach_point",
+        "hero_equip_item_id",
+        "hero_gender",
+        "hero_hall_show_anim",
+        "hero_icon",
+        "hero_icon_offline",
+        "hero_icon_special",
+        "hero_item_id",
+        "hero_kv",
+        "hero_medium_icon",
+        "hero_name",
+        "hero_skill",
+        "hero_skill_data",
+        "hero_talents",
+        "id",
+        "is_in_package",
+        "item_scabbard_tach_point",
+        "mall_id",
+        "mega_skill",
+        "no_bg_skin_icon",
+        "pumpkin_offset",
+        "skill_text1",
+        "skill_text2",
+        "skill_video",
+        "skill_video_es",
+        "skill_video_h",
+        "skill_video_pt",
+        "skin_intro_graph_path"
+      ],
+      "sample_ids": [
+        "113",
+        "108",
+        "103"
+      ]
+    },
+    {
+      "module": "gclient.data.iingame_kill_feedback_data",
+      "type": "bindict",
+      "rows": 31,
+      "keys": [
+        "KillFeekbackDataText",
+        "KillFeekbackDataVal",
+        "KillFeekbackRank",
+        "id"
+      ],
+      "sample_ids": [
+        "300",
+        "24",
+        "201"
+      ]
+    },
+    {
+      "module": "gclient.data.item_feature_data",
+      "type": "bindict",
+      "rows": 3828,
+      "keys": [
+        "base_appear",
+        "exclusive_aa_items_id",
+        "hand_effect",
+        "hero_effect",
+        "id",
+        "iron_sight",
+        "kill_hud_id",
+        "name",
+        "quality",
+        "show_feature",
+        "skill_effect",
+        "sub_type",
+        "tip_fire"
+      ],
+      "sample_ids": [
+        "5500300083",
+        "5100140050",
+        "3001080191"
+      ]
+    },
+    {
+      "module": "gclient.data.lobby_item_data",
+      "type": "bindict",
+      "rows": 65537,
+      "keys": [
+        "auto_use",
+        "camouflage_set_id",
+        "decompose_cnt",
+        "decompose_id",
+        "icon",
+        "id",
+        "item_description",
+        "max_single_item",
+        "name",
+        "quality",
+        "short_desc",
+        "skin",
+        "small_icon_id",
+        "sp_reward",
+        "sub_type",
+        "use_code",
+        "use_code_params"
+      ],
+      "sample_ids": [
+        "1100316385",
+        "1200480940",
+        "1200021380"
+      ]
+    },
+    {
+      "module": "gclient.data.monster_data",
+      "type": "bindict",
+      "rows": 8,
+      "keys": [
+        "active_interval",
+        "ai",
+        "can_kill_player",
+        "capsule",
+        "hp",
+        "id",
+        "model_id",
+        "monster_energy_awards",
+        "name",
+        "perception_range",
+        "skill_list",
+        "speed",
+        "view_range",
+        "yaw_halflife"
+      ],
+      "sample_ids": [
+        "9",
+        "8",
+        "7"
+      ]
+    },
+    {
+      "module": "gclient.data.peak_medal_data",
+      "type": "bindict",
+      "rows": 4,
+      "keys": [
+        "icon",
+        "icon_in_kill_hud",
+        "id",
+        "name",
+        "valid_day"
+      ],
+      "sample_ids": [
+        "4",
+        "3",
+        "2"
+      ]
+    },
+    {
+      "module": "gclient.data.random_resourceBox_sort_data",
+      "type": "bindict",
+      "rows": 20,
+      "keys": [
+        "1",
+        "2"
+      ],
+      "sample_ids": [
+        "1008",
+        "1003",
+        "3703"
+      ]
+    },
+    {
+      "module": "gclient.data.room_data",
+      "type": "bindict",
+      "rows": 28,
+      "keys": [
+        "assist_aim",
+        "ban_hero",
+        "coins_range",
+        "default",
+        "disable_all_skills",
+        "disable_skill",
+        "icon",
+        "id",
+        "infinite_ammo",
+        "match_mode",
+        "match_room_icon",
+        "max_count",
+        "max_hp",
+        "one_shot_kill_chance",
+        "reduce_skill_charge",
+        "round_range",
+        "score",
+        "time",
+        "tips_id",
+        "watch_count"
+      ],
+      "sample_ids": [
+        "1200",
+        "1800",
+        "2100"
+      ]
+    },
+    {
+      "module": "gclient.data.shooting_challenge_data",
+      "type": "bindict",
+      "rows": 2,
+      "keys": [
+        "before_start_time",
+        "challenge_fail_tips_list",
+        "challenge_succeed_tips",
+        "change_color_time",
+        "change_direction_time",
+        "default_start_position",
+        "default_start_yaw",
+        "id",
+        "login_tips_list",
+        "new_settlement_tips",
+        "robot_armor",
+        "robot_count",
+        "robot_create_interval",
+        "robot_hp",
+        "robot_idle_duration",
+        "robot_jump_interval",
+        "robot_move_duration",
+        "robot_move_z_range",
+        "robot_position_range",
+        "robot_stop_duration",
+        "speed",
+        "stage_one_kills_required",
+        "stage_two_kills_required",
+        "success_time",
+        "time_out",
+        "valid_start_area"
+      ],
+      "sample_ids": [
+        "1001",
+        "1"
+      ]
+    },
+    {
+      "module": "gclient.data.sp_kill_feedback_data",
+      "type": "bindict",
+      "rows": 8,
+      "keys": [
+        "KillFeekbackDataVal",
+        "KillFeekbackText",
+        "id"
+      ],
+      "sample_ids": [
+        "4",
+        "3",
+        "101"
+      ]
+    },
+    {
+      "module": "gclient.data.unique_random_box_data",
+      "type": "bindict",
+      "rows": 262,
+      "keys": [
+        "1",
+        "10",
+        "11",
+        "12",
+        "13",
+        "14",
+        "15",
+        "16",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9"
+      ],
+      "sample_ids": [
+        "4209000050",
+        "4250000010",
+        "4120001900"
+      ]
+    },
+    {
+      "module": "gclient.data.vehicle_data",
+      "type": "bindict",
+      "rows": 52,
+      "keys": [
+        "air_pitch_torque",
+        "air_roll_torque",
+        "back_max_speed",
+        "car_icon_id_1",
+        "car_icon_id_2",
+        "character_graph_str",
+        "damage_health",
+        "damage_mat_list",
+        "damage_torque_ratio",
+        "damage_y_offset",
+        "defense",
+        "delay_destroy_time",
+        "dismount_add_y_speed",
+        "dismount_speed_multiplier",
+        "dlc_vehicle",
+        "do_hit_spell_id",
+        "effect_accelerate",
+        "effect_base_game",
+        "effect_base_lobby",
+        "effect_driving_back",
+        "effect_explode",
+        "effect_fire_hit",
+        "effect_light",
+        "effect_rear_light",
+        "effect_serious_hit",
+        "effect_slight_hit",
+        "effect_wheel_1",
+        "effect_wheel_2",
+        "explode_damage",
+        "explode_magicfield",
+        "explode_range",
+        "explode_sound_id",
+        "hit_kill_speed",
+        "human_self_damage",
+        "icon_map",
+        "icon_map_enemy",
+        "icon_map_teammate",
+        "id",
+        "lean_out_horizon",
+        "lean_out_vertical",
+        "map_tag_id",
+        "max_health",
+        "max_oil",
+        "max_speed",
+        "model_id",
+        "motorbike_pitch_torque",
+        "name",
+        "normal_oil",
+        "normal_speed",
+        "oil_per_kilometer",
+        "physX_config_id",
+        "seats",
+        "slip_threshold",
+        "sound_acceleration",
+        "sound_brake",
+        "sound_engine",
+        "sound_engine_volume",
+        "sound_explode",
+        "sound_hit",
+        "sound_hit_body",
+        "sound_horn",
+        "sound_horn_stop",
+        "sound_low_fuel",
+        "sound_low_fuel_playtime",
+        "sound_start",
+        "sound_stop",
+        "sound_tire",
+        "sound_tire_slide",
+        "sound_tire_slide_stop",
+        "sound_tire_stop",
+        "start_assist_force",
+        "start_assist_speed",
+        "tire_attach_point",
+        "tire_health",
+        "tire_model_id",
+        "tire_motor_model_ids",
+        "type",
+        "vehicle_hit_sound_id",
+        "vehicle_item_id",
+        "weight",
+        "wheel_damage_mat_list",
+        "wheel_health",
+        "wheel_num",
+        "wheel_radius",
+        "wheel_width",
+        "zombie_self_damage"
+      ],
+      "sample_ids": [
+        "54",
+        "49",
+        "44"
+      ]
+    },
+    {
+      "module": "gclient.data.hero_attributes_data",
+      "type": "bindict",
+      "rows": 23,
+      "keys": [
+        "ads_revealname_pitchangle",
+        "ads_revealname_yawangle",
+        "armor_recover_time",
+        "armor_recover_value",
+        "assist_energy",
+        "break_armor_recover_time",
+        "climb_speed_scale",
+        "crouch_interval",
+        "enter_prone_time",
+        "full_slide_interval",
+        "help_other_speed",
+        "help_self_speed",
+        "hipfire_revealname_pitchangle",
+        "hipfire_revealname_yawangle",
+        "id",
+        "incomplete_slide_factor",
+        "jump_interval",
+        "jump_y_Vec1",
+        "jump_y_Vec2",
+        "kill_energy",
+        "laydown_dot",
+        "laydown_health",
+        "lie_interval",
+        "max_armor",
+        "max_health",
+        "movespeed_correction",
+        "moving_dist_ratio",
+        "moving_hipfire_spread_ratio",
+        "other_progress_loss_speed",
+        "pick_tactical_energy",
+        "pose_dist_ratio",
+        "pose_hipfire_spread_ratio",
+        "recover_time",
+        "recover_value",
+        "rescue_armor_recover_time",
+        "rescue_health",
+        "rescue_recovertime",
+        "self_progress_loss_speed",
+        "shortest_displaytime",
+        "shortest_revealtime",
+        "slide_interval",
+        "suicide_time",
+        "supersprint_interval",
+        "supersprint_recover",
+        "supersprint_time",
+        "suppression_decay",
+        "suppression_max",
+        "tactical_core_lv"
+      ],
+      "sample_ids": [
+        "0",
+        "1200",
+        "1800"
+      ]
+    },
+    {
+      "module": "gclient.data.act_gun_skin_recall_progress_data",
+      "type": "bindict",
+      "rows": 3,
+      "keys": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5"
+      ],
+      "sample_ids": [
+        "1209",
+        "13001",
+        "1353"
+      ]
+    },
+    {
+      "module": "gclient.data.box_probability_show_data",
+      "type": "bindict",
+      "rows": 184,
+      "keys": [
+        "1",
+        "10",
+        "11",
+        "12",
+        "13",
+        "14",
+        "15",
+        "16",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9"
+      ],
+      "sample_ids": [
+        "4209000050",
+        "4250000010",
+        "4120001900"
+      ]
+    },
+    {
+      "module": "gclient.data.choose_box_data",
+      "type": "bindict",
+      "rows": 47,
+      "keys": [
+        "1",
+        "10",
+        "11",
+        "12",
+        "13",
+        "14",
+        "15",
+        "16",
+        "17",
+        "18",
+        "19",
+        "2",
+        "20",
+        "21",
+        "22",
+        "23",
+        "24",
+        "25",
+        "26",
+        "27",
+        "28",
+        "29",
+        "3",
+        "30",
+        "31",
+        "32",
+        "33",
+        "34",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9"
+      ],
+      "sample_ids": [
+        "4260000100",
+        "4260000400",
+        "4260000090"
+      ]
+    },
+    {
+      "module": "gclient.data.unique_random_box_guaranteed_data",
+      "type": "bindict",
+      "rows": 1001,
+      "keys": [
+        "id",
+        "item_count",
+        "item_id"
+      ],
+      "sample_ids": [
+        "4200001090",
+        "300",
+        "4200001390"
+      ]
+    },
+    {
+      "module": "gclient.data.box_fixed_reward_data",
+      "type": "bindict",
+      "rows": 10,
+      "keys": [
+        "fixed_rewards",
+        "id"
+      ],
+      "sample_ids": [
+        "4200001070",
+        "4200001060",
+        "4200000720"
+      ]
+    },
+    {
+      "module": "gclient.data.choose_group_box_data",
+      "type": "bindict",
+      "rows": 1,
+      "keys": [
+        "1",
+        "2"
+      ],
+      "sample_ids": [
+        "4260000380"
+      ]
+    },
+    {
+      "module": "gclient.data.dmz_lobby_item_data",
+      "type": "bindict",
+      "rows": 0,
+      "keys": [],
+      "sample_ids": []
+    },
+    {
+      "module": "gclient.data.airdrop_skin_data",
+      "type": "bindict",
+      "rows": 34,
+      "keys": [
+        "AirdropBoxModel",
+        "AirdropIdleAnimName",
+        "AirdropPermanentSfx",
+        "AirdropSmokeSfx",
+        "AirdropSmokeSfx_looby",
+        "LandingSound",
+        "ParachuteModel",
+        "WeaponBlueprint",
+        "dlc_pack_ids",
+        "id",
+        "is_best_skin"
+      ],
+      "sample_ids": [
+        "6150000050",
+        "6150000040",
+        "6150000340"
+      ]
+    },
+    {
+      "module": "gclient.data.nightmare_data",
+      "type": "bindict",
+      "rows": 1,
+      "keys": [
+        "catchup_score_percent",
+        "clown_cannot_drop_prompt_id",
+        "clown_cannot_pickup_prompt_id",
+        "clown_damage_reduction",
+        "clown_execution_item_id",
+        "clown_hunt_camera_effect_id",
+        "clown_hunt_icon_big_id",
+        "clown_hunt_icon_id",
+        "clown_move_speed",
+        "clown_perception_interval",
+        "clown_perception_range",
+        "clown_perception_reveal_buff_id",
+        "clown_prompt_id",
+        "clown_skill1_icon_id",
+        "clown_skill2_icon_id",
+        "clown_transform_delay",
+        "clown_transform_icon_id",
+        "clown_transform_protection_buff_id",
+        "damage_per_point",
+        "event_points",
+        "hunt_points",
+        "hunt_price_list",
+        "id",
+        "low_world_field_id",
+        "model_effect_id",
+        "model_id",
+        "phase_prompt_ids",
+        "phase_score_percent",
+        "phase_times",
+        "prank_effect_id",
+        "prank_seconds",
+        "reborn_seconds_per_point",
+        "sky_box_id",
+        "supply_type_map",
+        "third_settlement_seconds",
+        "tier_cash_reward",
+        "tier_percent",
+        "transform_graph",
+        "world_field_id"
+      ],
+      "sample_ids": [
+        "3800"
+      ]
+    },
+    {
+      "module": "gclient.data.lobby_item_upgrade_point_data",
+      "type": "bindict",
+      "rows": 8,
+      "keys": [
+        "begin_utc_stamp",
+        "id",
+        "is_linkage_endtime",
+        "need_gold"
+      ],
+      "sample_ids": [
+        "4120001600",
+        "4120002800",
+        "4120002100"
+      ]
+    },
+    {
+      "module": "gclient.data.monster_skill_data",
+      "type": "bindict",
+      "rows": 7,
+      "keys": [
+        "cd",
+        "code",
+        "damage",
+        "hit_sound_id",
+        "id",
+        "skill_channel",
+        "skill_end"
+      ],
+      "sample_ids": [
+        "4",
+        "8",
+        "3"
+      ]
+    },
+    {
+      "module": "gclient.data.gun_skin_set_icon_data",
+      "type": "bindict",
+      "rows": 2,
+      "keys": [
+        "color_set_icon_list",
+        "id"
+      ],
+      "sample_ids": [
+        "101199026",
+        "451199016"
+      ]
+    },
+    {
+      "module": "gclient.data.game_logic_moba_titan_2_config_data",
+      "type": "bindict",
+      "rows": 1,
+      "keys": [
+        "beast_big_jump_cd",
+        "big_jump_cd_prompt_interval",
+        "camera_duration",
+        "duration_warning_time",
+        "exit_death_fallback_time",
+        "head_check_base_height",
+        "head_check_radius",
+        "head_clearance",
+        "id",
+        "invincible_buff",
+        "invincible_time",
+        "jump_landing_grace_time",
+        "juren_fly_gas_energy_limit",
+        "juren_fly_gas_recover_per_second",
+        "juren_fly_gas_recovery_delay",
+        "juren_fly_hook_gas_cost",
+        "juren_fly_slash_ga_cost",
+        "reconnect_camera_recover_delays",
+        "refresh_stronghold_time",
+        "server_exit_performance_fallback_time",
+        "transform_cooldown",
+        "transform_skybox_id",
+        "transform_skybox_item_id",
+        "vehicle_hit_intelligent_titan_damage_per_ton",
+        "vehicle_hit_pure_titan_damage_per_ton"
+      ],
+      "sample_ids": [
+        "1"
+      ]
+    },
+    {
+      "module": "gclient.data.state_relationship_data",
+      "type": "bindict",
+      "rows": 108,
+      "keys": [
+        "AccelerateRing",
+        "AccumulateFist",
+        "BeExecuted",
+        "Blast",
+        "BleachSpirit",
+        "BleachXuli",
+        "ChargeJump",
+        "ChargeJumpAir",
+        "Climb",
+        "ClimbLadder",
+        "ClimbWall",
+        "CommonTpsSkill",
+        "Cross",
+        "Crouch",
+        "DancingCure",
+        "DriveVehicle",
+        "DropWeapon",
+        "DualFire",
+        "DualReload",
+        "DualReloadEnd",
+        "DualReloading",
+        "Emote",
+        "EnterAds",
+        "EnterLauncher",
+        "EnvySin",
+        "Execution",
+        "Fire",
+        "Fly",
+        "Grapplinghook",
+        "GunInspection",
+        "GunRefit",
+        "HighFall",
+        "Idle",
+        "Inspirator",
+        "Item",
+        "KatyaDash",
+        "KnockDown",
+        "LeanOutVehicle",
+        "LeftHandSpecialWeapon",
+        "LeftShield",
+        "LeftXDroid",
+        "LightningAlpaca",
+        "LightningCapybara",
+        "Medicine",
+        "Melee",
+        "MeleeAttack",
+        "MeowDance",
+        "MixingConsoleUsing",
+        "MovingShield",
+        "OnVehicle",
+        "PanPan",
+        "Parachute",
+        "PickUp",
+        "PortableEquipment",
+        "PreTransforming",
+        "PreVehicle",
+        "RaiseLeftHandWeapon",
+        "RaiseWeapon",
+        "Rechamber",
+        "Reload",
+        "ReloadEnd",
+        "Reloading",
+        "RescueOther",
+        "SamuraiBlock",
+        "SamuraiSprint",
+        "SeriousPunch",
+        "Skill",
+        "SkillCantAir",
+        "SkillCantProne",
+        "SkillWeaponDrop",
+        "SkillWeaponRaise",
+        "Slide",
+        "SpellOnThrusterPack",
+        "SpikeTransfer",
+        "Spirit",
+        "Sprint",
+        "Strop",
+        "SuperSprint",
+        "Swim",
+        "ThrowableWeaponLeft",
+        "ThrowableWeaponRight",
+        "ThrusterPack",
+        "Titan2Jump",
+        "Titan2PreTransforming",
+        "Titan2TransformExiting",
+        "Titan2Transformed",
+        "Titan2Transforming",
+        "TotemTransfer",
+        "TotemTransferEnd",
+        "Transformed",
+        "Transforming",
+        "TripleShot",
+        "Xdroid",
+        "armor_titan_charge",
+        "armor_titan_ground_smash",
+        "armor_titan_normal_attack",
+        "beast_range_stone",
+        "beast_throw_stone",
+        "beast_titan_normal_attack",
+        "id"
+      ],
+      "sample_ids": [
+        "59",
+        "54",
+        "113"
+      ]
+    },
+    {
+      "module": "gclient.data.begin_guide_condition_data",
+      "type": "bindict",
+      "rows": 1,
+      "keys": [
+        "abtest_rate",
+        "ammo_num",
+        "battle_robot_distance_range",
+        "battle_robot_drop_delay",
+        "battle_robot_drop_fail_retry_delay",
+        "bot_distance_1",
+        "bot_distance_2",
+        "bot_drop_1",
+        "bot_drop_2",
+        "bot_weapon_1",
+        "bot_weapon_2",
+        "id",
+        "item_box",
+        "oldnewer_1002_abtest_rate",
+        "skill_time",
+        "task_abtest_rate",
+        "task_id",
+        "train_treat_abtest_rate",
+        "uav_time"
+      ],
+      "sample_ids": [
+        "1"
+      ]
+    },
+    {
+      "module": "gclient.data.game_logic_squad_fight_data",
+      "type": "bindict",
+      "rows": 1,
+      "keys": [
+        "airdrop_item_list",
+        "born_ammo",
+        "born_cash",
+        "born_weapon",
+        "buy_time",
+        "continue_lose_cash",
+        "continue_win_cash",
+        "evo_platform_award_list",
+        "evo_platform_cap_range",
+        "evo_platform_cap_time",
+        "evo_platform_model_id",
+        "evo_platform_open_round",
+        "id",
+        "kill_cash",
+        "lose_cash",
+        "reset_ammo",
+        "reset_item",
+        "reset_skill",
+        "round_end_time",
+        "round_gap_time",
+        "round_to_win",
+        "start_delay",
+        "wait_time",
+        "win_cash"
+      ],
+      "sample_ids": [
+        "1"
+      ]
+    },
+    {
+      "module": "gclient.data.game_logic_squad_fight_iterate_data",
+      "type": "bindict",
+      "rows": 1,
+      "keys": [
+        "airdrop_item_extra_list",
+        "airdrop_item_list",
+        "assist_cash",
+        "born_ammo",
+        "born_cash",
+        "born_weapon",
+        "buy_time",
+        "continue_lose_cash",
+        "continue_win_cash",
+        "duel_born_cash",
+        "duel_born_item",
+        "duel_buy_time",
+        "duel_end_time",
+        "duel_gap_time",
+        "duel_pick_time",
+        "evo_platform_award_list",
+        "evo_platform_cap_range",
+        "evo_platform_cap_time",
+        "evo_platform_model_id",
+        "evo_platform_open_round",
+        "flag_cap_cash",
+        "flag_cap_multiplier",
+        "flag_cap_multiply",
+        "flag_cap_range",
+        "flag_cap_time",
+        "flag_delay",
+        "id",
+        "kill_cash",
+        "lose_cash",
+        "quit_cash",
+        "reset_ammo",
+        "reset_item",
+        "reset_skill",
+        "round_end_time",
+        "round_gap_time",
+        "round_to_win",
+        "start_delay",
+        "wait_time",
+        "win_cash"
+      ],
+      "sample_ids": [
+        "1"
+      ]
+    },
+    {
+      "module": "gclient.data.game_logic_blasting_data",
+      "type": "bindict",
+      "rows": 1,
+      "keys": [
+        "ace_cap_multiplier",
+        "ace_cap_range",
+        "ace_cap_time",
+        "ace_item_pool",
+        "assist_cash",
+        "battle_time",
+        "bomb_planted_time",
+        "born_ammo",
+        "born_cash",
+        "born_weapon",
+        "buy_time",
+        "c4_hint_maxrate_time",
+        "c4_hint_rtpc_end",
+        "c4_hint_rtpc_start",
+        "c4_map_tag_id",
+        "continue_lose_cash",
+        "continue_win_cash",
+        "defuse_cash",
+        "defuse_range",
+        "defuse_time",
+        "explode_max_damage",
+        "explode_min_damage",
+        "explode_radius",
+        "id",
+        "kill_cash",
+        "light_need",
+        "lose_cash",
+        "max_hp",
+        "melee_damage_ratio",
+        "plant_cash",
+        "plant_time",
+        "quit_cash",
+        "reset_ammo",
+        "reset_item",
+        "round_count",
+        "round_end_time",
+        "round_gap_time",
+        "round_to_win",
+        "save_defuse_time",
+        "start_delay",
+        "swap_round",
+        "win_cash"
+      ],
+      "sample_ids": [
+        "1"
+      ]
+    },
+    {
+      "module": "gclient.data.game_logic_hardpoint_data",
+      "type": "bindict",
+      "rows": 4,
+      "keys": [
+        "ammo_bag",
+        "base_score",
+        "capture_pause",
+        "capture_team_rebirth_delay",
+        "first_point_delay",
+        "id",
+        "kill_score",
+        "personal_score_capture",
+        "personal_score_kill",
+        "point_active_time",
+        "point_delay",
+        "point_show_time",
+        "resourcebox_id",
+        "resourcebox_location",
+        "score_max",
+        "spec_ammo",
+        "spec_ammo_bag",
+        "start_delay",
+        "throwable_item_id",
+        "time_max"
+      ],
+      "sample_ids": [
+        "1800",
+        "2700",
+        "1100"
+      ]
+    },
+    {
+      "module": "gclient.data.act_gun_skin_recall_reward_data",
+      "type": "bindict",
+      "rows": 3,
+      "keys": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5"
+      ],
+      "sample_ids": [
+        "1209",
+        "13001",
+        "1353"
+      ]
+    }
+  ],
+  "types": {
+    "bindict": 604,
+    "dict": 2
+  }
+}

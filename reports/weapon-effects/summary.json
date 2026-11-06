@@ -1,0 +1,15 @@
+{
+  "menu_gun_entries": 743,
+  "unique_gun_templates": 741,
+  "with_kill_fx": 119,
+  "with_kill_feed_icon": 125,
+  "with_kill_hud_config": 682,
+  "with_bundle_deathbox": 23,
+  "unique_bundle_deathboxes": 23,
+  "with_team_extra_model": 21,
+  "effect_resources": 195,
+  "resolved_effect_resources": 195,
+  "model_resources": 85,
+  "resolved_model_resources": 85,
+  "active_inventory_rows": 26
+}

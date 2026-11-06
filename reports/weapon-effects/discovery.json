@@ -1,0 +1,29 @@
+{
+  "status": {
+    "time": 1793855331.089217,
+    "player_type": "PlayerCombatAvatarShootingRange",
+    "in_hall": false,
+    "catalog_path": "%TEMP%/CiyE_BSLoader/ipc/catalog.bin",
+    "killfx_filled": 0,
+    "killfx_enabled": false
+  },
+  "modules": [
+    "gclient.data.blasting_shop_skill_data",
+    "gclient.data.iingame_kill_feedback_data",
+    "gclient.data.sp_kill_feedback_data",
+    "gclient.gameplay.logic_base.equips.common_skill_case",
+    "gclient.gameplay.logic_base.equips.replay_common_skill_case",
+    "gclient.ui.common.hero_skill_node",
+    "gclient.gameplay.logic_base.ui.skill_node",
+    "gclient.gameplay.logic_base.ui.skill_node2",
+    "gclient.data.monster_skill_data",
+    "gclient.gameplay.uicomponents.prompt_blood_event_kill",
+    "gclient.gameplay.uicomponents.hud_killrecord_comp",
+    "gclient.gameplay.logic_base.ui.replay_death_comp",
+    "gclient.gameplay.uicomponents.hud_deathreplay_comp",
+    "gclient.gameplay.logic_base.entities.ai_entity_members.cimp_ai_skill",
+    "gclient.gameplay.logic_base.comps.evo_skill_change_comp",
+    "gclient.gameplay.logic_shootingrange.ui.switch_evo_skill_comp"
+  ],
+  "schemas": []
+}

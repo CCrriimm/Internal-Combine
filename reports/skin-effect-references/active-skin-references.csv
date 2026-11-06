@@ -1,0 +1,33 @@
+﻿equipped_skin,equipped_selection_id,kind,skin,selected_item_id,template_id,selected_level,source_item_id,source_level,field,reference_id,role,confidence
+EMMA - BEAR PAJAMAS,3001150052,Character,EMMA - BEAR PAJAMAS,3001150052,0,2,3001150052,2,bind_items,6120000330,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+KAG-6 - Inkforge [Lv 4],1411990112,Gun,KAG-6 - Inkforge,5100140116,141199011,6,5100140116,6,bind_items,6040010220,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+KAG-6 - Inkforge [Lv 4],1411990112,Gun,KAG-6 - Inkforge,5100140116,141199011,6,5100140116,6,bind_items,1100142800,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+MP5 - Dominator [Lv 6],211990156,Gun,MP5 - Dominator,520020156,211990156,6,520020156,6,bind_items,6140000130,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+MP5 - Dominator [Lv 6],211990156,Gun,MP5 - Dominator,520020156,211990156,6,520020156,6,bind_items,1200021580,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+AUG - Riptide [Lv 5],2911990203,Gun,AUG - Riptide,5100290207,2911990203,7,5100290207,7,bind_items,6160000046,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+AUG - Riptide [Lv 5],2911990203,Gun,AUG - Riptide,5100290207,2911990203,7,5100290206,6,bind_items,6042000248,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+AUG - Riptide [Lv 5],2911990203,Gun,AUG - Riptide,5100290207,2911990203,7,5100290206,6,bind_items,1100295310,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+AUG - Riptide [Lv 5],2911990203,Gun,AUG - Riptide,5100290207,2911990203,7,5100290206,6,bind_items,6150000140,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+AK47 - Dark Matter [Lv 8],1011990263,Gun,AK47 - Dark Matter,5100100268,1011990263,8,5100100260,1,bind_items,6170000010,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+M700 - Bloodlock [Lv 7],1811990173,Gun,M700 - Bloodlock,5400180177,1811990173,7,5400180177,7,bind_items,6042000347,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+M700 - Bloodlock [Lv 7],1811990173,Gun,M700 - Bloodlock,5400180177,1811990173,7,5400180177,7,bind_items,6150000250,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+M700 - Bloodlock [Lv 7],1811990173,Gun,M700 - Bloodlock,5400180177,1811990173,7,5400180177,7,bind_items,6160000081,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+M700 - Bloodlock [Lv 7],1811990173,Gun,M700 - Bloodlock,5400180177,1811990173,7,5400180176,6,bind_items,6042000347,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+M700 - Bloodlock [Lv 7],1811990173,Gun,M700 - Bloodlock,5400180177,1811990173,7,5400180176,6,bind_items,6150000250,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+P90 - Empyrean [Lv 6],241100010,Gun,P90 - Empyrean,5200000686,241100010,6,5200000686,6,bind_items,6040010030,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+P90 - Empyrean [Lv 6],241100010,Gun,P90 - Empyrean,5200000686,241100010,6,5200000686,6,bind_items,1200241100,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+ETHAN - Cyberhunter,3001010038,Character,ETHAN - Cyberhunter,3001010038,0,2,3001010038,2,bind_items,6120000120,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Galil - Aurelian [Lv 7],3811990142,Gun,Galil - Aurelian,5100380147,3811990142,7,5100380147,7,bind_items,6042000162,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Galil - Aurelian [Lv 7],3811990142,Gun,Galil - Aurelian,5100380147,3811990142,7,5100380147,7,bind_items,6150000090,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Galil - Aurelian [Lv 7],3811990142,Gun,Galil - Aurelian,5100380147,3811990142,7,5100380147,7,bind_items,6160000041,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Galil - Aurelian [Lv 7],3811990142,Gun,Galil - Aurelian,5100380147,3811990142,7,5100380146,6,bind_items,6042000162,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Galil - Aurelian [Lv 7],3811990142,Gun,Galil - Aurelian,5100380147,3811990142,7,5100380146,6,bind_items,6150000090,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Vector - Polarity [Lv 7],811990203,Gun,Vector - Polarity,520080207,811990203,7,520080206,6,bind_items,6042000359,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Vector - Polarity [Lv 7],811990203,Gun,Vector - Polarity,520080207,811990203,7,520080206,6,bind_items,1200086200,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Vector - Polarity [Lv 7],811990203,Gun,Vector - Polarity,520080207,811990203,7,520080206,6,bind_items,6150000270,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+Vector - Polarity [Lv 7],811990203,Gun,Vector - Polarity,520080207,811990203,7,520080207,7,bind_items,6160000090,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+M4A1 - Eternal Oracle [Lv 7],11199020,Gun,M4A1 - Eternal Oracle,510010207,11199020,7,510010206,6,bind_items,6042000098,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+M4A1 - Eternal Oracle [Lv 7],11199020,Gun,M4A1 - Eternal Oracle,510010207,11199020,7,510010206,6,bind_items,6150000050,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+M4A1 - Eternal Oracle [Lv 7],11199020,Gun,M4A1 - Eternal Oracle,510010207,11199020,7,510010207,7,bind_items,6042000098,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+M4A1 - Eternal Oracle [Lv 7],11199020,Gun,M4A1 - Eternal Oracle,510010207,11199020,7,510010207,7,bind_items,6150000050,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role
+M4A1 - Eternal Oracle [Lv 7],11199020,Gun,M4A1 - Eternal Oracle,510010207,11199020,7,510010207,7,bind_items,6160000021,Bundled item; effect/deathbox role unresolved,observed-binding-unresolved-role

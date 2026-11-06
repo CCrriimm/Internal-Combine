@@ -1,0 +1,906 @@
+[
+  {
+    "label": "gclient.framework.camera.fps_state_fsm.StateRecoil.__init_component__",
+    "qualname": "StateRecoil.__init_component__",
+    "filename": "gclient/framework/camera/fps_state_fsm.py",
+    "line": 498,
+    "args": [
+      "self"
+    ],
+    "names": [
+      "shoot_idx",
+      "RecoilStatus",
+      "NONE",
+      "recoil_status",
+      "RecoilStateData",
+      "RecoilEnable",
+      "RecoilData",
+      "RecoilDataCycleIdx",
+      "RecoilFallPct",
+      "RecoilUpTime",
+      "RecoilStaticTime",
+      "RecoilDownTime",
+      "RecoilDownPct",
+      "RecoilUpEasing",
+      "RecoilDownEasing",
+      "RecoilAddPitchRange",
+      "RecoilAddYawRange",
+      "RecoilPitchRange",
+      "RecoilYawRange",
+      "RecoilDownPitchRange",
+      "RecoilDownYawRange",
+      "RecoilDownCycleIdx",
+      "RecoilDownCyclePct",
+      "MType",
+      "Vector2",
+      "recoilBeginYawPitch",
+      "assist_aim_timer"
+    ],
+    "aliases": [],
+    "observed_calls": 0,
+    "shared_decorator_wrapper": false
+  },
+  {
+    "label": "gclient.framework.camera.fps_state_fsm.StateRecoil.StartAssistAimShoot",
+    "qualname": "StateRecoil.StartAssistAimShoot",
+    "filename": "gclient/framework/camera/fps_state_fsm.py",
+    "line": 575,
+    "args": [
+      "self"
+    ],
+    "names": [
+      "genv",
+      "player",
+      "assist_aim_timer",
+      "cancel_timer",
+      "add_timer",
+      "RecoilUpTime",
+      "RecoilStaticTime",
+      "partial",
+      "StartAssistAimShootAdsorb",
+      "shoot_idx"
+    ],
+    "aliases": [
+      "gclient.framework.camera.fps_placer.FpsPlacer.StartAssistAimShoot",
+      "gclient.framework.camera.als_tps_placer.ALSTpsPlacer.StartAssistAimShoot"
+    ],
+    "observed_calls": 62,
+    "shared_decorator_wrapper": false
+  },
+  {
+    "label": "gclient.framework.camera.fps_state_fsm.StateRecoil.OnRecoilUpCallback",
+    "qualname": "check_weapon_case.<locals>.wrapper",
+    "filename": "gclient/framework/camera/fps_state_fsm.py",
+    "line": 487,
+    "args": [
+      "self"
+    ],
+    "names": [
+      "weapon_case",
+      "_is_destroyed"
+    ],
+    "aliases": [
+      "gclient.framework.camera.fps_state_fsm.StateRecoil.OnRecoilFallCallback",
+      "gclient.framework.camera.fps_state_fsm.StateRecoil.OnRecoilStaticCallback",
+      "gclient.framework.camera.fps_state_fsm.StateRecoil.OnRecoilDownCallback",
+      "gclient.framework.camera.fps_state_fsm.StateRecoilRecover.OnRecoilRecoverCallback",
+      "gclient.framework.camera.fps_placer.FpsPlacer.OnRecoilDownCallback",
+      "gclient.framework.camera.fps_placer.FpsPlacer.OnRecoilFallCallback",
+      "gclient.framework.camera.fps_placer.FpsPlacer.OnRecoilStaticCallback",
+      "gclient.framework.camera.fps_placer.FpsPlacer.OnRecoilUpCallback",
+      "gclient.framework.camera.fps_placer.FpsPlacer.OnRecoilRecoverCallback",
+      "gclient.framework.camera.als_tps_placer.ALSTpsPlacer.OnRecoilDownCallback",
+      "gclient.framework.camera.als_tps_placer.ALSTpsPlacer.OnRecoilFallCallback",
+      "gclient.framework.camera.als_tps_placer.ALSTpsPlacer.OnRecoilStaticCallback",
+      "gclient.framework.camera.als_tps_placer.ALSTpsPlacer.OnRecoilUpCallback",
+      "gclient.framework.camera.als_tps_placer.ALSTpsPlacer.OnRecoilRecoverCallback"
+    ],
+    "observed_calls": 184,
+    "shared_decorator_wrapper": true
+  },
+  {
+    "label": "gclient.framework.camera.fps_state_fsm.StateRecoil.OnRecoilUpCallback.closure0",
+    "qualname": "StateRecoil.OnRecoilUpCallback",
+    "filename": "gclient/framework/camera/fps_state_fsm.py",
+    "line": 583,
+    "args": [
+      "self",
+      "easeTime",
+      "easeType"
+    ],
+    "names": [
+      "RecoilFall"
+    ],
+    "aliases": [
+      "gclient.framework.camera.fps_placer.FpsPlacer.OnRecoilUpCallback.closure0",
+      "gclient.framework.camera.als_tps_placer.ALSTpsPlacer.OnRecoilUpCallback.closure0"
+    ],
+    "observed_calls": 61,
+    "shared_decorator_wrapper": false
+  },
+  {
+    "label": "gclient.framework.camera.fps_state_fsm.StateRecoil.RecoilUp",
+    "qualname": "StateRecoil.RecoilUp",
+    "filename": "gclient/framework/camera/fps_state_fsm.py",
+    "line": 587,
+    "args": [
+      "self"
+    ],
+    "names": [
+      "cameraEasing",
+      "BindEvent",
+      "OnRecoilUpCallback",
+      "RotateEasing",
+      "RecoilYawRange",
+      "RecoilPitchRange",
+      "RecoilUpTime",
+      "cconst",
+      "CameraEasingType",
+      "RecoilUpEasing",
+      "RecoilStatus",
+      "UP",
+      "recoil_status",
+      "RecoilDownCycleIdx",
+      "recoilBeginYawPitch",
+      "MType",
+      "Vector2"
+    ],
+    "aliases": [
+      "gclient.framework.camera.fps_placer.FpsPlacer.RecoilUp",
+      "gclient.framework.camera.als_tps_placer.ALSTpsPlacer.RecoilUp"
+    ],
+    "observed_calls": 62,
+    "shared_decorator_wrapper": false
+  },
+  {
+    "label": "gclient.framework.camera.fps_state_fsm.StateRecoil.OnRecoilFallCallback.closure0",
+    "qualname": "StateRecoil.OnRecoilFallCallback",
+    "filename": "gclient/framework/camera/fps_state_fsm.py",
+    "line": 594,
+    "args": [
+      "self",
+      "easeTime",
+      "easeType"
+    ],
+    "names": [
+      "RecoilStatic"
+    ],
+    "aliases": [
+      "gclient.framework.camera.fps_placer.FpsPlacer.OnRecoilFallCallback.closure0",
+      "gclient.framework.camera.als_tps_placer.ALSTpsPlacer.OnRecoilFallCallback.closure0"
+    ],
+    "observed_calls": 61,
+    "shared_decorator_wrapper": false
+  },
+  {
+    "label": "gclient.framework.camera.fps_state_fsm.StateRecoil.RecoilFall",
+    "qualname": "StateRecoil.RecoilFall",
+    "filename": "gclient/framework/camera/fps_state_fsm.py",
+    "line": 598,
+    "args": [
+      "self"
+    ],
+    "names": [
+      "RecoilFallPct",
+      "OnRecoilFallCallback",
+      "RecoilDownPitchRange",
+      "RecoilDownYawRange",
+      "RecoilPitchRange",
+      "RecoilYawRange",
+      "cameraEasing",
+      "BindEvent",
+      "RotateEasing",
+      "RecoilStatus",
+      "FALL",
+      "recoil_status",
+      "RecoilDownCycleIdx",
+      "recoilBeginYawPitch",
+      "MType",
+      "Vector2"
+    ],
+    "aliases": [
+      "gclient.framework.camera.fps_placer.FpsPlacer.RecoilFall",
+      "gclient.framework.camera.als_tps_placer.ALSTpsPlacer.RecoilFall"
+    ],
+    "observed_calls": 61,
+    "shared_decorator_wrapper": false
+  },
+  {
+    "label": "gclient.framework.camera.fps_state_fsm.StateRecoil.OnRecoilStaticCallback.closure0",
+    "qualname": "StateRecoil.OnRecoilStaticCallback",
+    "filename": "gclient/framework/camera/fps_state_fsm.py",
+    "line": 611,
+    "args": [
+      "self",
+      "easeTime",
+      "easeType"
+    ],
+    "names": [
+      "RecoilDown"
+    ],
+    "aliases": [
+      "gclient.framework.camera.fps_placer.FpsPlacer.OnRecoilStaticCallback.closure0",
+      "gclient.framework.camera.als_tps_placer.ALSTpsPlacer.OnRecoilStaticCallback.closure0"
+    ],
+    "observed_calls": 61,
+    "shared_decorator_wrapper": false
+  },
+  {
+    "label": "gclient.framework.camera.fps_state_fsm.StateRecoil.RecoilStatic",
+    "qualname": "StateRecoil.RecoilStatic",
+    "filename": "gclient/framework/camera/fps_state_fsm.py",
+    "line": 615,
+    "args": [
+      "self"
+    ],
+    "names": [
+      "RecoilStaticTime",
+      "OnRecoilStaticCallback",
+      "cameraEasing",
+      "BindEvent",
+      "RotateEasing",
+      "RecoilStatus",
+      "STATIC",
+      "recoil_status"
+    ],
+    "aliases": [
+      "gclient.framework.camera.fps_placer.FpsPlacer.RecoilStatic",
+      "gclient.framework.camera.als_tps_placer.ALSTpsPlacer.RecoilStatic"
+    ],
+    "observed_calls": 61,
+    "shared_decorator_wrapper": false
+  },
+  {
+    "label": "gclient.framework.camera.fps_state_fsm.StateRecoil.OnRecoilDownCallback.closure0",
+    "qualname": "StateRecoil.OnRecoilDownCallback",
+    "filename": "gclient/framework/camera/fps_state_fsm.py",
+    "line": 622,
+    "args": [
+      "self",
+      "easeTime",
+      "easeType"
+    ],
+    "names": [
+      "RecoilStatus",
+      "NONE",
+      "recoil_status",
+      "FSMTransfer"
+    ],
+    "aliases": [
+      "gclient.framework.camera.fps_placer.FpsPlacer.OnRecoilDownCallback.closure0",
+      "gclient.framework.camera.als_tps_placer.ALSTpsPlacer.OnRecoilDownCallback.closure0"
+    ],
+    "observed_calls": 1,
+    "shared_decorator_wrapper": false
+  },
+  {
+    "label": "gclient.framework.camera.fps_state_fsm.StateRecoil.RecoilDown",
+    "qualname": "StateRecoil.RecoilDown",
+    "filename": "gclient/framework/camera/fps_state_fsm.py",
+    "line": 627,
+    "args": [
+      "self"
+    ],
+    "names": [
+      "shootMoveCameraPixelYawPitch",
+      "y",
+      "IGNORE_RECOIL_RECOVER_PIX_PITCH",
+      "x",
+      "IGNORE_RECOIL_RECOVER_PIX_YAW",
+      "forcePersistRecoilRecover",
+      "FSMTransfer",
+      "shoot_idx",
+      "RecoilDownCycleIdx",
+      "cameraEasing",
+      "BindEvent",
+      "OnRecoilDownCallback",
+      "RotateEasing",
+      "recoilBeginYawPitch",
+      "RecoilDownCyclePct",
+      "RecoilDownTime",
+      "cconst",
+      "CameraEasingType",
+      "RecoilDownEasing",
+      "RecoilStatus",
+      "DOWN",
+      "recoil_status",
+      "RecoilDownYawRange",
+      "RecoilDownPitchRange"
+    ],
+    "aliases": [
+      "gclient.framework.camera.fps_placer.FpsPlacer.RecoilDown",
+      "gclient.framework.camera.als_tps_placer.ALSTpsPlacer.RecoilDown"
+    ],
+    "observed_calls": 61,
+    "shared_decorator_wrapper": false
+  },
+  {
+    "label": "gclient.framework.camera.fps_state_fsm.StateRecoil.ShowRecoilDebug",
+    "qualname": "StateRecoil.ShowRecoilDebug",
+    "filename": "gclient/framework/camera/fps_state_fsm.py",
+    "line": 654,
+    "args": [
+      "self",
+      "cur_shoot_idx",
+      "cur_shoot_recoil_pitch",
+      "cur_shoot_recoil_yaw",
+      "cur_shoot_recoil_base_pitch",
+      "cur_shoot_recoil_base_yaw",
+      "cur_shoot_recoil_random_pitch",
+      "cur_shoot_recoil_random_yaw"
+    ],
+    "names": [
+      "gui",
+      "is_pc",
+      "switches",
+      "IS_DEBUG",
+      "gclient.util.gmcmds",
+      "imgui_weapon_smith",
+      "WeaponInspectorWindow",
+      "isInited",
+      "PushRecoilData"
+    ],
+    "aliases": [
+      "gclient.framework.camera.fps_placer.FpsPlacer.ShowRecoilDebug",
+      "gclient.framework.camera.als_tps_placer.ALSTpsPlacer.ShowRecoilDebug"
+    ],
+    "observed_calls": 0,
+    "shared_decorator_wrapper": false
+  },
+  {
+    "label": "gclient.framework.camera.fps_state_fsm.StateRecoil.OnRecoilEnter",
+    "qualname": "StateRecoil.OnEnter",
+    "filename": "gclient/framework/camera/fps_state_fsm.py",
+    "line": 535,
+    "args": [
+      "self",
+      "shoot_idx"
+    ],
+    "names": [
+      "weapon_case",
+      "FSMTransfer",
+      "RecoilEnable",
+      "placer",
+      "Direction",
+      "MType",
+      "Vector2",
+      "yaw",
+      "pitch",
+      "persistRecoilBeginYawPitch",
+      "RecoilDownCycleIdx",
+      "recoilBeginYawPitch",
+      "shoot_idx",
+      "persistRecoilDownTime",
+      "RecoilDownTime",
+      "GetRealRecoilData",
+      "owner",
+      "is_real_ads",
+      "GetRealRecoilRandomData",
+      "random",
+      "uniform",
+      "RecoilAddPitchRange",
+      "RecoilAddYawRange",
+      "RecoilPitchRange",
+      "RecoilYawRange",
+      "RecoilDownPct",
+      "RecoilDownPitchRange",
+      "RecoilDownYawRange",
+      "RecoilUp",
+      "RollShakeEnable",
+      "FSMAppend",
+      "StartAssistAimShoot"
+    ],
+    "aliases": [
+      "gclient.framework.camera.fps_placer.FpsPlacer.OnRecoilEnter",
+      "gclient.framework.camera.als_tps_placer.ALSTpsPlacer.OnRecoilEnter"
+    ],
+    "observed_calls": 62,
+    "shared_decorator_wrapper": false
+  },
+  {
+    "label": "gclient.framework.camera.fps_state_fsm.StateRecoil.OnRecoilExit",
+    "qualname": "StateRecoil.OnExit",
+    "filename": "gclient/framework/camera/fps_state_fsm.py",
+    "line": 644,
+    "args": [
+      "self"
+    ],
+    "names": [
+      "genv",
+      "player",
+      "StopAssistAimShootAdsorb",
+      "shoot_idx",
+      "fsm_target_state",
+      "StateRecoil",
+      "NAME",
+      "RecoilStatus",
+      "NONE",
+      "recoil_status",
+      "cameraEasing",
+      "BindEvent",
+      "RotateEasing"
+    ],
+    "aliases": [
+      "gclient.framework.camera.fps_placer.FpsPlacer.OnRecoilExit",
+      "gclient.framework.camera.als_tps_placer.ALSTpsPlacer.OnRecoilExit"
+    ],
+    "observed_calls": 61,
+    "shared_decorator_wrapper": false
+  },
+  {
+    "label": "gclient.framework.camera.fps_state_fsm.StateRecoilRecover.__init_component__",
+    "qualname": "StateRecoilRecover.__init_component__",
+    "filename": "gclient/framework/camera/fps_state_fsm.py",
+    "line": 670,
+    "args": [
+      "self"
+    ],
+    "names": [
+      "PersistRecoilDownEasing",
+      "forcePersistRecoilRecover",
+      "MType",
+      "Vector2",
+      "persistRecoilBeginYawPitch",
+      "persistRecoilDownTime",
+      "shootMoveCameraPixelYawPitch",
+      "IGNORE_RECOIL_RECOVER_PIX_PITCH",
+      "IGNORE_RECOIL_RECOVER_PIX_YAW"
+    ],
+    "aliases": [],
+    "observed_calls": 0,
+    "shared_decorator_wrapper": false
+  },
+  {
+    "label": "gclient.framework.camera.fps_state_fsm.StateRecoilRecover.OnRecoilRecoverCallback.closure0",
+    "qualname": "StateRecoilRecover.OnRecoilRecoverCallback",
+    "filename": "gclient/framework/camera/fps_state_fsm.py",
+    "line": 696,
+    "args": [
+      "self",
+      "easeTime",
+      "easeType"
+    ],
+    "names": [
+      "FSMTransfer"
+    ],
+    "aliases": [
+      "gclient.framework.camera.fps_placer.FpsPlacer.OnRecoilRecoverCallback.closure0",
+      "gclient.framework.camera.als_tps_placer.ALSTpsPlacer.OnRecoilRecoverCallback.closure0"
+    ],
+    "observed_calls": 0,
+    "shared_decorator_wrapper": false
+  },
+  {
+    "label": "gclient.framework.camera.fps_state_fsm.StateRecoilRecover.EnablePersistRecoilRecover",
+    "qualname": "StateRecoilRecover.EnablePersistRecoilRecover",
+    "filename": "gclient/framework/camera/fps_state_fsm.py",
+    "line": 700,
+    "args": [
+      "self",
+      "enable"
+    ],
+    "names": [
+      "forcePersistRecoilRecover",
+      "MType",
+      "Vector2",
+      "shootMoveCameraPixelYawPitch",
+      "y",
+      "IGNORE_RECOIL_RECOVER_PIX_PITCH",
+      "x",
+      "IGNORE_RECOIL_RECOVER_PIX_YAW",
+      "recoil_status",
+      "RecoilStatus",
+      "DOWN",
+      "FSMTransfer",
+      "shoot_idx"
+    ],
+    "aliases": [
+      "gclient.framework.camera.fps_placer.FpsPlacer.EnablePersistRecoilRecover",
+      "gclient.framework.camera.als_tps_placer.ALSTpsPlacer.EnablePersistRecoilRecover"
+    ],
+    "observed_calls": 4,
+    "shared_decorator_wrapper": false
+  },
+  {
+    "label": "gclient.framework.camera.fps_state_fsm.StateRecoilRecover.OnRecoilRecoverEnter",
+    "qualname": "StateRecoilRecover.OnEnter",
+    "filename": "gclient/framework/camera/fps_state_fsm.py",
+    "line": 679,
+    "args": [
+      "self",
+      "shoot_idx"
+    ],
+    "names": [
+      "min",
+      "persistRecoilDownTime",
+      "weapon_case",
+      "GetRealPersistRecoilDownTimeMax",
+      "target",
+      "owner",
+      "IsRobotCombatAvatar",
+      "MType",
+      "Vector2",
+      "formula",
+      "AngleSub",
+      "placer",
+      "Direction",
+      "pitch",
+      "persistRecoilBeginYawPitch",
+      "y",
+      "yaw",
+      "x",
+      "cameraEasing",
+      "BindEvent",
+      "OnRecoilRecoverCallback",
+      "RotateEasing",
+      "cconst",
+      "CameraEasingType",
+      "PersistRecoilDownEasing"
+    ],
+    "aliases": [
+      "gclient.framework.camera.fps_placer.FpsPlacer.OnRecoilRecoverEnter",
+      "gclient.framework.camera.als_tps_placer.ALSTpsPlacer.OnRecoilRecoverEnter"
+    ],
+    "observed_calls": 0,
+    "shared_decorator_wrapper": false
+  },
+  {
+    "label": "gclient.framework.camera.fps_state_fsm.StateRecoilRecover.OnRecoilRecoverExit",
+    "qualname": "StateRecoilRecover.OnExit",
+    "filename": "gclient/framework/camera/fps_state_fsm.py",
+    "line": 710,
+    "args": [
+      "self"
+    ],
+    "names": [
+      "cameraEasing",
+      "BindEvent",
+      "RotateEasing",
+      "MType",
+      "Vector2",
+      "shootMoveCameraPixelYawPitch"
+    ],
+    "aliases": [
+      "gclient.framework.camera.fps_placer.FpsPlacer.OnRecoilRecoverExit",
+      "gclient.framework.camera.als_tps_placer.ALSTpsPlacer.OnRecoilRecoverExit"
+    ],
+    "observed_calls": 0,
+    "shared_decorator_wrapper": false
+  },
+  {
+    "label": "gclient.framework.camera.fps_state_fsm.StateRollShake.__init_component__",
+    "qualname": "StateRollShake.__init_component__",
+    "filename": "gclient/framework/camera/fps_state_fsm.py",
+    "line": 719,
+    "args": [
+      "self"
+    ],
+    "names": [
+      "RollShakeData",
+      "RollShakeEnable",
+      "RollShakeInfo",
+      "RollShakeInfoAds",
+      "realRollShakeInfo",
+      "DampEasing",
+      "DampAmplitude",
+      "DampAmplitudeAddShootIdx",
+      "DampAmplitudeAdd",
+      "DampPeriod",
+      "DampPhase",
+      "DampDuration",
+      "DampEndValue",
+      "DampRollFactor",
+      "DampPeriodFactor",
+      "dampSimulator",
+      "damp_time",
+      "damp_phase",
+      "shoot_idx",
+      "realDampAmplitude",
+      "curDampPeriod",
+      "curDampSimulateTime",
+      "shakeRoll",
+      "shake_roll_stop"
+    ],
+    "aliases": [],
+    "observed_calls": 0,
+    "shared_decorator_wrapper": false
+  },
+  {
+    "label": "gclient.framework.camera.fps_state_fsm.StateRollShake.RefreshRealRollShakeInfo",
+    "qualname": "StateRollShake.RefreshRealRollShakeInfo",
+    "filename": "gclient/framework/camera/fps_state_fsm.py",
+    "line": 753,
+    "args": [
+      "self",
+      "shoot_idx"
+    ],
+    "names": [
+      "weapon_case",
+      "GetRealRollShakeInfo",
+      "owner",
+      "is_real_ads",
+      "realRollShakeInfo",
+      "isinstance",
+      "dict",
+      "taggeddict",
+      "items",
+      "setattr",
+      "__dict__"
+    ],
+    "aliases": [
+      "gclient.framework.camera.fps_placer.FpsPlacer.RefreshRealRollShakeInfo",
+      "gclient.framework.camera.als_tps_placer.ALSTpsPlacer.RefreshRealRollShakeInfo"
+    ],
+    "observed_calls": 62,
+    "shared_decorator_wrapper": false
+  },
+  {
+    "label": "gclient.framework.camera.fps_state_fsm.StateRollShake.OnRollShakeEnter",
+    "qualname": "StateRollShake.OnEnter",
+    "filename": "gclient/framework/camera/fps_state_fsm.py",
+    "line": 764,
+    "args": [
+      "self",
+      "shoot_idx"
+    ],
+    "names": [
+      "weapon_case",
+      "FSMRemove",
+      "RefreshRealRollShakeInfo",
+      "RollShakeEnable",
+      "DampAmplitudeAddShootIdx",
+      "DampAmplitude",
+      "random",
+      "uniform",
+      "DampAmplitudeAdd",
+      "realDampAmplitude",
+      "DampPhase",
+      "damp_phase",
+      "DampingCurveSimulator",
+      "DampEasing",
+      "DampDuration",
+      "DampPeriod",
+      "DampEndValue",
+      "dampSimulator",
+      "curDampPeriod",
+      "curDampSimulateTime"
+    ],
+    "aliases": [
+      "gclient.framework.camera.fps_placer.FpsPlacer.OnRollShakeEnter",
+      "gclient.framework.camera.als_tps_placer.ALSTpsPlacer.OnRollShakeEnter"
+    ],
+    "observed_calls": 62,
+    "shared_decorator_wrapper": false
+  },
+  {
+    "label": "gclient.framework.camera.fps_state_fsm.StateRollShake.OnRollShakeTick",
+    "qualname": "StateRollShake.OnTick",
+    "filename": "gclient/framework/camera/fps_state_fsm.py",
+    "line": 784,
+    "args": [
+      "self"
+    ],
+    "names": [
+      "damp_time",
+      "frame_delta",
+      "FixTickTime",
+      "DampDuration",
+      "Lerp",
+      "shakeRoll",
+      "shake_roll_stop",
+      "curDampSimulateTime",
+      "DampPeriodFactor",
+      "DampPeriod",
+      "curDampPeriod",
+      "dampSimulator",
+      "ReBuild",
+      "DampEasing",
+      "realDampAmplitude",
+      "damp_phase",
+      "DampEndValue",
+      "Tick",
+      "DampRollFactor",
+      "FSMRemove"
+    ],
+    "aliases": [
+      "gclient.framework.camera.fps_placer.FpsPlacer.OnRollShakeTick",
+      "gclient.framework.camera.als_tps_placer.ALSTpsPlacer.OnRollShakeTick"
+    ],
+    "observed_calls": 1173,
+    "shared_decorator_wrapper": false
+  },
+  {
+    "label": "gclient.framework.camera.fps_state_fsm.StateRollShake.OnRollShakeExit",
+    "qualname": "StateRollShake.OnExit",
+    "filename": "gclient/framework/camera/fps_state_fsm.py",
+    "line": 803,
+    "args": [
+      "self"
+    ],
+    "names": [
+      "damp_time",
+      "DampPeriod",
+      "curDampPeriod",
+      "curDampSimulateTime",
+      "shakeRoll",
+      "shake_roll_stop"
+    ],
+    "aliases": [
+      "gclient.framework.camera.fps_placer.FpsPlacer.OnRollShakeExit",
+      "gclient.framework.camera.als_tps_placer.ALSTpsPlacer.OnRollShakeExit"
+    ],
+    "observed_calls": 61,
+    "shared_decorator_wrapper": false
+  },
+  {
+    "label": "gclient.gameplay.logic_base.equips.weapon_case.WeaponCase._GetRecoilDataByShootIdx",
+    "qualname": "WeaponCase._GetRecoilDataByShootIdx",
+    "filename": "gclient/gameplay/logic_base/equips/weapon_case.py",
+    "line": 3624,
+    "args": [
+      "recoil_data",
+      "cycle_idx",
+      "shoot_idx"
+    ],
+    "names": [
+      "len",
+      "int"
+    ],
+    "aliases": [],
+    "observed_calls": 2,
+    "shared_decorator_wrapper": false
+  },
+  {
+    "label": "gclient.gameplay.logic_base.equips.weapon_case.WeaponCase.GetRealRecoilData",
+    "qualname": "WeaponCase.GetRealRecoilData",
+    "filename": "gclient/gameplay/logic_base/equips/weapon_case.py",
+    "line": 3635,
+    "args": [
+      "self",
+      "is_real_ads",
+      "shoot_idx"
+    ],
+    "names": [
+      "_GetShootAttr",
+      "GetWeaponAttrValue",
+      "_UseSpecRecoilData",
+      "_GetRecoilDataByShootIdx",
+      "_UpdateShootAttr",
+      "owner",
+      "DealRecoilDataByTalent"
+    ],
+    "aliases": [],
+    "observed_calls": 62,
+    "shared_decorator_wrapper": false
+  },
+  {
+    "label": "gclient.gameplay.logic_base.equips.weapon_case.WeaponCase.GetRealRecoilRandomData",
+    "qualname": "WeaponCase.GetRealRecoilRandomData",
+    "filename": "gclient/gameplay/logic_base/equips/weapon_case.py",
+    "line": 3655,
+    "args": [
+      "self",
+      "is_real_ads",
+      "shoot_idx"
+    ],
+    "names": [
+      "_GetShootAttr",
+      "GetWeaponAttrValue",
+      "_UseSpecRecoilData",
+      "_GetRecoilDataByShootIdx",
+      "_UpdateShootAttr"
+    ],
+    "aliases": [],
+    "observed_calls": 62,
+    "shared_decorator_wrapper": false
+  },
+  {
+    "label": "gclient.gameplay.logic_base.equips.weapon_case.WeaponCase.GetRealPersistRecoilDownTimeMax",
+    "qualname": "WeaponCase.GetRealPersistRecoilDownTimeMax",
+    "filename": "gclient/gameplay/logic_base/equips/weapon_case.py",
+    "line": 3673,
+    "args": [
+      "self",
+      "shoot_idx"
+    ],
+    "names": [
+      "_GetShootAttr",
+      "GetWeaponAttrValue",
+      "index",
+      "_UpdateShootAttr"
+    ],
+    "aliases": [],
+    "observed_calls": 0,
+    "shared_decorator_wrapper": false
+  },
+  {
+    "label": "gclient.gameplay.logic_base.equips.weapon_case.WeaponCase.GetRealRollShakeInfo",
+    "qualname": "WeaponCase.GetRealRollShakeInfo",
+    "filename": "gclient/gameplay/logic_base/equips/weapon_case.py",
+    "line": 3794,
+    "args": [
+      "self",
+      "is_real_ads",
+      "shoot_idx"
+    ],
+    "names": [
+      "_GetShootAttr",
+      "GetWeaponAttrValue",
+      "isinstance",
+      "list",
+      "tuple",
+      "len",
+      "_UpdateShootAttr"
+    ],
+    "aliases": [],
+    "observed_calls": 62,
+    "shared_decorator_wrapper": false
+  },
+  {
+    "label": "gclient.framework.util.assist_aim_util.AssistAimAndShootTracing.RecoilStart",
+    "qualname": "AssistAimAndShootTracing.RecoilStart",
+    "filename": "gclient/framework/util/assist_aim_util.py",
+    "line": 2412,
+    "args": [
+      "self",
+      "shoot_idx"
+    ],
+    "names": [
+      "detect_box",
+      "RefreshParam",
+      "_SearchTargetShoot",
+      "shoot_target",
+      "CanEnterStateShootTrace",
+      "fsm",
+      "FSMTransfer",
+      "StateShootTrace"
+    ],
+    "aliases": [],
+    "observed_calls": 0,
+    "shared_decorator_wrapper": false
+  },
+  {
+    "label": "gclient.framework.util.assist_aim_util.AssistAimAndShootTracing.RecoilEnd",
+    "qualname": "AssistAimAndShootTracing.RecoilEnd",
+    "filename": "gclient/framework/util/assist_aim_util.py",
+    "line": 2424,
+    "args": [
+      "self"
+    ],
+    "names": [
+      "fsm",
+      "state",
+      "FSMTransfer",
+      "StateEmpty"
+    ],
+    "aliases": [],
+    "observed_calls": 0,
+    "shared_decorator_wrapper": false
+  },
+  {
+    "label": "gclient.gameplay.logic_base.entities.combatavatarmembers.cimp_talent.PlayerCombatAvatarMember.DealRecoilDataByTalent",
+    "qualname": "PlayerCombatAvatarMember.DealRecoilDataByTalent",
+    "filename": "gclient/gameplay/logic_base/entities/combatavatarmembers/cimp_talent.py",
+    "line": 22,
+    "args": [
+      "self",
+      "is_real_ads",
+      "shoot_idx",
+      "real_recoil_data"
+    ],
+    "names": [
+      "HasTalentCode",
+      "TalentCode",
+      "FiringRecoilStable",
+      "GetProtoFromTalentCode",
+      "get",
+      "max",
+      "InitialRecoilStable"
+    ],
+    "aliases": [
+      "gclient.gameplay.logic_base.entities.combat_avatar.PlayerCombatAvatar.DealRecoilDataByTalent"
+    ],
+    "observed_calls": 62,
+    "shared_decorator_wrapper": false
+  }
+]

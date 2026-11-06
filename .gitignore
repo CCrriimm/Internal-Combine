@@ -1,0 +1,41 @@
+# Local builds and packaged executables
+/build*/
+/driver/kdmapper_src/
+*.exe
+*.dll
+*.sys
+*.obj
+*.pdb
+*.ilk
+*.lib
+*.exp
+*.zip
+*.bak
+*.tmp
+
+# Distribution copies and generated packaging metadata stay local.
+/dist/
+/reports/**/*build*.json
+/reports/aim-mode-probe/menu-*/
+/.impeccable/review/
+/reports/aim-mode-probe/contract.error.txt
+/reports/weapon-effects/installed-effects.json
+/reports/weapon-effects/live-catalog*.json
+/reports/weapon-effects/resolved-catalog.json
+/reports/local/
+
+# User state and diagnostics
+/ipc/
+*.log
+/overlay_log.txt
+/pyexec/*.txt
+__pycache__/
+*.pyc
+.vs/
+.vscode/
+.env
+.env.*
+*.pem
+*.key
+Thumbs.db
+Desktop.ini

@@ -1,0 +1,345 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-04T23:50:41.082875+00:00",
+  "title": "Design System: CiyE native interface",
+  "extensions": {
+    "colorMeta": {
+      "accent": {
+        "role": "primary",
+        "displayName": "Accent",
+        "tonalRamp": [
+          "oklch(15.00% 0.15241 289.16)",
+          "oklch(26.43% 0.15241 289.16)",
+          "oklch(37.86% 0.15241 289.16)",
+          "oklch(49.29% 0.15241 289.16)",
+          "oklch(60.71% 0.15241 289.16)",
+          "oklch(72.14% 0.15241 289.16)",
+          "oklch(83.57% 0.15241 289.16)",
+          "oklch(95.00% 0.15241 289.16)"
+        ],
+        "rampSource": "Synthesized OKLCH panel preview only; not native theme tokens."
+      },
+      "text": {
+        "role": "neutral",
+        "displayName": "Text",
+        "tonalRamp": [
+          "oklch(15.00% 0.00267 286.35)",
+          "oklch(26.43% 0.00267 286.35)",
+          "oklch(37.86% 0.00267 286.35)",
+          "oklch(49.29% 0.00267 286.35)",
+          "oklch(60.71% 0.00267 286.35)",
+          "oklch(72.14% 0.00267 286.35)",
+          "oklch(83.57% 0.00267 286.35)",
+          "oklch(95.00% 0.00267 286.35)"
+        ],
+        "rampSource": "Synthesized OKLCH panel preview only; not native theme tokens."
+      },
+      "muted": {
+        "role": "neutral",
+        "displayName": "Muted",
+        "tonalRamp": [
+          "oklch(15.00% 0.01171 274.83)",
+          "oklch(26.43% 0.01171 274.83)",
+          "oklch(37.86% 0.01171 274.83)",
+          "oklch(49.29% 0.01171 274.83)",
+          "oklch(60.71% 0.01171 274.83)",
+          "oklch(72.14% 0.01171 274.83)",
+          "oklch(83.57% 0.01171 274.83)",
+          "oklch(95.00% 0.01171 274.83)"
+        ],
+        "rampSource": "Synthesized OKLCH panel preview only; not native theme tokens."
+      },
+      "ground": {
+        "role": "neutral",
+        "displayName": "Ground",
+        "tonalRamp": [
+          "oklch(15.00% 0.00445 264.45)",
+          "oklch(26.43% 0.00445 264.45)",
+          "oklch(37.86% 0.00445 264.45)",
+          "oklch(49.29% 0.00445 264.45)",
+          "oklch(60.71% 0.00445 264.45)",
+          "oklch(72.14% 0.00445 264.45)",
+          "oklch(83.57% 0.00445 264.45)",
+          "oklch(95.00% 0.00445 264.45)"
+        ],
+        "rampSource": "Synthesized OKLCH panel preview only; not native theme tokens."
+      },
+      "surface": {
+        "role": "neutral",
+        "displayName": "Surface",
+        "tonalRamp": [
+          "oklch(15.00% 0.00614 271.11)",
+          "oklch(26.43% 0.00614 271.11)",
+          "oklch(37.86% 0.00614 271.11)",
+          "oklch(49.29% 0.00614 271.11)",
+          "oklch(60.71% 0.00614 271.11)",
+          "oklch(72.14% 0.00614 271.11)",
+          "oklch(83.57% 0.00614 271.11)",
+          "oklch(95.00% 0.00614 271.11)"
+        ],
+        "rampSource": "Synthesized OKLCH panel preview only; not native theme tokens."
+      },
+      "border": {
+        "role": "neutral",
+        "displayName": "Border",
+        "tonalRamp": [
+          "oklch(15.00% 0.00920 276.80)",
+          "oklch(26.43% 0.00920 276.80)",
+          "oklch(37.86% 0.00920 276.80)",
+          "oklch(49.29% 0.00920 276.80)",
+          "oklch(60.71% 0.00920 276.80)",
+          "oklch(72.14% 0.00920 276.80)",
+          "oklch(83.57% 0.00920 276.80)",
+          "oklch(95.00% 0.00920 276.80)"
+        ],
+        "rampSource": "Synthesized OKLCH panel preview only; not native theme tokens."
+      },
+      "elevated": {
+        "role": "neutral",
+        "displayName": "Elevated",
+        "tonalRamp": [
+          "oklch(15.00% 0.00765 274.64)",
+          "oklch(26.43% 0.00765 274.64)",
+          "oklch(37.86% 0.00765 274.64)",
+          "oklch(49.29% 0.00765 274.64)",
+          "oklch(60.71% 0.00765 274.64)",
+          "oklch(72.14% 0.00765 274.64)",
+          "oklch(83.57% 0.00765 274.64)",
+          "oklch(95.00% 0.00765 274.64)"
+        ],
+        "rampSource": "Synthesized OKLCH panel preview only; not native theme tokens."
+      },
+      "tertiary": {
+        "role": "neutral",
+        "displayName": "Tertiary",
+        "tonalRamp": [
+          "oklch(15.00% 0.01552 272.56)",
+          "oklch(26.43% 0.01552 272.56)",
+          "oklch(37.86% 0.01552 272.56)",
+          "oklch(49.29% 0.01552 272.56)",
+          "oklch(60.71% 0.01552 272.56)",
+          "oklch(72.14% 0.01552 272.56)",
+          "oklch(83.57% 0.01552 272.56)",
+          "oklch(95.00% 0.01552 272.56)"
+        ],
+        "rampSource": "Synthesized OKLCH panel preview only; not native theme tokens."
+      },
+      "success": {
+        "role": "semantic",
+        "displayName": "Success",
+        "tonalRamp": [
+          "oklch(15.00% 0.16013 156.15)",
+          "oklch(26.43% 0.16013 156.15)",
+          "oklch(37.86% 0.16013 156.15)",
+          "oklch(49.29% 0.16013 156.15)",
+          "oklch(60.71% 0.16013 156.15)",
+          "oklch(72.14% 0.16013 156.15)",
+          "oklch(83.57% 0.16013 156.15)",
+          "oklch(95.00% 0.16013 156.15)"
+        ],
+        "rampSource": "Synthesized OKLCH panel preview only; not native theme tokens."
+      },
+      "danger": {
+        "role": "semantic",
+        "displayName": "Danger",
+        "tonalRamp": [
+          "oklch(15.00% 0.19048 22.21)",
+          "oklch(26.43% 0.19048 22.21)",
+          "oklch(37.86% 0.19048 22.21)",
+          "oklch(49.29% 0.19048 22.21)",
+          "oklch(60.71% 0.19048 22.21)",
+          "oklch(72.14% 0.19048 22.21)",
+          "oklch(83.57% 0.19048 22.21)",
+          "oklch(95.00% 0.19048 22.21)"
+        ],
+        "rampSource": "Synthesized OKLCH panel preview only; not native theme tokens."
+      },
+      "warning": {
+        "role": "semantic",
+        "displayName": "Warning",
+        "tonalRamp": [
+          "oklch(15.00% 0.14505 79.06)",
+          "oklch(26.43% 0.14505 79.06)",
+          "oklch(37.86% 0.14505 79.06)",
+          "oklch(49.29% 0.14505 79.06)",
+          "oklch(60.71% 0.14505 79.06)",
+          "oklch(72.14% 0.14505 79.06)",
+          "oklch(83.57% 0.14505 79.06)",
+          "oklch(95.00% 0.14505 79.06)"
+        ],
+        "rampSource": "Synthesized OKLCH panel preview only; not native theme tokens."
+      },
+      "on-accent": {
+        "role": "neutral",
+        "displayName": "On Accent",
+        "tonalRamp": [
+          "oklch(15.00% 0.00439 264.46)",
+          "oklch(26.43% 0.00439 264.46)",
+          "oklch(37.86% 0.00439 264.46)",
+          "oklch(49.29% 0.00439 264.46)",
+          "oklch(60.71% 0.00439 264.46)",
+          "oklch(72.14% 0.00439 264.46)",
+          "oklch(83.57% 0.00439 264.46)",
+          "oklch(95.00% 0.00439 264.46)"
+        ],
+        "rampSource": "Synthesized OKLCH panel preview only; not native theme tokens."
+      },
+      "primary-label": {
+        "displayName": "Primary label",
+        "role": "primary",
+        "canonical": "rgb(7%, 5.5%, 11%)",
+        "tonalRamp": [
+          "oklch(15.00% 0.05 295)",
+          "oklch(26.43% 0.05 295)",
+          "oklch(37.86% 0.05 295)",
+          "oklch(49.29% 0.05 295)",
+          "oklch(60.71% 0.05 295)",
+          "oklch(72.14% 0.05 295)",
+          "oklch(83.57% 0.05 295)",
+          "oklch(95.00% 0.05 295)"
+        ],
+        "rampSource": "Synthesized panel preview only; not native theme tokens."
+      },
+      "primary-hover": {
+        "displayName": "Primary hover",
+        "role": "primary",
+        "canonical": "rgb(73%, 65%, 100%)",
+        "tonalRamp": [
+          "oklch(15.00% 0.05 295)",
+          "oklch(26.43% 0.05 295)",
+          "oklch(37.86% 0.05 295)",
+          "oklch(49.29% 0.05 295)",
+          "oklch(60.71% 0.05 295)",
+          "oklch(72.14% 0.05 295)",
+          "oklch(83.57% 0.05 295)",
+          "oklch(95.00% 0.05 295)"
+        ],
+        "rampSource": "Synthesized panel preview only; not native theme tokens."
+      }
+    },
+    "motion": [
+      {
+        "name": "native-interpolation",
+        "value": "1 - exp(-20 * DeltaTime)",
+        "purpose": "Navigation indicator and switch position."
+      }
+    ],
+    "shadows": [
+      {
+        "name": "menu-ambient",
+        "value": "8 native rounded rectangles; expansion=28*t; y offset=12; alpha=int(255*.7*(1-t)^2*.5)",
+        "purpose": "Native menu ambient shadow; t=i/8, i=8..1."
+      }
+    ],
+    "nativeSource": "src/ui_theme.h; src/overlay.cpp; src/loader.cpp",
+    "validation": "Source inspection and reported MSVC /Zs syntax checks only; no build, launch or rendered validation.",
+    "previewNote": "HTML/CSS translations support design-panel inspection. Focus outlines are preview affordances; native ImGui owns runtime focus. Synthesized ramps are non-normative.",
+    "imguiMenu": {
+      "renderer": "ImGui + Direct3D 11",
+      "source": "src/menu_theme.h",
+      "loaderUnchanged": true,
+      "colors": {
+        "accent": "#35C6D9",
+        "text": "#E9EFF7",
+        "muted": "#99A9BC",
+        "rail": "#0D1117",
+        "window": "#10151D",
+        "border": "#27313E"
+      },
+      "window": {
+        "default": [
+          960,
+          680
+        ],
+        "minimum": [
+          820,
+          560
+        ],
+        "rail": 188
+      },
+      "captures": ".impeccable/review/imgui-menu",
+      "captureData": "fixture",
+      "verified": "isolated native rendering, not a game session"
+    }
+  },
+  "components": [
+    {
+      "name": "Primary action",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Standalone panel translation; native ImGui code is authoritative.",
+      "html": "<button class=\"ds-primary\">Start session</button>",
+      "css": ".ds-primary{font:13px \"Segoe UI\",sans-serif;color:#EDEDEF;background:#9B8AF4;color:rgb(7%,5.5%,11%);border:1px solid #292A2F;border-radius:6px;height:40px;padding:6px 24px}.ds-primary:hover{background:rgb(73%,65%,100%)}.ds-primary:active{background:rgb(16%,16.5%,18%)}.ds-primary:focus-visible{outline:2px solid #9B8AF4;outline-offset:2px}"
+    },
+    {
+      "name": "Secondary action",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Standalone panel translation; native ImGui code is authoritative.",
+      "html": "<button class=\"ds-secondary\">Reload catalog</button>",
+      "css": ".ds-secondary{font:13px \"Segoe UI\",sans-serif;color:#EDEDEF;background:#212226;border:1px solid #292A2F;border-radius:6px;padding:6px 10px}.ds-secondary:hover{background:rgb(18%,18.5%,20%)}.ds-secondary:active{background:rgb(16%,16.5%,18%)}.ds-secondary:focus-visible{outline:2px solid #9B8AF4;outline-offset:2px}"
+    },
+    {
+      "name": "Search field",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Standalone panel translation; native ImGui code is authoritative.",
+      "html": "<input class=\"ds-search\" placeholder=\"Search skins\" aria-label=\"Search skins\">",
+      "css": ".ds-search{font:13px \"Segoe UI\",sans-serif;color:#EDEDEF;background:#212226;border:1px solid #292A2F;border-radius:6px;padding:6px 10px}.ds-search::placeholder{color:#A4A6AE}.ds-search:hover{background:rgb(18%,18.5%,20%)}.ds-search:focus-visible{outline:2px solid #9B8AF4;outline-offset:2px}"
+    },
+    {
+      "name": "Selected navigation",
+      "kind": "nav",
+      "refersTo": "navigation-active",
+      "description": "Standalone panel translation; native ImGui code is authoritative.",
+      "html": "<button class=\"ds-nav\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 16 16\" aria-hidden=\"true\"><path d=\"M1 8Q8-2 15 8Q8 18 1 8Z M10 8a2 2 0 1 0-4 0a2 2 0 1 0 4 0\" fill=\"none\" stroke=\"#9B8AF4\" stroke-width=\"1.5\"/></svg>Visuals</button>",
+      "css": ".ds-nav{font:13px \"Segoe UI\",sans-serif;color:#EDEDEF;display:flex;align-items:center;gap:12px;width:172px;height:36px;padding:0 12px;background:#212226;border:0;border-radius:8px;text-align:left}.ds-nav:hover{background:#212226}.ds-nav:active{color:#9B8AF4}.ds-nav:focus-visible{outline:2px solid #9B8AF4;outline-offset:2px}"
+    },
+    {
+      "name": "Switch",
+      "kind": "custom",
+      "refersTo": "toggle-on",
+      "description": "Standalone panel translation; native ImGui code is authoritative.",
+      "html": "<label class=\"ds-toggle\">Auto apply saved skins<input type=\"checkbox\" checked><span></span></label>",
+      "css": ".ds-toggle{font:13px \"Segoe UI\",sans-serif;color:#EDEDEF;display:flex;align-items:center;gap:16px;min-height:30px;position:relative}.ds-toggle input{position:absolute;right:0;opacity:0;width:32px;height:18px}.ds-toggle span{width:32px;height:18px;border-radius:9px;background:#212226;position:relative}.ds-toggle span:after{content:\"\";position:absolute;top:3px;left:3px;width:12px;height:12px;border-radius:50%;background:#A4A6AE;transition:transform .1s}.ds-toggle input:checked+span{background:#9B8AF4}.ds-toggle input:checked+span:after{transform:translateX(14px);background:#111214}.ds-toggle:hover{background:rgba(33,34,38,.55)}.ds-toggle input:focus-visible+span{outline:2px solid #9B8AF4;outline-offset:2px}"
+    },
+    {
+      "name": "Version badge",
+      "kind": "chip",
+      "refersTo": "status-badge",
+      "description": "Standalone panel translation; native ImGui code is authoritative.",
+      "html": "<span class=\"ds-badge\">v2.1</span>",
+      "css": ".ds-badge{font:11.5px \"Segoe UI\",sans-serif;display:inline-flex;align-items:center;height:18px;padding:0 7px;border-radius:9px;background:#212226;color:#A4A6AE}"
+    },
+    {
+      "name": "Startup panel",
+      "kind": "card",
+      "refersTo": "startup-panel",
+      "description": "Standalone panel translation; native ImGui code is authoritative.",
+      "html": "<section class=\"ds-panel\"><strong>Startup</strong><p>Waiting for session</p></section>",
+      "css": ".ds-panel{font:13px \"Segoe UI\",sans-serif;color:#EDEDEF;background:#16171A;border:1px solid #292A2F;border-radius:10px;padding:18px 20px}.ds-panel strong{font-size:14px;font-weight:600}.ds-panel p{color:#A4A6AE;font-size:11.5px}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The CiyE control surface",
+    "overview": "A compact native Windows control surface adapted from the user-supplied 34Cheat UI source. Charcoal surfaces, a lavender accent, a cube mark and restrained line icons connect the menu and loader while retaining CiyE branding and Blood Strike feature content.",
+    "keyCharacteristics": [
+      "Compact charcoal surfaces and lavender state accents.",
+      "A fixed navigation rail with animated selection.",
+      "Flat content groups and independently scrollable catalogs.",
+      "Session status derived from actual application state."
+    ],
+    "rules": [],
+    "dos": [
+      "Do retain CiyE naming and the existing feature content.",
+      "Do use native ImGui interaction for keyboard focus, activation and clamped slider values.",
+      "Do keep catalog and Inventory errors visible and content reachable through scrolling."
+    ],
+    "donts": [
+      "Don't add a sidebar footer, attachment dot, attachment text or Insert hint.",
+      "Don't copy Roblox-only product content or fabricate session readiness.",
+      "Don't describe Inventory choices as proof of account ownership.",
+      "Don't treat historical screenshots or syntax checks as rendered validation of this replacement."
+    ]
+  }
+}

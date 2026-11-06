@@ -1,0 +1,11 @@
+{
+  "patched": [
+    "_index_item_templates",
+    "_skin_selection",
+    "_skin_inventory_targets",
+    "_drive_saved_skins",
+    "_on_story_tick"
+  ],
+  "runtime_file": "%TEMP%/CiyE_BSLoader/pyexec/bs_runtime.py",
+  "source_sha256": "83ce59f0a6d6d8e9fc52f0da1ff85b117e1d210c0ec5bd0be3e187a9ac1de9ca"
+}

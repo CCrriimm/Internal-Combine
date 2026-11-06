@@ -1,0 +1,71 @@
+{
+  "seconds": 5.002877950668335,
+  "stats": {
+    "_read_cfg": {
+      "calls": 1312,
+      "total": 0.02099819999716601,
+      "max": 0.0002551000000039494
+    },
+    "_apply": {
+      "calls": 1187,
+      "total": 0.0012002999942524184,
+      "max": 2.699999868127634e-06
+    },
+    "_skin_entity": {
+      "calls": 1187,
+      "total": 0.014029999999138454,
+      "max": 4.660000013245735e-05
+    },
+    "_all_cases": {
+      "calls": 2374,
+      "total": 0.10367439999686212,
+      "max": 0.00013439999997899577
+    },
+    "_skin_selection": {
+      "calls": 4748,
+      "total": 0.07216179999977612,
+      "max": 0.00011569999992389057
+    },
+    "_skin_inventory_targets": {
+      "calls": 1187,
+      "total": 0.31329810000102043,
+      "max": 0.0005767000000105327
+    },
+    "_drive_saved_skins": {
+      "calls": 1187,
+      "total": 0.426390499994568,
+      "max": 0.0007871000000250206
+    },
+    "_run_skin_tasks": {
+      "calls": 1187,
+      "total": 0.0010348999969664874,
+      "max": 1.539999993838137e-05
+    },
+    "_refresh_runtime_cosmetics": {
+      "calls": 1187,
+      "total": 0.0010908999963703536,
+      "max": 1.9199999996999395e-05
+    },
+    "_serialize_frame_data": {
+      "calls": 1187,
+      "total": 0.13235489999806305,
+      "max": 0.0003897999999935564
+    },
+    "_on_story_tick": {
+      "calls": 1186,
+      "total": 2.3015674000002946,
+      "max": 0.00381880000009005
+    }
+  },
+  "restored": true,
+  "monitoring": {
+    "0": null,
+    "1": null,
+    "2": null,
+    "3": null,
+    "4": null,
+    "5": null
+  },
+  "pending_recoil_probe": false,
+  "runtime_file": "%TEMP%/CiyE_BSLoader/pyexec/bs_runtime.py"
+}

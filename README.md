@@ -1,0 +1,40 @@
+# bs34
+
+Windows x64 C++/Python client source and game-logic research.
+
+This snapshot includes runtime performance fixes, appearance/effect bindings and UI changes recorded on **2026-11-05**. Reported in-game confirmation is separate from the isolated regression checks documented with each feature.
+
+This checkpoint includes the revised CiyE menu and loader presentation, permanent high-tier cosmetic selection, and the Inventory tab. Inventory shows equipped selections only. Clicking a skin name or Apply in Characters, Knives or Guns immediately replaces and saves its slot. Compatible saved skins are scheduled again when combat equipment or sessions change; inactive history from older files is removed.
+
+Validation details and measured limits are recorded with each logic report. Unit tests extract runtime functions with mocked game objects; they do not establish compatibility for every game mode or skin.
+
+Git tracks source, tests, vendored source dependencies, and reports/evidence about game logic and functions. Generated binaries, distribution copies, build/packaging manifests, local IPC state, logs, archives and credentials are excluded. Vendored dependencies retain their upstream license files. No public license is granted for project code.
+
+The separately cloned driver/kdmapper_src repository is excluded rather than recorded as an unresolved Git link. This checkpoint does not package external mapper/driver tools.
+
+Details: [Inventory](docs/skin-inventory.md), [release notes](CHANGELOG.md), [design](DESIGN.md).
+
+Run the isolated regression suite with `python -m unittest discover -s tests`.
+
+Logic reports: [skin effects](reports/weapon-effects/2026-11-05_skin-effects-fix-report.md), [recoil](reports/recoil-probe/2026-11-05_recoil-report.md), [runtime performance](reports/performance/2026-11-05_runtime-lag-report.md), and [custom-room fields](reports/custom-room/2026-11-05_custom-room-report.md). The full weapon-effect mapping is in `reports/weapon-effects/weapon-effects.json` and `all-menu-guns.csv`.
+
+Offset extraction: `tools/offset_dump.py`, with SDK/header inputs under `reference/offsets` and recorded results under `reports/offsets`.
+
+## Build and source layout
+
+The C++ targets require Windows, CMake and the MSVC C++20 toolchain. Python tools use repository-relative inputs; runtime probes depend on the embedded Python ABI of the examined game build.
+
+```powershell
+cmake -S . -B build -A x64
+cmake --build build --config Release --target bs_loader bs_pyexec bs_overlay
+```
+
+- `src`: loader, overlay, configuration and native geometry.
+- `pyexec`: embedded-Python runtime and its entry point.
+- `tools`: offset extraction, catalog export and runtime observation tools.
+- `tests`: isolated Python/native regression harnesses.
+- `reference`: SDK, captured catalog inputs and UI reference source.
+- `reports`: function analysis, bytecode, field mappings and performance evidence.
+- `third_party`: vendored dependencies with upstream licenses.
+
+See [source distribution](docs/source-distribution.md) for the English-source and normalized-path conventions. The source package contains no Git history or compiled distribution.

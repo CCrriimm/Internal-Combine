@@ -1,0 +1,1275 @@
+SpellWorker.SpellStrike.func ['self', 'code']
+ 246             RETURN_GENERATOR
+                 POP_TOP
+         L1:     RESUME                   0
+
+ 258             LOAD_FAST_BORROW         0 (self)
+                 LOAD_ATTR                0 (caster)
+                 STORE_FAST               2 (caster)
+
+ 259             LOAD_FAST_BORROW         2 (caster)
+                 TO_BOOL
+                 POP_JUMP_IF_FALSE       23 (to L3)
+                 NOT_TAKEN
+                 LOAD_FAST_BORROW         2 (caster)
+                 LOAD_ATTR                3 (is_destroyed + NULL|self)
+                 CALL                     0
+                 TO_BOOL
+                 POP_JUMP_IF_FALSE        3 (to L4)
+         L2:     NOT_TAKEN
+
+ 260     L3:     LOAD_CONST               0 (None)
+                 RETURN_VALUE
+
+ 261     L4:     LOAD_FAST_BORROW         2 (caster)
+                 LOAD_GLOBAL              4 (genv)
+                 LOAD_ATTR                6 (player)
+                 IS_OP                    1 (is not)
+                 POP_JUMP_IF_FALSE        3 (to L5)
+                 NOT_TAKEN
+
+ 262             LOAD_CONST               0 (None)
+                 RETURN_VALUE
+
+ 263     L5:     LOAD_FAST_BORROW         2 (caster)
+                 LOAD_ATTR                8 (model)
+                 LOAD_ATTR               11 (isValid + NULL|self)
+                 CALL                     0
+                 TO_BOOL
+                 POP_JUMP_IF_TRUE         3 (to L8)
+         L6:     NOT_TAKEN
+
+ 264     L7:     LOAD_CONST               0 (None)
+                 RETURN_VALUE
+
+ 266     L8:     LOAD_FAST_BORROW         2 (caster)
+                 LOAD_ATTR               13 (GetCurWeaponCase + NULL|self)
+                 CALL                     0
+                 STORE_FAST               3 (weapon)
+
+ 267             LOAD_FAST_BORROW         3 (weapon)
+                 TO_BOOL
+                 POP_JUMP_IF_TRUE         3 (to L11)
+         L9:     NOT_TAKEN
+
+ 268    L10:     LOAD_CONST               0 (None)
+                 RETURN_VALUE
+
+ 269    L11:     LOAD_FAST_BORROW         0 (self)
+                 LOAD_ATTR               14 (spell_id)
+                 LOAD_FAST_BORROW         3 (weapon)
+                 LOAD_ATTR               14 (spell_id)
+                 LOAD_FAST_BORROW         3 (weapon)
+                 LOAD_ATTR               16 (vice_spell_id)
+                 BUILD_TUPLE              2
+                 CONTAINS_OP              1 (not in)
+                 POP_JUMP_IF_FALSE        3 (to L12)
+                 NOT_TAKEN
+
+ 270             LOAD_CONST               0 (None)
+                 RETURN_VALUE
+
+ 272    L12:     LOAD_GLOBAL             18 (HudFrontsightComp)
+                 LOAD_ATTR               20 (isInited)
+                 PUSH_NULL
+                 CALL                     0
+                 COPY                     1
+                 TO_BOOL
+                 POP_JUMP_IF_FALSE       47 (to L15)
+        L13:     NOT_TAKEN
+        L14:     POP_TOP
+                 LOAD_GLOBAL             18 (HudFrontsightComp)
+                 LOAD_ATTR               22 (instance)
+                 PUSH_NULL
+                 CALL                     0
+                 LOAD_ATTR               25 (AimPointScatter + NULL|self)
+                 LOAD_FAST_BORROW_LOAD_FAST_BORROW 34 (caster, caster)
+                 LOAD_ATTR               26 (shoot_idx)
+                 CALL                     2
+
+  --    L15:     POP_TOP
+
+ 274             LOAD_FAST_BORROW         3 (weapon)
+                 LOAD_ATTR               29 (OnCastSpell + NULL|self)
+                 CALL                     0
+                 POP_TOP
+
+ 275             LOAD_FAST_BORROW         3 (weapon)
+                 LOAD_ATTR               30 (weapon_id)
+                 STORE_FAST               4 (weapon_id)
+
+ 276             LOAD_FAST_BORROW         3 (weapon)
+                 LOAD_ATTR               32 (weapon_guid)
+                 STORE_FAST               5 (weapon_guid)
+
+ 277             LOAD_FAST_BORROW         3 (weapon)
+                 LOAD_ATTR               34 (gun_id)
+                 STORE_FAST               6 (gun_id)
+
+ 278             LOAD_FAST_BORROW         3 (weapon)
+                 LOAD_ATTR               36 (is_dual_weapon)
+                 STORE_FAST               7 (is_dual_weapon)
+
+ 279             LOAD_GLOBAL             38 (weapon_util)
+                 LOAD_ATTR               40 (GetWeaponBulletDataId)
+                 PUSH_NULL
+                 LOAD_FAST_BORROW         3 (weapon)
+                 LOAD_ATTR               42 (part_slots)
+                 CALL                     1
+                 STORE_FAST               8 (bullet_data_id)
+
+ 280             LOAD_FAST_BORROW         3 (weapon)
+                 LOAD_ATTR               44 (GetWeaponAttrValue)
+                 STORE_FAST               9 (weapon_attr_getter)
+
+ 282             LOAD_FAST_BORROW         9 (weapon_attr_getter)
+                 PUSH_NULL
+                 LOAD_CONST               1 ('bullet_velocity')
+                 LOAD_CONST               2 (800)
+                 CALL                     2
+                 STORE_FAST              10 (bullet_fly_speed)
+
+ 283             LOAD_FAST_BORROW         9 (weapon_attr_getter)
+                 PUSH_NULL
+                 LOAD_CONST               3 ('damage_range')
+                 LOAD_CONST               2 (800)
+                 CALL                     2
+                 STORE_FAST              11 (bullet_fly_range)
+
+ 284             LOAD_FAST_BORROW         0 (self)
+                 LOAD_ATTR               47 (_GetBulletPenerateInfo + NULL|self)
+                 LOAD_FAST_BORROW         3 (weapon)
+                 CALL                     1
+                 STORE_FAST              12 (bullet_penerate_info)
+
+ 285             LOAD_FAST_BORROW         9 (weapon_attr_getter)
+                 PUSH_NULL
+                 LOAD_CONST               4 ('penerate_power_base')
+                 LOAD_SMALL_INT         100
+                 CALL                     2
+                 STORE_FAST              13 (bullet_penerate_power)
+
+ 286             LOAD_FAST_BORROW         9 (weapon_attr_getter)
+                 PUSH_NULL
+                 LOAD_CONST               5 ('penerate_power_limit')
+                 LOAD_SMALL_INT          20
+                 CALL                     2
+                 STORE_FAST              14 (bullet_penerate_power_min)
+
+ 287             LOAD_FAST_BORROW         9 (weapon_attr_getter)
+                 PUSH_NULL
+                 LOAD_CONST               6 ('max_penerate_wall_num')
+                 LOAD_SMALL_INT           3
+                 CALL                     2
+                 STORE_FAST              15 (bullet_penerate_count_max)
+
+ 288             LOAD_SMALL_INT           0
+                 STORE_FAST              16 (bullet_penerate_count)
+
+ 290             LOAD_CONST               7 (0.1)
+                 STORE_FAST              17 (yield_time)
+
+ 291             LOAD_FAST_BORROW        10 (bullet_fly_speed)
+                 LOAD_FAST_BORROW        17 (yield_time)
+                 BINARY_OP                5 (*)
+                 STORE_FAST              18 (first_frame_bullet_dist)
+
+ 292             LOAD_SMALL_INT           0
+                 STORE_FAST              19 (cur_bullet_dist)
+
+ 293             LOAD_FAST               18 (first_frame_bullet_dist)
+                 STORE_FAST              20 (cur_fly_dist)
+
+ 294             LOAD_GLOBAL             48 (time)
+                 LOAD_ATTR               48 (time)
+                 PUSH_NULL
+                 CALL                     0
+                 STORE_FAST              21 (cur_time)
+
+ 296             LOAD_FAST_BORROW         0 (self)
+                 LOAD_ATTR               51 (GetShootScreenPos + NULL|self)
+                 CALL                     0
+                 STORE_FAST              22 (shoot_screen_pos)
+
+ 297             LOAD_FAST_BORROW         0 (self)
+                 LOAD_ATTR               53 (GetShootDir + NULL|self)
+                 LOAD_FAST_BORROW        22 (shoot_screen_pos)
+                 CALL                     1
+                 STORE_FAST              23 (shoot_dir_fps)
+
+ 298             LOAD_FAST_BORROW         0 (self)
+                 LOAD_ATTR               55 (GetShootStartPos + NULL|self)
+                 LOAD_FAST_BORROW         2 (caster)
+                 LOAD_ATTR               56 (position)
+                 LOAD_FAST_BORROW        23 (shoot_dir_fps)
+                 CALL                     2
+                 STORE_FAST              24 (start_pos_fps)
+
+ 300             LOAD_FAST_BORROW         2 (caster)
+                 LOAD_ATTR                8 (model)
+                 LOAD_ATTR               59 (GetBoneWorldPosition + NULL|self)
+                 LOAD_CONST               8 ('HP_Camera')
+                 CALL                     1
+                 STORE_FAST              25 (start_pos_tps)
+
+ 301             LOAD_FAST_BORROW        24 (start_pos_fps)
+                 LOAD_FAST_BORROW        23 (shoot_dir_fps)
+                 LOAD_SMALL_INT           5
+                 BINARY_OP                5 (*)
+                 BINARY_OP                0 (+)
+                 STORE_FAST              26 (end_pos_tps)
+
+ 302             LOAD_FAST_BORROW        26 (end_pos_tps)
+                 LOAD_FAST_BORROW        25 (start_pos_tps)
+                 BINARY_OP               10 (-)
+                 LOAD_ATTR               61 (get_normalized + NULL|self)
+                 CALL                     0
+                 STORE_FAST              27 (shoot_dir_tps)
+
+ 304             LOAD_FAST_BORROW         2 (caster)
+                 LOAD_ATTR               62 (is_fps_mode)
+                 TO_BOOL
+                 UNARY_NOT
+                 COPY                     1
+                 TO_BOOL
+                 POP_JUMP_IF_FALSE       18 (to L18)
+        L16:     NOT_TAKEN
+        L17:     POP_TOP
+                 LOAD_FAST_BORROW         2 (caster)
+                 LOAD_ATTR               64 (is_ads)
+                 TO_BOOL
+                 UNARY_NOT
+        L18:     STORE_FAST              28 (use_tps_ballistic)
+
+ 308             LOAD_FAST_BORROW         0 (self)
+                 LOAD_ATTR               67 (GetWallWeaponRaiseGeometry + NULL|self)
+                 LOAD_FAST_BORROW         0 (self)
+                 LOAD_ATTR                0 (caster)
+                 LOAD_ATTR               26 (shoot_idx)
+                 CALL                     1
+                 STORE_FAST              29 (wall_raise_geometry)
+
+ 309             LOAD_FAST_BORROW        29 (wall_raise_geometry)
+                 TO_BOOL
+                 POP_JUMP_IF_FALSE        8 (to L21)
+        L19:     NOT_TAKEN
+
+ 310    L20:     LOAD_FAST_BORROW        29 (wall_raise_geometry)
+                 UNPACK_SEQUENCE          2
+                 STORE_FAST              24 (start_pos_fps)
+                 STORE_FAST              23 (shoot_dir_fps)
+
+ 311             LOAD_CONST               9 (False)
+                 STORE_FAST              28 (use_tps_ballistic)
+
+ 314    L21:     LOAD_FAST_BORROW         2 (caster)
+                 LOAD_ATTR               69 (RecordGunFireAmmo + NULL|self)
+                 LOAD_FAST_BORROW         4 (weapon_id)
+                 CALL                     1
+                 POP_TOP
+
+ 317             LOAD_CONST               9 (False)
+                 STORE_FAST              30 (has_send_hit_effect)
+
+ 318             LOAD_CONST               9 (False)
+                 STORE_FAST              31 (has_send_hit_sound)
+
+ 320             LOAD_FAST_BORROW         2 (caster)
+                 LOAD_ATTR               71 (GetBulletExcludeActor + NULL|self)
+                 CALL                     0
+                 STORE_FAST              32 (bullet_exclude_actor)
+
+ 321             LOAD_GLOBAL             72 (spell_core_main)
+                 LOAD_ATTR               74 (GetShootResultWithPenetrate)
+                 STORE_FAST              33 (shoot_result_getter)
+
+ 322             LOAD_FAST               24 (start_pos_fps)
+                 LOAD_FAST               23 (shoot_dir_fps)
+                 STORE_FAST              35 (shoot_dir)
+                 STORE_FAST              34 (start_pos)
+
+ 325             LOAD_FAST_BORROW        28 (use_tps_ballistic)
+                 TO_BOOL
+                 POP_JUMP_IF_FALSE       13 (to L22)
+                 NOT_TAKEN
+                 LOAD_FAST_BORROW        19 (cur_bullet_dist)
+                 LOAD_SMALL_INT           0
+                 COMPARE_OP              88 (bool(==))
+                 POP_JUMP_IF_FALSE        6 (to L22)
+                 NOT_TAKEN
+
+ 326             LOAD_FAST               25 (start_pos_tps)
+                 STORE_FAST              36 (verify_start_pos)
+
+ 327             LOAD_FAST               27 (shoot_dir_tps)
+                 STORE_FAST              37 (verify_shoot_dir)
+                 JUMP_FORWARD             4 (to L23)
+
+ 329    L22:     LOAD_FAST               24 (start_pos_fps)
+                 STORE_FAST              36 (verify_start_pos)
+
+ 330             LOAD_FAST               23 (shoot_dir_fps)
+                 STORE_FAST              37 (verify_shoot_dir)
+
+ 333    L23:     LOAD_GLOBAL              4 (genv)
+                 LOAD_ATTR               76 (camera)
+                 STORE_FAST              38 (script_camera)
+
+ 334             LOAD_FAST_BORROW        38 (script_camera)
+                 TO_BOOL
+                 POP_JUMP_IF_FALSE       42 (to L28)
+        L24:     NOT_TAKEN
+        L25:     LOAD_FAST_BORROW        38 (script_camera)
+                 LOAD_ATTR               78 (is_fps_placer)
+                 TO_BOOL
+                 POP_JUMP_IF_FALSE       24 (to L28)
+        L26:     NOT_TAKEN
+
+ 335    L27:     LOAD_FAST_BORROW        38 (script_camera)
+                 LOAD_ATTR               80 (placer)
+                 LOAD_ATTR               82 (RecoilPitchRange)
+                 STORE_FAST              39 (recoil_pitch)
+                 JUMP_FORWARD             2 (to L29)
+
+ 337    L28:     LOAD_CONST              33 (-1.0)
+                 STORE_FAST              39 (recoil_pitch)
+
+ 339    L29:     LOAD_CONST               9 (False)
+                 STORE_FAST              40 (open_assist_aim)
+
+ 340             LOAD_GLOBAL             84 (gui)
+                 LOAD_ATTR               86 (is_pc)
+                 TO_BOOL
+                 POP_JUMP_IF_FALSE       31 (to L32)
+        L30:     NOT_TAKEN
+
+ 341    L31:     LOAD_GLOBAL              4 (genv)
+                 LOAD_ATTR                6 (player)
+                 LOAD_ATTR               89 (IsAssistAimSettingOpen + NULL|self)
+                 CALL                     0
+                 STORE_FAST              40 (open_assist_aim)
+
+ 352    L32:     LOAD_CONST               9 (False)
+                 STORE_FAST              41 (make_ballistick_effect)
+
+ 353    L33:     LOAD_FAST_BORROW        19 (cur_bullet_dist)
+                 LOAD_FAST_BORROW        11 (bullet_fly_range)
+                 COMPARE_OP              18 (bool(<))
+                 EXTENDED_ARG             7
+                 POP_JUMP_IF_FALSE     2012 (to L147)
+                 NOT_TAKEN
+
+ 354             LOAD_FAST_BORROW        28 (use_tps_ballistic)
+                 TO_BOOL
+                 POP_JUMP_IF_FALSE       15 (to L36)
+        L34:     NOT_TAKEN
+        L35:     LOAD_FAST_BORROW        19 (cur_bullet_dist)
+                 LOAD_SMALL_INT           0
+                 COMPARE_OP              88 (bool(==))
+                 POP_JUMP_IF_FALSE        8 (to L36)
+                 NOT_TAKEN
+
+ 356             LOAD_FAST               25 (start_pos_tps)
+                 LOAD_FAST               27 (shoot_dir_tps)
+                 STORE_FAST              35 (shoot_dir)
+                 STORE_FAST              34 (start_pos)
+
+ 357             LOAD_SMALL_INT           3
+                 STORE_FAST              20 (cur_fly_dist)
+                 JUMP_FORWARD             2 (to L37)
+
+ 359    L36:     LOAD_FAST               23 (shoot_dir_fps)
+                 STORE_FAST              35 (shoot_dir)
+
+ 361    L37:     LOAD_FAST_BORROW        33 (shoot_result_getter)
+                 PUSH_NULL
+
+ 362             LOAD_FAST_BORROW         2 (caster)
+                 LOAD_FAST_BORROW        20 (cur_fly_dist)
+                 LOAD_FAST_BORROW        22 (shoot_screen_pos)
+                 LOAD_FAST_BORROW        35 (shoot_dir)
+                 LOAD_FAST_BORROW        34 (start_pos)
+
+ 364             LOAD_CONST              10 ('bullet_penerate_count')
+                 LOAD_FAST_BORROW        16 (bullet_penerate_count)
+
+ 365             LOAD_CONST              11 ('bullet_penerate_power')
+                 LOAD_FAST_BORROW        13 (bullet_penerate_power)
+
+ 366             LOAD_CONST              12 ('bullet_penerate_power_min')
+                 LOAD_FAST_BORROW        14 (bullet_penerate_power_min)
+
+ 367             LOAD_CONST              13 ('bullet_penerate_count_max')
+                 LOAD_FAST_BORROW        15 (bullet_penerate_count_max)
+
+ 368             LOAD_CONST              14 ('bullet_exclude_actor')
+                 LOAD_FAST_BORROW        32 (bullet_exclude_actor)
+
+ 363             BUILD_MAP                5
+
+ 361             LOAD_CONST              15 (('shoot_dir', 'start_pos', 'penetrate_info'))
+                 CALL_KW                  6
+                 UNPACK_SEQUENCE          2
+                 STORE_FAST              42 (shoot_results)
+                 STORE_FAST              43 (penetrate_result)
+
+ 371             LOAD_FAST_BORROW         0 (self)
+                 LOAD_ATTR               91 (EliminateUselessBoneRes + NULL|self)
+                 LOAD_FAST_BORROW         3 (weapon)
+                 LOAD_FAST_BORROW        42 (shoot_results)
+                 CALL                     2
+                 POP_TOP
+
+ 373             LOAD_GLOBAL             92 (switches)
+                 LOAD_ATTR               94 (BULLET_DEBUG)
+                 TO_BOOL
+                 POP_JUMP_IF_FALSE       48 (to L42)
+        L38:     NOT_TAKEN
+        L39:     LOAD_GLOBAL             92 (switches)
+                 LOAD_ATTR               96 (IS_DEBUG)
+                 TO_BOOL
+                 POP_JUMP_IF_FALSE       26 (to L42)
+        L40:     NOT_TAKEN
+
+ 374    L41:     LOAD_GLOBAL             72 (spell_core_main)
+                 LOAD_ATTR               98 (DrawBulletDebug)
+                 PUSH_NULL
+                 LOAD_FAST_BORROW        34 (start_pos)
+                 LOAD_FAST_BORROW        35 (shoot_dir)
+                 LOAD_FAST_BORROW        20 (cur_fly_dist)
+                 LOAD_FAST_BORROW        42 (shoot_results)
+                 CALL                     4
+                 POP_TOP
+
+ 376    L42:     LOAD_CONST               0 (None)
+                 STORE_FAST              44 (ballistick_hit_pos)
+
+ 377             LOAD_CONST               0 (None)
+                 STORE_FAST              45 (spell_result)
+
+ 378             LOAD_FAST_BORROW        42 (shoot_results)
+                 TO_BOOL
+                 EXTENDED_ARG             5
+                 POP_JUMP_IF_FALSE     1411 (to L117)
+        L43:     NOT_TAKEN
+
+ 380    L44:     LOAD_FAST_BORROW         0 (self)
+                 LOAD_ATTR              101 (NewSpellResult + NULL|self)
+                 CALL                     0
+                 STORE_FAST              45 (spell_result)
+
+ 381             LOAD_FAST_BORROW         5 (weapon_guid)
+                 LOAD_FAST_BORROW        45 (spell_result)
+                 STORE_ATTR              16 (weapon_guid)
+
+ 382             LOAD_CONST               9 (False)
+                 LOAD_FAST_BORROW        45 (spell_result)
+                 STORE_ATTR              51 (cost_ammo)
+
+ 383             LOAD_CONST              16 ('gun_id')
+                 LOAD_FAST_BORROW         6 (gun_id)
+                 BUILD_MAP                1
+                 LOAD_FAST_BORROW        45 (spell_result)
+                 STORE_ATTR              52 (extra)
+
+ 384             LOAD_FAST_BORROW        36 (verify_start_pos)
+                 LOAD_FAST_BORROW        45 (spell_result)
+                 STORE_ATTR              53 (verify_start_pos)
+
+ 385             LOAD_FAST_BORROW        37 (verify_shoot_dir)
+                 LOAD_FAST_BORROW        45 (spell_result)
+                 STORE_ATTR              54 (verify_shoot_dir)
+
+ 386             LOAD_FAST_BORROW        39 (recoil_pitch)
+                 LOAD_FAST_BORROW        45 (spell_result)
+                 STORE_ATTR              55 (verify_recoil_pitch)
+
+ 387             LOAD_FAST_BORROW        40 (open_assist_aim)
+                 LOAD_FAST_BORROW        45 (spell_result)
+                 STORE_ATTR              56 (verify_assist_aim)
+
+ 388             LOAD_GLOBAL            114 (MEngine)
+                 LOAD_ATTR              116 (GetGameplay)
+                 PUSH_NULL
+                 CALL                     0
+                 LOAD_ATTR              118 (Player)
+                 LOAD_ATTR              120 (Camera)
+                 LOAD_ATTR              122 (Transform)
+                 STORE_FAST              46 (camera_transform)
+
+ 389             LOAD_FAST_BORROW        46 (camera_transform)
+                 LOAD_ATTR              124 (translation)
+                 LOAD_ATTR              127 (tuple + NULL|self)
+                 CALL                     0
+                 LOAD_FAST_BORROW        45 (spell_result)
+                 STORE_ATTR              64 (verify_camera_pos)
+
+ 391             BUILD_LIST               0
+                 STORE_FAST              47 (penetrate_materials)
+
+ 392             LOAD_FAST_BORROW        42 (shoot_results)
+                 GET_ITER
+        L45:     EXTENDED_ARG             4
+                 FOR_ITER              1252 (to L116)
+                 STORE_FAST              48 (res)
+
+ 393             LOAD_FAST_BORROW        48 (res)
+                 LOAD_ATTR              130 (raycast_bone_res)
+                 STORE_FAST              49 (raycast_bone_res)
+
+ 394             LOAD_FAST_BORROW        48 (res)
+                 LOAD_ATTR              132 (target)
+                 STORE_FAST              50 (target)
+
+ 395             LOAD_FAST_BORROW        48 (res)
+                 LOAD_ATTR              134 (penetrate_power)
+                 STORE_FAST              51 (penetrate_power)
+
+ 396             LOAD_FAST_BORROW        47 (penetrate_materials)
+                 LOAD_ATTR              137 (append + NULL|self)
+                 LOAD_FAST_BORROW        48 (res)
+                 LOAD_ATTR              138 (materialTypeId)
+                 CALL                     1
+                 POP_TOP
+
+ 397             LOAD_FAST_BORROW        49 (raycast_bone_res)
+                 TO_BOOL
+                 EXTENDED_ARG             1
+                 POP_JUMP_IF_FALSE      371 (to L61)
+                 NOT_TAKEN
+
+ 398             LOAD_FAST_BORROW        49 (raycast_bone_res)
+                 LOAD_ATTR              140 (Pos)
+                 STORE_FAST              44 (ballistick_hit_pos)
+
+ 399             LOAD_FAST_BORROW        49 (raycast_bone_res)
+                 LOAD_ATTR              142 (name)
+                 STORE_FAST              52 (hit_name)
+
+ 401             LOAD_FAST_BORROW        50 (target)
+                 LOAD_ATTR              144 (IsCombatAvatar)
+                 COPY                     1
+                 TO_BOOL
+                 POP_JUMP_IF_FALSE       52 (to L50)
+        L46:     NOT_TAKEN
+        L47:     POP_TOP
+                 LOAD_FAST_BORROW        50 (target)
+                 LOAD_ATTR                8 (model)
+                 COPY                     1
+                 TO_BOOL
+                 POP_JUMP_IF_FALSE       32 (to L50)
+        L48:     NOT_TAKEN
+        L49:     POP_TOP
+                 LOAD_FAST_BORROW        50 (target)
+                 LOAD_ATTR                8 (model)
+                 LOAD_ATTR              147 (CalcDeathDir + NULL|self)
+                 LOAD_FAST_BORROW        35 (shoot_dir)
+                 LOAD_CONST              17 (('hit_dir',))
+                 CALL_KW                  1
+                 LOAD_SMALL_INT           1
+                 COMPARE_OP              72 (==)
+        L50:     STORE_FAST              53 (hit_back)
+
+ 403             LOAD_FAST_BORROW        48 (res)
+                 LOAD_ATTR              148 (penetrate_count)
+                 LOAD_SMALL_INT           0
+                 COMPARE_OP             132 (>)
+                 STORE_FAST              54 (hit_penetrate)
+
+ 405             LOAD_CONST              18 (0.0)
+                 STORE_FAST              55 (verify_hit_radius)
+
+ 406             LOAD_CONST               0 (None)
+                 STORE_FAST              56 (verify_hit_half)
+
+ 407             LOAD_CONST               0 (None)
+                 STORE_FAST              57 (verify_bone_scale)
+
+ 408             LOAD_CONST               0 (None)
+                 STORE_FAST              58 (verify_hit_offset)
+
+ 409             LOAD_FAST_BORROW        52 (hit_name)
+                 TO_BOOL
+                 POP_JUMP_IF_FALSE      161 (to L60)
+        L51:     NOT_TAKEN
+        L52:     LOAD_FAST_BORROW        50 (target)
+                 LOAD_ATTR              144 (IsCombatAvatar)
+                 TO_BOOL
+                 POP_JUMP_IF_FALSE      143 (to L60)
+        L53:     NOT_TAKEN
+        L54:     LOAD_FAST_BORROW        50 (target)
+                 LOAD_ATTR                8 (model)
+                 TO_BOOL
+                 POP_JUMP_IF_FALSE      125 (to L60)
+        L55:     NOT_TAKEN
+
+ 411    L56:     LOAD_FAST_BORROW        52 (hit_name)
+                 LOAD_ATTR              151 (lower + NULL|self)
+                 CALL                     0
+                 LOAD_CONST              19 ('head')
+                 COMPARE_OP              88 (bool(==))
+                 POP_JUMP_IF_FALSE       34 (to L59)
+                 NOT_TAKEN
+                 LOAD_FAST_BORROW         2 (caster)
+                 LOAD_ATTR              152 (game_logic)
+                 LOAD_ATTR              154 (is_consider_hit_non_bone_parts)
+                 TO_BOOL
+                 POP_JUMP_IF_FALSE        6 (to L59)
+        L57:     NOT_TAKEN
+
+ 412    L58:     LOAD_CONST               0 (None)
+                 LOAD_CONST               0 (None)
+                 STORE_FAST              57 (verify_bone_scale)
+                 STORE_FAST              58 (verify_hit_offset)
+                 JUMP_FORWARD            70 (to L60)
+
+ 414    L59:     LOAD_FAST_BORROW        50 (target)
+                 LOAD_ATTR                8 (model)
+                 LOAD_ATTR              156 (skeleton)
+                 STORE_FAST              59 (skeleton)
+
+ 416             LOAD_GLOBAL            158 (spell_util)
+                 LOAD_ATTR              160 (GetCollisionBoneOffset)
+                 PUSH_NULL
+
+ 417             LOAD_FAST_BORROW        59 (skeleton)
+                 LOAD_FAST_BORROW        52 (hit_name)
+                 LOAD_GLOBAL            163 (getattr + NULL)
+                 LOAD_FAST_BORROW        48 (res)
+                 LOAD_CONST              20 ('original_bone_pos')
+                 LOAD_FAST_BORROW        49 (raycast_bone_res)
+                 LOAD_ATTR              140 (Pos)
+                 CALL                     3
+
+ 416             CALL                     3
+                 UNPACK_SEQUENCE          2
+                 STORE_FAST              58 (verify_hit_offset)
+                 STORE_FAST              57 (verify_bone_scale)
+
+ 420    L60:     LOAD_FAST_BORROW         2 (caster)
+                 LOAD_ATTR              152 (game_logic)
+                 LOAD_ATTR              165 (DealWeaponDamageResult + NULL|self)
+                 LOAD_FAST_BORROW         0 (self)
+                 LOAD_ATTR               14 (spell_id)
+                 LOAD_FAST_BORROW        45 (spell_result)
+                 LOAD_FAST_BORROW         2 (caster)
+                 LOAD_FAST_BORROW        50 (target)
+                 LOAD_FAST_BORROW         4 (weapon_id)
+                 LOAD_CONST              21 (True)
+
+ 421             LOAD_FAST_BORROW         8 (bullet_data_id)
+                 LOAD_FAST_BORROW        52 (hit_name)
+                 LOAD_FAST_BORROW        35 (shoot_dir)
+                 LOAD_FAST_BORROW        53 (hit_back)
+                 LOAD_FAST_BORROW        49 (raycast_bone_res)
+                 LOAD_ATTR              140 (Pos)
+
+ 422             LOAD_FAST_BORROW        54 (hit_penetrate)
+                 LOAD_FAST_BORROW        51 (penetrate_power)
+                 LOAD_FAST_BORROW        47 (penetrate_materials)
+
+ 423             LOAD_FAST_BORROW         2 (caster)
+                 LOAD_ATTR              166 (is_real_ads)
+                 TO_BOOL
+                 UNARY_NOT
+                 LOAD_FAST_BORROW_LOAD_FAST_BORROW 87 (weapon_guid, is_dual_weapon)
+                 LOAD_FAST_BORROW        55 (verify_hit_radius)
+
+ 424             LOAD_FAST_BORROW        56 (verify_hit_half)
+                 LOAD_FAST_BORROW        57 (verify_bone_scale)
+                 LOAD_FAST_BORROW        58 (verify_hit_offset)
+
+ 420             LOAD_CONST              22 (('bullet_data_id', 'hit_part', 'hit_dir', 'hit_back', 'hit_pos', 'hit_penetrate', 'penetrate_power', 'penetrate_materials', 'is_ads', 'weapon_guid', 'is_dual', 'verify_hit_radius', 'verify_hit_half', 'verify_bone_scale', 'verify_hit_offset'))
+                 CALL_KW                 21
+                 POP_TOP
+                 EXTENDED_ARG             2
+                 JUMP_FORWARD           604 (to L100)
+
+ 427    L61:     LOAD_FAST_BORROW        48 (res)
+                 LOAD_ATTR              168 (has_penerate)
+                 TO_BOOL
+                 POP_JUMP_IF_TRUE        44 (to L64)
+        L62:     NOT_TAKEN
+        L63:     LOAD_FAST_BORROW        48 (res)
+                 LOAD_ATTR              170 (collision_info)
+                 LOAD_GLOBAL            172 (cconst)
+                 LOAD_ATTR              174 (PHYSICS_PARTICLE_SHIELD)
+                 COMPARE_OP             119 (bool(!=))
+                 POP_JUMP_IF_FALSE       13 (to L64)
+                 NOT_TAKEN
+
+ 428             LOAD_FAST_BORROW        48 (res)
+                 LOAD_ATTR              176 (physics_hit_pos)
+                 STORE_FAST              44 (ballistick_hit_pos)
+
+ 430    L64:     LOAD_FAST_BORROW        50 (target)
+                 TO_BOOL
+                 POP_JUMP_IF_FALSE       96 (to L71)
+        L65:     NOT_TAKEN
+        L66:     LOAD_FAST_BORROW        50 (target)
+                 LOAD_ATTR              144 (IsCombatAvatar)
+                 TO_BOOL
+                 POP_JUMP_IF_FALSE       78 (to L71)
+        L67:     NOT_TAKEN
+        L68:     LOAD_FAST_BORROW         2 (caster)
+                 LOAD_ATTR              152 (game_logic)
+                 LOAD_ATTR              154 (is_consider_hit_non_bone_parts)
+                 TO_BOOL
+                 POP_JUMP_IF_FALSE       50 (to L71)
+        L69:     NOT_TAKEN
+
+ 431    L70:     LOAD_FAST_BORROW         2 (caster)
+                 LOAD_ATTR              152 (game_logic)
+                 LOAD_ATTR              179 (OnHitCombatAvatarByNonBoneParts + NULL|self)
+
+ 432             LOAD_FAST_BORROW         0 (self)
+                 LOAD_ATTR               14 (spell_id)
+                 LOAD_FAST_BORROW        45 (spell_result)
+                 LOAD_FAST_BORROW         2 (caster)
+                 LOAD_FAST_BORROW        50 (target)
+                 LOAD_FAST_BORROW         3 (weapon)
+
+ 433             LOAD_FAST_BORROW        48 (res)
+                 LOAD_FAST_BORROW        35 (shoot_dir)
+                 LOAD_FAST_BORROW        47 (penetrate_materials)
+
+ 431             LOAD_CONST              23 (('hit_result', 'hit_dir', 'penetrate_materials'))
+                 CALL_KW                  8
+                 POP_TOP
+
+ 435             LOAD_CONST              21 (True)
+                 STORE_FAST              30 (has_send_hit_effect)
+                 EXTENDED_ARG             1
+                 JUMP_FORWARD           374 (to L96)
+
+ 436    L71:     LOAD_FAST_BORROW        50 (target)
+                 TO_BOOL
+                 EXTENDED_ARG             1
+                 POP_JUMP_IF_FALSE      366 (to L96)
+        L72:     NOT_TAKEN
+        L73:     LOAD_FAST_BORROW        50 (target)
+                 LOAD_ATTR              180 (IsSimpleCombatUnit)
+                 TO_BOOL
+                 EXTENDED_ARG             1
+                 POP_JUMP_IF_FALSE      347 (to L96)
+        L74:     NOT_TAKEN
+        L75:     LOAD_FAST_BORROW        50 (target)
+                 LOAD_ATTR              182 (is_alive)
+                 TO_BOOL
+                 EXTENDED_ARG             1
+                 POP_JUMP_IF_FALSE      328 (to L96)
+        L76:     NOT_TAKEN
+
+ 437    L77:     LOAD_FAST_BORROW        50 (target)
+                 LOAD_ATTR              144 (IsCombatAvatar)
+                 COPY                     1
+                 TO_BOOL
+                 POP_JUMP_IF_TRUE        13 (to L80)
+        L78:     NOT_TAKEN
+        L79:     POP_TOP
+                 LOAD_FAST_BORROW        50 (target)
+                 LOAD_ATTR              184 (IsMonster)
+        L80:     STORE_FAST              30 (has_send_hit_effect)
+
+ 438             LOAD_GLOBAL             92 (switches)
+                 LOAD_ATTR              186 (ENABLE_NEW_VAT_MONSTER)
+                 TO_BOOL
+                 POP_JUMP_IF_FALSE      176 (to L92)
+        L81:     NOT_TAKEN
+
+ 439    L82:     LOAD_FAST_BORROW        50 (target)
+                 LOAD_ATTR              188 (IsVehicle)
+                 TO_BOOL
+                 POP_JUMP_IF_FALSE       17 (to L85)
+        L83:     NOT_TAKEN
+        L84:     LOAD_GLOBAL            190 (consts)
+                 LOAD_ATTR              192 (AvatarCollisionBone_UpperTop)
+                 JUMP_FORWARD            15 (to L86)
+        L85:     LOAD_GLOBAL            190 (consts)
+                 LOAD_ATTR              194 (AvatarCollisionBone_UpperBottom)
+        L86:     STORE_FAST              60 (hit_part)
+
+ 440             LOAD_FAST_BORROW        50 (target)
+                 LOAD_ATTR              196 (IsNewCrystalMonster)
+                 TO_BOOL
+                 POP_JUMP_IF_TRUE        19 (to L90)
+        L87:     NOT_TAKEN
+        L88:     LOAD_FAST_BORROW        50 (target)
+                 LOAD_ATTR              198 (IsDmzMonster)
+                 TO_BOOL
+                 POP_JUMP_IF_FALSE       29 (to L91)
+        L89:     NOT_TAKEN
+
+ 441    L90:     LOAD_FAST_BORROW         0 (self)
+                 LOAD_ATTR              201 (CalHitPos + NULL|self)
+                 LOAD_FAST_BORROW        50 (target)
+                 LOAD_FAST_BORROW        48 (res)
+                 LOAD_ATTR              176 (physics_hit_pos)
+                 CALL                     2
+                 STORE_FAST              60 (hit_part)
+
+ 442    L91:     LOAD_FAST_BORROW         2 (caster)
+                 LOAD_ATTR              152 (game_logic)
+                 LOAD_ATTR              165 (DealWeaponDamageResult + NULL|self)
+                 LOAD_FAST_BORROW         0 (self)
+                 LOAD_ATTR               14 (spell_id)
+                 LOAD_FAST_BORROW        45 (spell_result)
+                 LOAD_FAST_BORROW         2 (caster)
+                 LOAD_FAST_BORROW        50 (target)
+                 LOAD_FAST_BORROW         4 (weapon_id)
+                 LOAD_CONST              21 (True)
+
+ 443             LOAD_FAST_BORROW         8 (bullet_data_id)
+                 LOAD_FAST_BORROW        35 (shoot_dir)
+                 LOAD_FAST_BORROW        51 (penetrate_power)
+                 LOAD_FAST_BORROW        47 (penetrate_materials)
+
+ 444             LOAD_FAST_BORROW        48 (res)
+                 LOAD_ATTR              176 (physics_hit_pos)
+                 LOAD_FAST_BORROW_LOAD_FAST_BORROW 87 (weapon_guid, is_dual_weapon)
+                 LOAD_FAST_BORROW        60 (hit_part)
+
+ 442             LOAD_CONST              24 (('bullet_data_id', 'hit_dir', 'penetrate_power', 'penetrate_materials', 'hit_pos', 'weapon_guid', 'is_dual', 'hit_part'))
+                 CALL_KW                 14
+                 POP_TOP
+                 JUMP_FORWARD            59 (to L93)
+
+ 447    L92:     LOAD_FAST_BORROW         2 (caster)
+                 LOAD_ATTR              152 (game_logic)
+                 LOAD_ATTR              165 (DealWeaponDamageResult + NULL|self)
+                 LOAD_FAST_BORROW         0 (self)
+                 LOAD_ATTR               14 (spell_id)
+                 LOAD_FAST_BORROW        45 (spell_result)
+                 LOAD_FAST_BORROW         2 (caster)
+                 LOAD_FAST_BORROW        50 (target)
+                 LOAD_FAST_BORROW         4 (weapon_id)
+                 LOAD_CONST              21 (True)
+
+ 448             LOAD_FAST_BORROW         8 (bullet_data_id)
+                 LOAD_FAST_BORROW        35 (shoot_dir)
+                 LOAD_FAST_BORROW        51 (penetrate_power)
+                 LOAD_FAST_BORROW        47 (penetrate_materials)
+
+ 449             LOAD_FAST_BORROW        48 (res)
+                 LOAD_ATTR              176 (physics_hit_pos)
+                 LOAD_FAST_BORROW_LOAD_FAST_BORROW 87 (weapon_guid, is_dual_weapon)
+
+ 447             LOAD_CONST              25 (('bullet_data_id', 'hit_dir', 'penetrate_power', 'penetrate_materials', 'hit_pos', 'weapon_guid', 'is_dual'))
+                 CALL_KW                 13
+                 POP_TOP
+
+ 451    L93:     LOAD_FAST_BORROW        50 (target)
+                 LOAD_ATTR              202 (IsMineral)
+                 TO_BOOL
+                 POP_JUMP_IF_FALSE       22 (to L96)
+        L94:     NOT_TAKEN
+
+ 453    L95:     LOAD_GLOBAL             84 (gui)
+                 LOAD_ATTR              205 (Prompt + NULL|self)
+                 LOAD_CONST              26 (1735)
+                 CALL                     1
+                 POP_TOP
+
+ 456    L96:     LOAD_FAST_BORROW        30 (has_send_hit_effect)
+                 TO_BOOL
+                 UNARY_NOT
+                 COPY                     1
+                 TO_BOOL
+                 POP_JUMP_IF_FALSE       52 (to L99)
+        L97:     NOT_TAKEN
+        L98:     POP_TOP
+                 LOAD_FAST_BORROW         0 (self)
+                 LOAD_ATTR              207 (WrapperSendSoundResult + NULL|self)
+                 LOAD_FAST_BORROW        45 (spell_result)
+                 LOAD_FAST_BORROW        48 (res)
+                 LOAD_ATTR              132 (target)
+                 LOAD_FAST_BORROW        48 (res)
+                 LOAD_ATTR              176 (physics_hit_pos)
+                 LOAD_FAST_BORROW        48 (res)
+                 LOAD_ATTR              138 (materialTypeId)
+                 LOAD_CONST               9 (False)
+                 CALL                     5
+
+  --    L99:     POP_TOP
+
+ 460   L100:     LOAD_FAST_BORROW        30 (has_send_hit_effect)
+                 TO_BOOL
+       L101:     POP_JUMP_IF_FALSE        4 (to L102)
+                 NOT_TAKEN
+                 EXTENDED_ARG             4
+                 JUMP_BACKWARD         1061 (to L45)
+
+ 461   L102:     LOAD_FAST_BORROW         1 (code)
+                 LOAD_CONST              27 ('dual_gun_spell')
+                 COMPARE_OP             119 (bool(!=))
+                 POP_JUMP_IF_FALSE       13 (to L103)
+                 NOT_TAKEN
+                 LOAD_FAST_BORROW         3 (weapon)
+                 LOAD_ATTR              208 (skin_hit_object_effect_dict)
+                 JUMP_FORWARD            11 (to L104)
+       L103:     LOAD_FAST_BORROW         3 (weapon)
+                 LOAD_ATTR              210 (dual_skin_hit_object_effect_dict)
+       L104:     STORE_FAST              61 (hit_effect_dict)
+
+ 462             LOAD_FAST_BORROW        61 (hit_effect_dict)
+                 TO_BOOL
+                 POP_JUMP_IF_TRUE        32 (to L109)
+       L105:     NOT_TAKEN
+
+ 463   L106:     LOAD_FAST_BORROW         1 (code)
+                 LOAD_CONST              27 ('dual_gun_spell')
+                 COMPARE_OP             119 (bool(!=))
+                 POP_JUMP_IF_FALSE       13 (to L107)
+                 NOT_TAKEN
+                 LOAD_FAST_BORROW         3 (weapon)
+                 LOAD_ATTR              212 (ammunition_hit_object_effect_dict)
+                 JUMP_FORWARD            11 (to L108)
+       L107:     LOAD_FAST_BORROW         3 (weapon)
+                 LOAD_ATTR              214 (dual_ammunition_hit_object_effect_dict)
+       L108:     STORE_FAST              61 (hit_effect_dict)
+
+ 464   L109:     LOAD_FAST_BORROW        61 (hit_effect_dict)
+                 TO_BOOL
+                 POP_JUMP_IF_FALSE       36 (to L112)
+       L110:     NOT_TAKEN
+       L111:     LOAD_FAST_BORROW        61 (hit_effect_dict)
+                 LOAD_ATTR              217 (get + NULL|self)
+                 LOAD_FAST_BORROW        48 (res)
+                 LOAD_ATTR              138 (materialTypeId)
+                 LOAD_FAST_BORROW        61 (hit_effect_dict)
+                 LOAD_SMALL_INT           0
+                 BINARY_OP               26 ([])
+                 CALL                     2
+                 JUMP_FORWARD             1 (to L113)
+       L112:     LOAD_SMALL_INT           0
+       L113:     STORE_FAST              62 (hit_effect_id)
+
+ 465             LOAD_FAST_BORROW         0 (self)
+                 LOAD_ATTR              219 (WrapperSendHitEffectResult + NULL|self)
+                 LOAD_FAST_BORROW        45 (spell_result)
+                 LOAD_FAST_BORROW        48 (res)
+                 LOAD_ATTR              132 (target)
+                 LOAD_FAST_BORROW        48 (res)
+                 LOAD_ATTR              176 (physics_hit_pos)
+                 LOAD_FAST_BORROW        48 (res)
+                 LOAD_ATTR              220 (hit_normal)
+                 LOAD_FAST_BORROW        48 (res)
+                 LOAD_ATTR              138 (materialTypeId)
+                 LOAD_FAST_BORROW        35 (shoot_dir)
+                 LOAD_FAST_BORROW         4 (weapon_id)
+                 LOAD_CONST               9 (False)
+                 LOAD_FAST_BORROW        62 (hit_effect_id)
+                 CALL                     9
+                 TO_BOOL
+       L114:     POP_JUMP_IF_TRUE         4 (to L115)
+                 NOT_TAKEN
+                 EXTENDED_ARG             4
+                 JUMP_BACKWARD         1250 (to L45)
+
+ 466   L115:     LOAD_CONST              21 (True)
+                 STORE_FAST              30 (has_send_hit_effect)
+                 EXTENDED_ARG             4
+                 JUMP_BACKWARD         1255 (to L45)
+
+ 392   L116:     END_FOR
+                 POP_ITER
+
+ 469   L117:     LOAD_FAST_BORROW        45 (spell_result)
+                 TO_BOOL
+                 POP_JUMP_IF_FALSE      152 (to L124)
+       L118:     NOT_TAKEN
+
+ 471   L119:     LOAD_FAST_BORROW        41 (make_ballistick_effect)
+                 TO_BOOL
+                 POP_JUMP_IF_TRUE        25 (to L122)
+       L120:     NOT_TAKEN
+
+ 472   L121:     LOAD_FAST_BORROW         0 (self)
+                 LOAD_ATTR              223 (AttachBallistickEffect + NULL|self)
+                 LOAD_FAST_BORROW        45 (spell_result)
+                 LOAD_FAST_BORROW_LOAD_FAST_BORROW 37 (caster, weapon_guid)
+                 LOAD_FAST_BORROW         6 (gun_id)
+                 LOAD_FAST_BORROW        44 (ballistick_hit_pos)
+
+ 473             LOAD_FAST_BORROW        24 (start_pos_fps)
+                 LOAD_FAST_BORROW        23 (shoot_dir_fps)
+
+ 472             CALL                     7
+                 POP_TOP
+
+ 474             LOAD_CONST              21 (True)
+                 STORE_FAST              41 (make_ballistick_effect)
+
+ 476   L122:     LOAD_FAST_BORROW         0 (self)
+                 LOAD_ATTR              225 (WrapperSendSpellResult + NULL|self)
+                 LOAD_FAST_BORROW        45 (spell_result)
+                 LOAD_CONST              21 (True)
+                 CALL                     2
+                 POP_TOP
+
+ 478             LOAD_GLOBAL            226 (six2)
+                 LOAD_ATTR              228 (itervalues)
+                 PUSH_NULL
+                 LOAD_FAST_BORROW        45 (spell_result)
+                 LOAD_ATTR              230 (damage_result)
+                 CALL                     1
+                 GET_ITER
+                 FOR_ITER                65 (to L123)
+                 STORE_FAST              63 (result)
+
+ 479             LOAD_FAST_BORROW         2 (caster)
+                 LOAD_ATTR               69 (RecordGunFireAmmo + NULL|self)
+                 LOAD_FAST_BORROW         4 (weapon_id)
+                 LOAD_FAST_BORROW        63 (result)
+                 LOAD_CONST              28 ('hit_part')
+                 BINARY_OP               26 ([])
+                 LOAD_CONST              29 (('hit_part',))
+                 CALL_KW                  2
+                 POP_TOP
+
+ 480             LOAD_FAST_BORROW         2 (caster)
+                 LOAD_ATTR              233 (RecordGunFireDamage + NULL|self)
+                 LOAD_FAST_BORROW         4 (weapon_id)
+                 LOAD_FAST_BORROW        63 (result)
+                 LOAD_CONST              30 ('damage')
+                 BINARY_OP               26 ([])
+                 LOAD_FAST_BORROW         3 (weapon)
+                 LOAD_ATTR               42 (part_slots)
+                 CALL                     3
+                 POP_TOP
+
+ 481             POP_TOP
+                 JUMP_FORWARD             2 (to L124)
+
+ 478   L123:     END_FOR
+                 POP_ITER
+
+ 484   L124:     LOAD_FAST_BORROW        41 (make_ballistick_effect)
+                 TO_BOOL
+                 POP_JUMP_IF_TRUE        23 (to L127)
+       L125:     NOT_TAKEN
+
+ 485   L126:     LOAD_FAST_BORROW         0 (self)
+                 LOAD_ATTR              235 (StrikeBallisticEffect + NULL|self)
+                 LOAD_FAST_BORROW_LOAD_FAST_BORROW 37 (caster, weapon_guid)
+                 LOAD_FAST_BORROW         6 (gun_id)
+                 LOAD_FAST_BORROW        44 (ballistick_hit_pos)
+                 LOAD_FAST_BORROW        24 (start_pos_fps)
+                 LOAD_FAST_BORROW        23 (shoot_dir_fps)
+                 LOAD_CONST               9 (False)
+                 CALL                     7
+                 POP_TOP
+
+ 486   L127:     LOAD_CONST              21 (True)
+                 STORE_FAST              41 (make_ballistick_effect)
+
+ 488             LOAD_FAST_BORROW        43 (penetrate_result)
+                 LOAD_CONST              31 ('penetrate_end')
+                 BINARY_OP               26 ([])
+                 TO_BOOL
+                 POP_JUMP_IF_FALSE        2 (to L130)
+       L128:     NOT_TAKEN
+
+ 490   L129:     JUMP_FORWARD           243 (to L147)
+
+ 492   L130:     LOAD_FAST_BORROW        43 (penetrate_result)
+                 LOAD_CONST              10 ('bullet_penerate_count')
+                 BINARY_OP               26 ([])
+                 STORE_FAST              16 (bullet_penerate_count)
+
+ 493             LOAD_FAST_BORROW        43 (penetrate_result)
+                 LOAD_CONST              11 ('bullet_penerate_power')
+                 BINARY_OP               26 ([])
+                 STORE_FAST              13 (bullet_penerate_power)
+
+ 499             LOAD_FAST_BORROW        28 (use_tps_ballistic)
+                 TO_BOOL
+                 POP_JUMP_IF_FALSE       11 (to L133)
+       L131:     NOT_TAKEN
+       L132:     LOAD_FAST_BORROW        19 (cur_bullet_dist)
+                 LOAD_SMALL_INT           0
+                 COMPARE_OP              88 (bool(==))
+                 POP_JUMP_IF_FALSE        4 (to L133)
+                 NOT_TAKEN
+
+ 500             LOAD_FAST               24 (start_pos_fps)
+                 STORE_FAST              64 (end_pos)
+                 JUMP_FORWARD            16 (to L134)
+
+ 502   L133:     LOAD_FAST_BORROW        34 (start_pos)
+                 LOAD_FAST_BORROW        35 (shoot_dir)
+                 LOAD_FAST_BORROW        20 (cur_fly_dist)
+                 BINARY_OP                5 (*)
+                 BINARY_OP                0 (+)
+                 STORE_FAST              64 (end_pos)
+
+ 503   L134:     LOAD_FAST_BORROW        19 (cur_bullet_dist)
+                 LOAD_FAST_BORROW        20 (cur_fly_dist)
+                 BINARY_OP               13 (+=)
+                 STORE_FAST              19 (cur_bullet_dist)
+
+ 505             LOAD_FAST_BORROW        17 (yield_time)
+                 YIELD_VALUE              0
+                 RESUME                   5
+                 POP_TOP
+
+ 507             LOAD_FAST_BORROW         0 (self)
+                 LOAD_ATTR                0 (caster)
+                 TO_BOOL
+                 POP_JUMP_IF_FALSE       33 (to L138)
+       L135:     NOT_TAKEN
+       L136:     LOAD_FAST_BORROW         0 (self)
+                 LOAD_ATTR                0 (caster)
+                 LOAD_ATTR                3 (is_destroyed + NULL|self)
+                 CALL                     0
+                 TO_BOOL
+                 POP_JUMP_IF_FALSE        3 (to L139)
+       L137:     NOT_TAKEN
+
+ 508   L138:     LOAD_CONST               0 (None)
+                 RETURN_VALUE
+
+ 509   L139:     LOAD_FAST_BORROW         0 (self)
+                 LOAD_ATTR                0 (caster)
+                 LOAD_ATTR              236 (space)
+                 TO_BOOL
+                 POP_JUMP_IF_TRUE         3 (to L142)
+       L140:     NOT_TAKEN
+
+ 510   L141:     LOAD_CONST               0 (None)
+                 RETURN_VALUE
+
+ 511   L142:     LOAD_FAST_BORROW         3 (weapon)
+                 LOAD_ATTR                2 (is_destroyed)
+                 TO_BOOL
+                 POP_JUMP_IF_FALSE        3 (to L145)
+       L143:     NOT_TAKEN
+
+ 512   L144:     LOAD_CONST               0 (None)
+                 RETURN_VALUE
+
+ 513   L145:     LOAD_GLOBAL             48 (time)
+                 LOAD_ATTR               48 (time)
+                 PUSH_NULL
+                 CALL                     0
+                 STORE_FAST              65 (now_time)
+
+ 514             LOAD_FAST_BORROW        65 (now_time)
+                 LOAD_FAST_BORROW        21 (cur_time)
+                 BINARY_OP               10 (-)
+                 STORE_FAST              66 (time_diff)
+
+ 515             LOAD_FAST_CHECK         64 (end_pos)
+                 STORE_FAST              34 (start_pos)
+
+ 516             LOAD_FAST_BORROW        66 (time_diff)
+                 LOAD_FAST_BORROW        10 (bullet_fly_speed)
+                 BINARY_OP                5 (*)
+                 STORE_FAST              20 (cur_fly_dist)
+
+ 517             LOAD_FAST_BORROW        19 (cur_bullet_dist)
+                 LOAD_FAST_BORROW        20 (cur_fly_dist)
+                 BINARY_OP                0 (+)
+                 LOAD_FAST_BORROW        11 (bullet_fly_range)
+                 COMPARE_OP             148 (bool(>))
+                 POP_JUMP_IF_FALSE       17 (to L146)
+                 NOT_TAKEN
+
+ 518             LOAD_FAST_BORROW        11 (bullet_fly_range)
+                 LOAD_FAST_BORROW        19 (cur_bullet_dist)
+                 BINARY_OP               10 (-)
+                 LOAD_SMALL_INT           2
+                 BINARY_OP                0 (+)
+                 STORE_FAST              20 (cur_fly_dist)
+
+ 520   L146:     LOAD_FAST_CHECK         65 (now_time)
+                 STORE_FAST              21 (cur_time)
+                 EXTENDED_ARG             7
+                 JUMP_BACKWARD         2019 (to L33)
+
+ 523   L147:     LOAD_FAST_BORROW         2 (caster)
+                 LOAD_ATTR              239 (IsSniperGunNeedFireClick + NULL|self)
+                 LOAD_CONST               9 (False)
+                 LOAD_CONST              32 (('single',))
+                 CALL_KW                  1
+                 TO_BOOL
+                 POP_JUMP_IF_FALSE       55 (to L153)
+       L148:     NOT_TAKEN
+
+ 524   L149:     LOAD_CONST               9 (False)
+                 LOAD_FAST_BORROW         2 (caster)
+                 STORE_ATTR             120 (single_shot_starting)
+
+ 525             LOAD_FAST_BORROW         2 (caster)
+                 LOAD_ATTR              243 (_CheckCanTryFireStart + NULL|self)
+                 CALL                     0
+                 TO_BOOL
+                 UNARY_NOT
+                 COPY                     1
+                 TO_BOOL
+                 POP_JUMP_IF_FALSE       17 (to L152)
+       L150:     NOT_TAKEN
+       L151:     POP_TOP
+                 LOAD_FAST_BORROW         2 (caster)
+                 LOAD_ATTR              245 (EndAttack + NULL|self)
+                 CALL                     0
+
+  --   L152:     POP_TOP
+                 LOAD_CONST               0 (None)
+                 RETURN_VALUE
+
+ 523   L153:     LOAD_CONST               0 (None)
+                 RETURN_VALUE
+
+  --   L154:     CALL_INTRINSIC_1         3 (INTRINSIC_STOPITERATION_ERROR)
+                 RERAISE                  1
+ExceptionTable:
+  L1 to L2 -> L154 [0] lasti
+  L3 to L6 -> L154 [0] lasti
+  L7 to L9 -> L154 [0] lasti
+  L10 to L13 -> L154 [0] lasti
+  L14 to L16 -> L154 [0] lasti
+  L17 to L19 -> L154 [0] lasti
+  L20 to L24 -> L154 [0] lasti
+  L25 to L26 -> L154 [0] lasti
+  L27 to L30 -> L154 [0] lasti
+  L31 to L34 -> L154 [0] lasti
+  L35 to L38 -> L154 [0] lasti
+  L39 to L40 -> L154 [0] lasti
+  L41 to L43 -> L154 [0] lasti
+  L44 to L46 -> L154 [0] lasti
+  L47 to L48 -> L154 [0] lasti
+  L49 to L51 -> L154 [0] lasti
+  L52 to L53 -> L154 [0] lasti
+  L54 to L55 -> L154 [0] lasti
+  L56 to L57 -> L154 [0] lasti
+  L58 to L62 -> L154 [0] lasti
+  L63 to L65 -> L154 [0] lasti
+  L66 to L67 -> L154 [0] lasti
+  L68 to L69 -> L154 [0] lasti
+  L70 to L72 -> L154 [0] lasti
+  L73 to L74 -> L154 [0] lasti
+  L75 to L76 -> L154 [0] lasti
+  L77 to L78 -> L154 [0] lasti
+  L79 to L81 -> L154 [0] lasti
+  L82 to L83 -> L154 [0] lasti
+  L84 to L87 -> L154 [0] lasti
+  L88 to L89 -> L154 [0] lasti
+  L90 to L94 -> L154 [0] lasti
+  L95 to L97 -> L154 [0] lasti
+  L98 to L101 -> L154 [0] lasti
+  L102 to L105 -> L154 [0] lasti
+  L106 to L110 -> L154 [0] lasti
+  L111 to L114 -> L154 [0] lasti
+  L115 to L118 -> L154 [0] lasti
+  L119 to L120 -> L154 [0] lasti
+  L121 to L125 -> L154 [0] lasti
+  L126 to L128 -> L154 [0] lasti
+  L129 to L131 -> L154 [0] lasti
+  L132 to L135 -> L154 [0] lasti
+  L136 to L137 -> L154 [0] lasti
+  L138 to L140 -> L154 [0] lasti
+  L141 to L143 -> L154 [0] lasti
+  L144 to L148 -> L154 [0] lasti
+  L149 to L150 -> L154 [0] lasti
+  L151 to L154 -> L154 [0] lasti

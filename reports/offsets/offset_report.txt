@@ -1,0 +1,85 @@
+exe: BloodStrike.exe
+size: 141431288 bytes
+image base: 0x140000000
+sections: .text, .rdata, .data, .pdata, PyRuntim, AsyncioD, _RDATA, .rsrc, .reloc
+
+python bridge: OK
+  PyGILState_Ensure        rva=0x2ADC1C0 file=0x2ADB7C0 OK got=48895c2410574883ec20488d0d want=48895c2410574883ec20488d0d
+  PyGILState_Release       rva=0x2ADC290 file=0x2ADB890 OK got=48895c2410574883ec208bf9488d0d want=48895c2410574883ec208bf9488d0d
+  PyRun_SimpleStringFlags  rva=0x2A9DEE0 file=0x2A9D4E0 OK got=48895c24084889742410574883ec40488bf1488bda want=48895c24084889742410574883ec40488bf1488bda
+
+sdk: reference/offsets/SDK.json
+game: BloodStrike
+version: Messiah reflection, PE timestamp 0x6ACBBFBA
+classes: 875
+
+ClientPlayer size=3584 members=7
+  +0x0D88 Camera                                   ICamera
+  +0x0D90 AffiliatedCameras                        NameDict<ICamera>
+  +0x0DD8 PrincipleRole                            IEntity
+  +0x0DE0 Manipulator                              IComponent
+  +0x0DE8 Navigator                                IComponent
+  +0x0DF0 InterceptInputByFilter                   bool
+  +0x0DF8 RuntimePicker                            IComponent
+
+EntityDetector size=1328 members=3
+  +0x0520 IsEnable                                 bool
+  +0x0524 Radius                                   float
+  +0x0528 Center                                   Vector2
+
+IEntity size=520 members=38
+  +0x0058 Transform                                Matrix4x3
+  +0x0088 Area                                     IArea
+  +0x0090 Level                                    ILevel
+  +0x0098 World                                    IWorld
+  +0x00D8 Primitives                               Vector<IComponent>
+  +0x00F0 RigidBodies                              Vector<IComponent>
+  +0x0108 Constraints                              Vector<IComponent>
+  +0x0120 TransformUpdate                          TransformUpdateComponent
+  +0x012C Token                                    uint32
+  +0x0130 IsVisible                                bool
+  +0x0131 IsBillboard                              bool
+  +0x0132 IsThermalVisible                         bool
+  +0x0133 IsDisableFakeCmd                         bool
+  +0x0134 DetailLevel                              uint8
+  +0x0135 IsInSkyBox                               bool
+  +0x013C TechParam                                Vector3
+  +0x0148 TechParam2                               Vector4
+  +0x0158 TechParam4                               Vector4
+  +0x0168 TechParam5                               Vector4
+  +0x0178 TintColor1                               Color3
+  +0x0184 TintColor2                               Color3
+  +0x0190 TintColor3                               Color3
+  +0x019C OutlineFlag                              uint8
+  +0x01A0 LodThreshold                             Vector3
+  +0x01AC Anchor                                   IVec3
+  +0x01B8 ShaderGraphOverrideMaterialInfo          Vector<ShaderGraphOverrideMaterialRuntimeInfo>
+  +0x01D0 IsUseXrayWithDiffReadMask                bool
+  +0x01D4 InSkyBoxYaw                              float
+  +0x01D8 InSkyBoxPitch                            float
+  +0x01DC InSkyBoxDistance                         float
+  +0x01E0 IsAnimated                               bool
+  +0x01E1 IsLevelProxy                             bool
+  +0x01E2 IsCastDynamicShadow                      bool
+  +0x01E3 IsReceiveDynamicShadow                   bool
+  +0x01E4 IsPointCloudLight                        bool
+  +0x01E5 IsSDFGen                                 bool
+  +0x01E8 LoadResourceExtend                       float
+  +0x01F0 DataLayers                               Vector<String>
+
+PhysicsSpaceDisplayerComponent size=320 members=8
+  +0x00E0 HeightOffset                             float
+  +0x00E4 XOffset                                  float
+  +0x00E8 ZOffset                                  float
+  +0x00EC Display                                  bool
+  +0x00F0 DebugVisualHalfExtent                    Vector3
+  +0x00FC AutoUpdate                               bool
+  +0x00FD UpdateVisual                             bool
+  +0x0138 Space                                    IComponent
+
+RecastMapDisplayerComponent size=304 members=5
+  +0x0120 HeightOffset                             float
+  +0x0124 Display                                  bool
+  +0x0128 QueryFlag                                uint32
+  +0x012C LayerId                                  int32
+  +0x0130 ShowModeFlags                            uint32

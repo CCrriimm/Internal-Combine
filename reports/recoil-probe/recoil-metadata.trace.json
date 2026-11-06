@@ -1,0 +1,1065 @@
+{
+  "finished_at_unix": 1793853930.4646418,
+  "counts": {
+    "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick": 4791,
+    "gclient.framework.camera.fps_placer.FpsPlacer.TurnView": 924,
+    "gclient.gameplay.logic_base.entities.combatavatarmembers.cimp_spell.PlayerCombatAvatarMember.TryAttack_gun_spell": 2,
+    "gclient.framework.camera.fps_state_fsm.StateRecoilRecover.EnablePersistRecoilRecover": 4,
+    "gclient.gameplay.logic_base.models.hand_model_cue.HandModelCue.cue_signal_spell_event": 62,
+    "gclient.framework.camera.fps_state_fsm.StateRecoil.OnRecoilEnter": 62,
+    "gclient.gameplay.logic_base.equips.weapon_case.WeaponCase.GetRealRecoilData": 62,
+    "gclient.gameplay.logic_base.equips.weapon_case.WeaponCase._UseSpecRecoilData": 2,
+    "gclient.gameplay.logic_base.equips.weapon_case.WeaponCase._GetRecoilDataByShootIdx": 2,
+    "gclient.gameplay.logic_base.entities.combatavatarmembers.cimp_talent.PlayerCombatAvatarMember.DealRecoilDataByTalent": 62,
+    "gclient.gameplay.logic_base.equips.weapon_case.WeaponCase.GetRealRecoilRandomData": 62,
+    "gclient.framework.camera.fps_state_fsm.StateRecoil.RecoilUp": 62,
+    "gclient.framework.camera.fps_state_fsm.StateRollShake.OnRollShakeEnter": 62,
+    "gclient.framework.camera.fps_state_fsm.StateRollShake.RefreshRealRollShakeInfo": 62,
+    "gclient.gameplay.logic_base.equips.weapon_case.WeaponCase.GetRealRollShakeInfo": 62,
+    "gclient.framework.camera.fps_state_fsm.StateRecoil.StartAssistAimShoot": 62,
+    "gshare.ispell_mgr.SpellResult.__init__": 119,
+    "gclient.framework.camera.fps_state_fsm.StateRollShake.OnRollShakeTick": 1173,
+    "gclient.gameplay.logic_base.entities.combatavatarmembers.cimp_assist_aim.PlayerCombatAvatarMember.StartAssistAimShootAdsorb": 61,
+    "gclient.framework.camera.fps_state_fsm.StateRecoil.OnRecoilUpCallback": 184,
+    "gclient.framework.camera.fps_state_fsm.StateRecoil.OnRecoilUpCallback.closure0": 61,
+    "gclient.framework.camera.fps_state_fsm.StateRecoil.RecoilFall": 61,
+    "gclient.framework.camera.fps_state_fsm.StateRecoil.OnRecoilFallCallback.closure0": 61,
+    "gclient.framework.camera.fps_state_fsm.StateRecoil.RecoilStatic": 61,
+    "gclient.framework.camera.fps_state_fsm.StateRecoil.OnRecoilStaticCallback.closure0": 61,
+    "gclient.framework.camera.fps_state_fsm.StateRecoil.RecoilDown": 61,
+    "gclient.framework.camera.fps_state_fsm.StateJitter.CheckCanJitter": 2,
+    "gclient.framework.camera.fps_state_fsm.StateRecoil.OnRecoilExit": 61,
+    "gclient.gameplay.logic_base.entities.combatavatarmembers.cimp_assist_aim.PlayerCombatAvatarMember.StopAssistAimShootAdsorb": 61,
+    "gclient.framework.camera.fps_state_fsm.StateRollShake.OnRollShakeExit": 61,
+    "gclient.gameplay.logic_base.entities.combatavatarmembers.cimp_spell.PlayerCombatAvatarMember.EndAttack_gun_spell": 5,
+    "gclient.framework.camera.fps_state_fsm.StateRecoil.OnRecoilDownCallback.closure0": 1,
+    "gclient.framework.camera.fps_state_fsm.StateStatic.OnStaticEnter": 1
+  },
+  "events": [
+    {
+      "time": 1793853910.4523685,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.4640775,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.4686017,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.4725718,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.476608,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.4811027,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.48514,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.4891577,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.4936697,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.4977152,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.5016823,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.5062127,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.5102508,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.5142796,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.5182843,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.522815,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.5268502,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.5307994,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.5358574,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.5393705,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.5433793,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.5478685,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.551917,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.5559597,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.5599813,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.5644574,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.5684798,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.572491,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.5770013,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.5810442,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.5851254,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.5890791,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.593227,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.5978007,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.601807,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.6057816,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.610305,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.6143453,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.6183093,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.62283,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.62682,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.6308558,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.6348681,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.6393883,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.6434517,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.64746,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.6519854,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.6559715,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.6599967,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.6644735,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.6684844,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.6725254,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.676982,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.6810327,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.6850708,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.6895697,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.693586,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.6975753,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.7016344,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.706104,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.7102022,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.7142355,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.7182615,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.7227561,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.7268107,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.7308183,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.7353137,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.7393486,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.7433772,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.74739,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.7518942,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.755885,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.7600102,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.7644875,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.7684631,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.7724636,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.7769516,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.7809844,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.7850325,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.7895997,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.7935617,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.79762,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.8016155,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.8061326,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.8102431,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.8142269,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.8182771,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.8227549,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.8267658,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.8308408,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.8358045,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.8393364,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.8433497,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.8474245,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.8519611,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.8559024,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.8599,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.8644364,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.868428,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.8724403,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.8769681,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.8809712,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.884966,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.8895278,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.8935156,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.8975465,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.9015834,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.906122,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.910112,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.9141173,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.9192247,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.9226785,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.9266913,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.9307182,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.9358313,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.9392757,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.943307,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.9478092,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.951813,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.9558492,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.959883,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.9643736,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.968384,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.9724023,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.9769204,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.98097,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.9849448,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.9894657,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.993512,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853910.9974532,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.0015075,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.006079,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.0100834,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.0140586,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.0186062,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.0226126,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.026634,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.0306551,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.0356553,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.0391786,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.0432026,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.0477395,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.0517411,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.0557358,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.0602374,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.0642636,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.0682762,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.0722919,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.0768511,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.0809047,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.0849013,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.0894132,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.093417,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.0974526,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.1019795,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.105972,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.110062,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.1145205,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.118537,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.1226134,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.1266487,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.13066,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.1357386,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.1392663,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.1432264,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.148278,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.1518,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.1558099,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.1598368,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.1644626,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.1683676,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.1723466,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.1768825,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.1809042,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.1848984,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.1894433,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.1934097,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.1974897,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.2014642,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.2060063,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.2100177,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.2140374,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.2185507,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.2225416,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.226606,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.2311711,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.235115,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.2391179,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.243153,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.24765,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.2516513,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.2557132,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.260236,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.2642114,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.268234,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.2727556,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.2768188,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.2808254,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.2848701,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.2893476,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.2933545,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.2973516,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.3019135,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.3058834,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.309939,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.3144312,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.3184166,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.322457,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.3269382,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.330965,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.3349857,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.3395286,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.3435993,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.3475857,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.3515844,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.3561325,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.3601213,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.364133,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.368187,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.3727174,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.3767254,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.3807678,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.384801,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.3893225,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.3933363,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.3973322,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.4024239,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.4059346,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.4099731,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.4139638,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.418513,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.4224987,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.4265366,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.4310992,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.4350588,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.4395924,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.443123,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.4476168,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.4516175,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.4561431,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.4601955,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.4641747,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.4681857,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.472701,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.4767652,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.4807577,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.4847817,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.489362,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.4933221,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.4973323,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.5018477,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.5058703,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.5099397,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.5139008,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.5184693,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    },
+    {
+      "time": 1793853911.5224347,
+      "function": "gclient.framework.camera.fps_placer.FpsPlacer.OnStoryTick"
+    }
+  ],
+  "monitoring_removed": true
+}

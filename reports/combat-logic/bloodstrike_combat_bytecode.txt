@@ -1,0 +1,2424 @@
+
+### WeaponCase.ChangeWeaponSkin — gclient/gameplay/logic_base/equips/weapon_case.py:4181
+args=('self', 'skin_id', 'data_changed', 'force_refresh') defaults=[True, False]
+           RESUME                   0
+           LOAD_FAST_BORROW         2 (data_changed)
+           TO_BOOL
+           POP_JUMP_IF_FALSE       47 (to L2)
+           NOT_TAKEN
+           LOAD_FAST_BORROW_LOAD_FAST_BORROW 16 (skin_id, self)
+           STORE_ATTR               0 (backup_skin_id)
+           LOAD_FAST_BORROW         0 (self)
+           LOAD_ATTR                2 (is_show_simple_part_model)
+           TO_BOOL
+           POP_JUMP_IF_FALSE        3 (to L1)
+           NOT_TAKEN
+           LOAD_CONST               0 (None)
+           RETURN_VALUE
+   L1:     LOAD_FAST_BORROW         0 (self)
+           LOAD_ATTR                4 (is_gun_dlc_exists)
+           TO_BOOL
+           POP_JUMP_IF_TRUE         3 (to L2)
+           NOT_TAKEN
+           LOAD_CONST               0 (None)
+           RETURN_VALUE
+   L2:     LOAD_FAST_BORROW         0 (self)
+           LOAD_ATTR                6 (skin_id)
+           LOAD_FAST_BORROW         1 (skin_id)
+           COMPARE_OP              88 (bool(==))
+           POP_JUMP_IF_FALSE       11 (to L3)
+           NOT_TAKEN
+           LOAD_FAST_BORROW         3 (force_refresh)
+           TO_BOOL
+           POP_JUMP_IF_TRUE         3 (to L3)
+           NOT_TAKEN
+           LOAD_CONST               0 (None)
+           RETURN_VALUE
+   L3:     LOAD_FAST_BORROW_LOAD_FAST_BORROW 16 (skin_id, self)
+           STORE_ATTR               3 (skin_id)
+           LOAD_FAST_BORROW_LOAD_FAST_BORROW 16 (skin_id, self)
+           LOAD_ATTR                8 (weapon_body)
+           STORE_ATTR               3 (skin_id)
+           LOAD_FAST_BORROW         0 (self)
+           LOAD_ATTR               10 (backup_charger_model)
+           COPY                     1
+           TO_BOOL
+           POP_JUMP_IF_FALSE       28 (to L4)
+           NOT_TAKEN
+           POP_TOP
+           LOAD_FAST_BORROW         0 (self)
+           LOAD_ATTR               10 (backup_charger_model)
+           LOAD_ATTR               13 (LoadModelSkin + NULL|self)
+           LOAD_FAST_BORROW         1 (skin_id)
+           CALL                     1
+   L4:     POP_TOP
+           LOAD_FAST_BORROW         0 (self)
+           LOAD_ATTR               14 (weapon_charger_model)
+           COPY                     1
+           TO_BOOL
+           POP_JUMP_IF_FALSE       28 (to L5)
+           NOT_TAKEN
+           POP_TOP
+           LOAD_FAST_BORROW         0 (self)
+           LOAD_ATTR               14 (weapon_charger_model)
+           LOAD_ATTR               13 (LoadModelSkin + NULL|self)
+           LOAD_FAST_BORROW         1 (skin_id)
+           CALL                     1
+   L5:     POP_TOP
+           LOAD_FAST_BORROW         0 (self)
+           LOAD_ATTR                8 (weapon_body)
+           LOAD_ATTR               16 (root_part)
+           STORE_FAST               4 (root_part)
+           LOAD_FAST                4 (root_part)
+           COPY                     1
+           TO_BOOL
+           POP_JUMP_IF_FALSE       18 (to L6)
+           NOT_TAKEN
+           POP_TOP
+           LOAD_FAST_BORROW         4 (root_part)
+           LOAD_ATTR               19 (ChangePartSkinRecursively + NULL|self)
+           LOAD_FAST_BORROW         1 (skin_id)
+           CALL                     1
+   L6:     POP_TOP
+           LOAD_FAST_BORROW         0 (self)
+           LOAD_ATTR               20 (dual_weapon_body)
+           TO_BOOL
+           POP_JUMP_IF_FALSE       66 (to L8)
+           NOT_TAKEN
+           LOAD_FAST_BORROW_LOAD_FAST_BORROW 16 (skin_id, self)
+           LOAD_ATTR               20 (dual_weapon_body)
+           STORE_ATTR               3 (skin_id)
+           LOAD_FAST_BORROW         0 (self)
+           LOAD_ATTR               20 (dual_weapon_body)
+           LOAD_ATTR               16 (root_part)
+           STORE_FAST               4 (root_part)
+           LOAD_FAST                4 (root_part)
+           COPY                     1
+           TO_BOOL
+           POP_JUMP_IF_FALSE       18 (to L7)
+           NOT_TAKEN
+           POP_TOP
+           LOAD_FAST_BORROW         4 (root_part)
+           LOAD_ATTR               19 (ChangePartSkinRecursively + NULL|self)
+           LOAD_FAST_BORROW         1 (skin_id)
+           CALL                     1
+   L7:     POP_TOP
+   L8:     LOAD_FAST_BORROW         0 (self)
+           LOAD_ATTR               23 (GetWeaponPartModel + NULL|self)
+           LOAD_SMALL_INT           1
+           CALL                     1
+           STORE_FAST               5 (part_model)
+           LOAD_FAST_BORROW         5 (part_model)
+           TO_BOOL
+           POP_JUMP_IF_FALSE       92 (to L13)
+           NOT_TAKEN
+           LOAD_FAST_BORROW         5 (part_model)
+           LOAD_ATTR               24 (loaded)
+           TO_BOOL
+           POP_JUMP_IF_FALSE       72 (to L12)
+           NOT_TAKEN
+           LOAD_FAST_BORROW         5 (part_model)
+           LOAD_ATTR               26 (model)
+           LOAD_ATTR               28 (Primitives)
+           GET_ITER
+   L9:     FOR_ITER                43 (to L11)
+           STORE_FAST               6 (p)
+           LOAD_GLOBAL             31 (getattr + NULL)
+           LOAD_FAST_BORROW         6 (p)
+           LOAD_CONST               1 ('_Marks')
+           LOAD_CONST               0 (None)
+           CALL                     3
+           STORE_FAST               7 (mark)
+           LOAD_FAST_BORROW         7 (mark)
+           TO_BOOL
+           POP_JUMP_IF_TRUE         3 (to L10)
+           NOT_TAKEN
+           JUMP_BACKWARD           26 (to L9)
+  L10:     LOAD_FAST_BORROW         6 (p)
+           LOAD_ATTR               33 (ResetShaderGraphMaterial + NULL|self)
+           LOAD_CONST               2 (-1)
+           CALL                     1
+           POP_TOP
+           JUMP_BACKWARD           45 (to L9)
+  L11:     END_FOR
+           POP_ITER
+           LOAD_CONST               0 (None)
+           RETURN_VALUE
+  L12:     LOAD_CONST               0 (None)
+           RETURN_VALUE
+  L13:     LOAD_CONST               0 (None)
+           RETURN_VALUE
+
+
+### WeaponCase.ChangeWeaponGuise — gclient/gameplay/logic_base/equips/weapon_case.py:4210
+args=('self', 'guise_id', 'data_changed', 'need_callback', 'guise_item_id', 'clear_anim') defaults=[True, True, None, True]
+          RESUME                   0
+          LOAD_FAST_BORROW         2 (data_changed)
+          TO_BOOL
+          POP_JUMP_IF_FALSE       47 (to L2)
+          NOT_TAKEN
+          LOAD_FAST_BORROW_LOAD_FAST_BORROW 16 (guise_id, self)
+          STORE_ATTR               0 (backup_guise_id)
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR                2 (is_show_simple_part_model)
+          TO_BOOL
+          POP_JUMP_IF_FALSE        3 (to L1)
+          NOT_TAKEN
+          LOAD_CONST               0 (None)
+          RETURN_VALUE
+  L1:     LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR                4 (is_gun_dlc_exists)
+          TO_BOOL
+          POP_JUMP_IF_TRUE         3 (to L2)
+          NOT_TAKEN
+          LOAD_CONST               0 (None)
+          RETURN_VALUE
+  L2:     LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR                6 (guise_id)
+          LOAD_FAST_BORROW         1 (guise_id)
+          COMPARE_OP              88 (bool(==))
+          POP_JUMP_IF_FALSE        3 (to L3)
+          NOT_TAKEN
+          LOAD_CONST               0 (None)
+          RETURN_VALUE
+  L3:     LOAD_FAST_BORROW         1 (guise_id)
+          TO_BOOL
+          POP_JUMP_IF_FALSE      242 (to L6)
+          NOT_TAKEN
+          LOAD_FAST_BORROW         5 (clear_anim)
+          TO_BOOL
+          POP_JUMP_IF_FALSE       17 (to L4)
+          NOT_TAKEN
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR                9 (ClearGuiseSkinAnimPoseForWeapon + NULL|self)
+          CALL                     0
+          POP_TOP
+  L4:     LOAD_FAST_BORROW_LOAD_FAST_BORROW 64 (guise_item_id, self)
+          LOAD_ATTR               10 (extra)
+          LOAD_CONST               1 ('guise_item_id')
+          STORE_SUBSCR
+          LOAD_FAST_BORROW_LOAD_FAST_BORROW 64 (guise_item_id, self)
+          STORE_ATTR               6 (guise_item_id)
+          LOAD_FAST_BORROW_LOAD_FAST_BORROW 16 (guise_id, self)
+          STORE_ATTR               3 (guise_id)
+          LOAD_FAST_BORROW_LOAD_FAST_BORROW 16 (guise_id, self)
+          LOAD_ATTR               14 (weapon_body)
+          STORE_ATTR               3 (guise_id)
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR               17 (ClearGuiseItemCache + NULL|self)
+          CALL                     0
+          POP_TOP
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR               19 (RefreshHasGuiseDlcId + NULL|self)
+          LOAD_CONST               2 (True)
+          LOAD_CONST               3 (['force_refresh'])
+          CALL_KW                  1
+          POP_TOP
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR               14 (weapon_body)
+          LOAD_ATTR               21 (WeaponBodyIllusion + NULL|self)
+          LOAD_FAST_BORROW         3 (need_callback)
+          CALL                     1
+          POP_TOP
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR               23 (NeedShowDualWeapon + NULL|self)
+          CALL                     0
+          TO_BOOL
+          POP_JUMP_IF_FALSE       60 (to L5)
+          NOT_TAKEN
+          LOAD_FAST_BORROW_LOAD_FAST_BORROW 16 (guise_id, self)
+          LOAD_ATTR               24 (dual_weapon_body)
+          STORE_ATTR               3 (guise_id)
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR               24 (dual_weapon_body)
+          LOAD_ATTR               21 (WeaponBodyIllusion + NULL|self)
+          LOAD_FAST_BORROW         3 (need_callback)
+          CALL                     1
+          POP_TOP
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR               27 (RefreshGuiseSkinAnimPoseForDualWeapon + NULL|self)
+          CALL                     0
+          POP_TOP
+  L5:     LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR               29 (RefreshGuiseSkinAnimPoseForWeapon + NULL|self)
+          CALL                     0
+          POP_TOP
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR               31 (RefreshGuiseSkinAnimPoseForHand + NULL|self)
+          CALL                     0
+          POP_TOP
+          JUMP_FORWARD           184 (to L8)
+  L6:     LOAD_FAST_BORROW         5 (clear_anim)
+          TO_BOOL
+          POP_JUMP_IF_FALSE       17 (to L7)
+          NOT_TAKEN
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR                9 (ClearGuiseSkinAnimPoseForWeapon + NULL|self)
+          CALL                     0
+          POP_TOP
+  L7:     LOAD_CONST               0 (None)
+          LOAD_FAST_BORROW         0 (self)
+          STORE_ATTR               3 (guise_id)
+          LOAD_CONST               0 (None)
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR               10 (extra)
+          LOAD_CONST               1 ('guise_item_id')
+          STORE_SUBSCR
+          LOAD_CONST               0 (None)
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR               14 (weapon_body)
+          STORE_ATTR               3 (guise_id)
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR               17 (ClearGuiseItemCache + NULL|self)
+          CALL                     0
+          POP_TOP
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR               19 (RefreshHasGuiseDlcId + NULL|self)
+          LOAD_CONST               2 (True)
+          LOAD_CONST               3 (['force_refresh'])
+          CALL_KW                  1
+          POP_TOP
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR               14 (weapon_body)
+          LOAD_ATTR               33 (WeaponBodyClearIllusion + NULL|self)
+          CALL                     0
+          POP_TOP
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR               24 (dual_weapon_body)
+          TO_BOOL
+          POP_JUMP_IF_FALSE       44 (to L8)
+          NOT_TAKEN
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR               24 (dual_weapon_body)
+          LOAD_ATTR               33 (WeaponBodyClearIllusion + NULL|self)
+          CALL                     0
+          POP_TOP
+          LOAD_CONST               0 (None)
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR               24 (dual_weapon_body)
+          STORE_ATTR               3 (guise_id)
+  L8:     LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR               34 (is_fps_weapon)
+          TO_BOOL
+          POP_JUMP_IF_FALSE       35 (to L9)
+          NOT_TAKEN
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR               36 (is_in_combat)
+          TO_BOOL
+          POP_JUMP_IF_FALSE       17 (to L9)
+          NOT_TAKEN
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR               39 (InitFpsProperty + NULL|self)
+          CALL                     0
+          POP_TOP
+  L9:     LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR               41 (OnRefreshWeaponMaterial + NULL|self)
+          CALL                     0
+          POP_TOP
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR               43 (RefreshKillCounterForChangeGuise + NULL|self)
+          CALL                     0
+          POP_TOP
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR               45 (_callComponents + NULL|self)
+          LOAD_CONST               4 ('refresh_racer')
+          CALL                     1
+          POP_TOP
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR               47 (RefreshAmmoModelValue + NULL|self)
+          CALL                     0
+          POP_TOP
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR               49 (TryFixOpticEffectBug + NULL|self)
+          CALL                     0
+          POP_TOP
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR               51 (CheckIsBestSkin + NULL|self)
+          CALL                     0
+          POP_TOP
+          LOAD_CONST               0 (None)
+          RETURN_VALUE
+
+
+### MeleeCase.ChangeWeaponGuise — gclient/gameplay/logic_base/equips/melee_case.py:153
+args=('self', 'guise_id', 'guise_item_id') defaults=[None]
+          RESUME                   0
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR                1 (ClearGuiseItemCache + NULL|self)
+          CALL                     0
+          POP_TOP
+          LOAD_FAST_BORROW         1 (guise_id)
+          TO_BOOL
+          POP_JUMP_IF_FALSE      244 (to L4)
+          NOT_TAKEN
+          LOAD_FAST_BORROW_LOAD_FAST_BORROW 16 (guise_id, self)
+          STORE_ATTR               1 (guise_id)
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR                5 (RefreshHasGuiseDlcId + NULL|self)
+          CALL                     0
+          POP_TOP
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR                6 (guise_template_data)
+          LOAD_ATTR                9 (get + NULL|self)
+          LOAD_CONST               0 ('replace_equip_id')
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR               10 (weapon_id)
+          CALL                     2
+          LOAD_FAST_BORROW         0 (self)
+          STORE_ATTR               5 (weapon_id)
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR               13 (_GetGuiseModelId + NULL|self)
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR               15 (GetMeleeWeaponModelId + NULL|self)
+          CALL                     0
+          CALL                     1
+          STORE_FAST               3 (model_id)
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR                2 (guise_id)
+          TO_BOOL
+          POP_JUMP_IF_FALSE       41 (to L1)
+          NOT_TAKEN
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR               16 (has_guise_dlc)
+          TO_BOOL
+          POP_JUMP_IF_TRUE        23 (to L1)
+          NOT_TAKEN
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR               19 (GetDefaultMeleeEquipId + NULL|self)
+          CALL                     0
+          LOAD_FAST_BORROW         0 (self)
+          STORE_ATTR              10 (body_weapon_id)
+          JUMP_FORWARD           123 (to L5)
+  L1:     LOAD_FAST_BORROW_LOAD_FAST_BORROW 48 (model_id, self)
+          LOAD_ATTR               22 (equip_proto)
+          LOAD_ATTR                9 (get + NULL|self)
+          LOAD_CONST               1 ('model_id')
+          CALL                     1
+          COMPARE_OP              88 (bool(==))
+          POP_JUMP_IF_TRUE        19 (to L2)
+          NOT_TAKEN
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR               16 (has_guise_dlc)
+          TO_BOOL
+          POP_JUMP_IF_FALSE       19 (to L3)
+          NOT_TAKEN
+  L2:     LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR               10 (weapon_id)
+          LOAD_FAST_BORROW         0 (self)
+          STORE_ATTR              10 (body_weapon_id)
+          JUMP_FORWARD            56 (to L5)
+  L3:     LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR               19 (GetDefaultMeleeEquipId + NULL|self)
+          CALL                     0
+          LOAD_FAST_BORROW         0 (self)
+          STORE_ATTR              10 (body_weapon_id)
+          JUMP_FORWARD            34 (to L5)
+  L4:     LOAD_CONST               2 (None)
+          LOAD_FAST_BORROW         0 (self)
+          STORE_ATTR               1 (guise_id)
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR               22 (equip_proto)
+          LOAD_ATTR                9 (get + NULL|self)
+          LOAD_CONST               1 ('model_id')
+          CALL                     1
+          STORE_FAST               3 (model_id)
+  L5:     LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR               24 (model)
+          LOAD_ATTR               27 (ChangePartModel + NULL|self)
+          LOAD_FAST_BORROW_LOAD_FAST_BORROW 48 (model_id, self)
+          LOAD_ATTR               28 (OnWeaponModelLoad)
+          CALL                     2
+          POP_TOP
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR               30 (is_in_combat)
+          TO_BOOL
+          POP_JUMP_IF_FALSE        3 (to L6)
+          NOT_TAKEN
+          LOAD_CONST               2 (None)
+          RETURN_VALUE
+  L6:     LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR               32 (scabbard_model)
+          TO_BOOL
+          POP_JUMP_IF_TRUE         3 (to L7)
+          NOT_TAKEN
+          LOAD_CONST               2 (None)
+          RETURN_VALUE
+  L7:     LOAD_FAST_BORROW         1 (guise_id)
+          TO_BOOL
+          POP_JUMP_IF_FALSE       44 (to L8)
+          NOT_TAKEN
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR               35 (_GetGuiseScabbardModelId + NULL|self)
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR               22 (equip_proto)
+          LOAD_ATTR                9 (get + NULL|self)
+          LOAD_CONST               3 ('scabbard_id')
+          CALL                     1
+          CALL                     1
+          STORE_FAST               4 (scabbard_model_id)
+          JUMP_FORWARD            27 (to L9)
+  L8:     LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR               22 (equip_proto)
+          LOAD_ATTR                9 (get + NULL|self)
+          LOAD_CONST               3 ('scabbard_id')
+          CALL                     1
+          STORE_FAST               4 (scabbard_model_id)
+  L9:     LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR               32 (scabbard_model)
+          LOAD_ATTR               27 (ChangePartModel + NULL|self)
+          LOAD_FAST_BORROW_LOAD_FAST_BORROW 64 (scabbard_model_id, self)
+          LOAD_ATTR               28 (OnWeaponModelLoad)
+          CALL                     2
+          POP_TOP
+          LOAD_CONST               2 (None)
+          RETURN_VALUE
+
+
+### CombatAvatarMember._on_set_arm_clothes — gclient/gameplay/logic_base/entities/combatavatarmembers/cimp_model.py:63
+args=('self', 'old') defaults=None
+          RESUME                   0
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR                1 (GetHeroSkinProto + NULL|self)
+          CALL                     0
+          LOAD_FAST_BORROW         0 (self)
+          STORE_ATTR               1 (hero_skin_proto)
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR                5 (ShowModel + NULL|self)
+          CALL                     0
+          POP_TOP
+          LOAD_CONST               0 (None)
+          RETURN_VALUE
+
+
+### PlayerCombatAvatarMember._on_set_arm_clothes — gclient/gameplay/logic_base/entities/combatavatarmembers/cimp_model.py:469
+args=('self', 'old') defaults=None
+          RESUME                   0
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR                1 (GetHeroSkinProto + NULL|self)
+          CALL                     0
+          LOAD_FAST_BORROW         0 (self)
+          STORE_ATTR               1 (hero_skin_proto)
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR                5 (ShowModel + NULL|self)
+          CALL                     0
+          POP_TOP
+          LOAD_GLOBAL              6 (genv)
+          LOAD_ATTR                8 (messenger)
+          LOAD_ATTR               11 (Broadcast + NULL|self)
+          LOAD_GLOBAL             12 (events)
+          LOAD_ATTR               14 (ON_PLAYER_COMBAT_ARM_CLOTHES_CHANGED)
+          CALL                     1
+          POP_TOP
+          LOAD_CONST               0 (None)
+          RETURN_VALUE
+
+
+### CombatAvatarMember.GetModelData — gclient/gameplay/logic_base/entities/combatavatarmembers/cimp_model.py:185
+args=('self',) defaults=None
+          RESUME                   0
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR                0 (space)
+          LOAD_ATTR                2 (game_logic)
+          STORE_FAST               1 (game_logic)
+          LOAD_FAST_BORROW         1 (game_logic)
+          TO_BOOL
+          POP_JUMP_IF_TRUE        34 (to L1)
+          NOT_TAKEN
+          LOAD_GLOBAL              4 (unit_model_data)
+          LOAD_ATTR                6 (data)
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR                8 (unit_model_id)
+          BINARY_OP               26 ([])
+          RETURN_VALUE
+  L1:     LOAD_FAST_BORROW         1 (game_logic)
+          LOAD_ATTR               11 (GetDisplayHeroSkinItemId + NULL|self)
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR               12 (id)
+          LOAD_GLOBAL             14 (consts)
+          LOAD_ATTR               16 (DEFAULT_SUIT)
+          LOAD_CONST               0 (['default'])
+          CALL_KW                  2
+          STORE_FAST               2 (body_item)
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR               18 (arm_low_level_skin)
+          LOAD_ATTR               21 (get + NULL|self)
+          LOAD_FAST_BORROW_LOAD_FAST_BORROW 34 (body_item, body_item)
+          CALL                     2
+          STORE_FAST               3 (cur_body_item)
+          LOAD_FAST_BORROW         3 (cur_body_item)
+          TO_BOOL
+          POP_JUMP_IF_TRUE         3 (to L2)
+          NOT_TAKEN
+          LOAD_FAST                2 (body_item)
+          STORE_FAST               3 (cur_body_item)
+  L2:     LOAD_GLOBAL             22 (lobby_item_data)
+          LOAD_ATTR                6 (data)
+          LOAD_FAST_BORROW         3 (cur_body_item)
+          BINARY_OP               26 ([])
+          LOAD_ATTR               21 (get + NULL|self)
+          LOAD_CONST               1 ('model_id')
+          LOAD_SMALL_INT          74
+          CALL                     2
+          STORE_FAST               4 (model_id)
+          LOAD_GLOBAL              4 (unit_model_data)
+          LOAD_ATTR                6 (data)
+          LOAD_FAST_BORROW         4 (model_id)
+          BINARY_OP               26 ([])
+          RETURN_VALUE
+
+
+### CombatAvatarMember.OnReloadModel — gclient/gameplay/logic_base/entities/combatavatarmembers/cimp_model.py:276
+args=('self',) defaults=None
+          RESUME                   0
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR                0 (IsPlayerCombatAvatar)
+          COPY                     1
+          TO_BOOL
+          POP_JUMP_IF_FALSE      107 (to L1)
+          NOT_TAKEN
+          POP_TOP
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR                2 (model)
+          LOAD_ATTR                4 (nova_twin_skin_hand_refresh_item_id)
+          LOAD_CONST               0 (None)
+          IS_OP                    1 (is not)
+          COPY                     1
+          TO_BOOL
+          POP_JUMP_IF_FALSE       75 (to L1)
+          NOT_TAKEN
+          POP_TOP
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR                2 (model)
+          LOAD_ATTR                4 (nova_twin_skin_hand_refresh_item_id)
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR                6 (arm_clothes)
+          LOAD_ATTR                9 (get + NULL|self)
+          LOAD_GLOBAL             10 (consts)
+          LOAD_ATTR               12 (ItemSubType)
+          LOAD_ATTR               14 (Suit)
+          CALL                     1
+          COMPARE_OP              72 (==)
+  L1:     STORE_FAST               1 (preserve_weapon_state)
+          LOAD_CONST               0 (None)
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR                2 (model)
+          STORE_ATTR               2 (nova_twin_skin_hand_refresh_item_id)
+          LOAD_CONST               0 (None)
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR                2 (model)
+          STORE_ATTR               8 (nova_twin_skin_hand_refresh_appearance_item_id)
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR               18 (is_fps_avatar)
+          TO_BOOL
+          EXTENDED_ARG             1
+          POP_JUMP_IF_FALSE      509 (to L7)
+          NOT_TAKEN
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR               20 (hand_model)
+          LOAD_ATTR                2 (model)
+          TO_BOOL
+          POP_JUMP_IF_TRUE        60 (to L2)
+          NOT_TAKEN
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR               20 (hand_model)
+          LOAD_ATTR               23 (Load + NULL|self)
+          LOAD_GLOBAL             24 (unit_model_data)
+          LOAD_ATTR               26 (data)
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR               28 (hand_model_id)
+          BINARY_OP               26 ([])
+          CALL                     1
+          POP_TOP
+          JUMP_FORWARD            95 (to L3)
+  L2:     LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR               20 (hand_model)
+          LOAD_ATTR               31 (Reload + NULL|self)
+          LOAD_GLOBAL             24 (unit_model_data)
+          LOAD_ATTR               26 (data)
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR               28 (hand_model_id)
+          BINARY_OP               26 ([])
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR               32 (OnReloadHandModel)
+          LOAD_GLOBAL             34 (genv)
+          LOAD_ATTR               37 (IsFullTpsSupport + NULL|self)
+          CALL                     0
+          TO_BOOL
+          UNARY_NOT
+          LOAD_FAST_BORROW         1 (preserve_weapon_state)
+          LOAD_CONST               1 (['use_ready_to_appear', 'preserve_weapon_state'])
+          CALL_KW                  4
+          POP_TOP
+  L3:     LOAD_GLOBAL             34 (genv)
+          LOAD_ATTR               38 (camera)
+          STORE_FAST               2 (camera)
+          LOAD_FAST_BORROW         2 (camera)
+          TO_BOOL
+          EXTENDED_ARG             1
+          POP_JUMP_IF_FALSE      302 (to L7)
+          NOT_TAKEN
+          LOAD_GLOBAL             34 (genv)
+          LOAD_ATTR               40 (avatar)
+          LOAD_ATTR               42 (is_replaying)
+          TO_BOOL
+          POP_JUMP_IF_FALSE       90 (to L4)
+          NOT_TAKEN
+          LOAD_GLOBAL             34 (genv)
+          LOAD_ATTR               40 (avatar)
+          LOAD_ATTR               44 (replay_camera_simulator)
+          TO_BOOL
+          POP_JUMP_IF_FALSE       58 (to L4)
+          NOT_TAKEN
+          LOAD_FAST_BORROW         2 (camera)
+          LOAD_ATTR               47 (SetTpsModelVisible + NULL|self)
+          LOAD_GLOBAL             34 (genv)
+          LOAD_ATTR               40 (avatar)
+          LOAD_ATTR               44 (replay_camera_simulator)
+          LOAD_ATTR               48 (is_fps_mode)
+          TO_BOOL
+          UNARY_NOT
+          CALL                     1
+          POP_TOP
+          JUMP_FORWARD            32 (to L5)
+  L4:     LOAD_FAST_BORROW         2 (camera)
+          LOAD_ATTR               47 (SetTpsModelVisible + NULL|self)
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR               48 (is_fps_mode)
+          TO_BOOL
+          UNARY_NOT
+          CALL                     1
+          POP_TOP
+  L5:     LOAD_FAST_BORROW         2 (camera)
+          LOAD_ATTR               50 (is_fps_placer)
+          TO_BOOL
+          POP_JUMP_IF_FALSE      131 (to L7)
+          NOT_TAKEN
+          LOAD_FAST_BORROW         2 (camera)
+          LOAD_ATTR               52 (placer)
+          LOAD_ATTR               52 (placer)
+          STORE_FAST               3 (placer)
+          LOAD_FAST_BORROW         3 (placer)
+          LOAD_ATTR               55 (IsValid + NULL|self)
+          CALL                     0
+          STORE_FAST               4 (need_restore_dir)
+          LOAD_CONST               0 (None)
+          STORE_FAST               5 (cam_dir)
+          LOAD_FAST_BORROW         4 (need_restore_dir)
+          TO_BOOL
+          POP_JUMP_IF_FALSE       33 (to L6)
+          NOT_TAKEN
+          LOAD_FAST_BORROW         2 (camera)
+          LOAD_ATTR               52 (placer)
+          LOAD_ATTR               52 (placer)
+          LOAD_ATTR               56 (Direction)
+          STORE_FAST               5 (cam_dir)
+  L6:     LOAD_FAST_BORROW         2 (camera)
+          LOAD_ATTR               59 (ConfigFpsPlacer + NULL|self)
+          CALL                     0
+          POP_TOP
+          LOAD_FAST_BORROW         4 (need_restore_dir)
+          TO_BOOL
+          POP_JUMP_IF_FALSE       27 (to L7)
+          NOT_TAKEN
+          LOAD_FAST_BORROW_LOAD_FAST_BORROW 82 (cam_dir, camera)
+          LOAD_ATTR               52 (placer)
+          LOAD_ATTR               52 (placer)
+          STORE_ATTR              28 (Direction)
+  L7:     LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR               18 (is_fps_avatar)
+          TO_BOOL
+          POP_JUMP_IF_TRUE        27 (to L8)
+          NOT_TAKEN
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR                2 (model)
+          LOAD_ATTR               61 (DisableClipMaterials + NULL|self)
+          CALL                     0
+          POP_TOP
+  L8:     LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR                2 (model)
+          LOAD_ATTR               63 (RefreshForStealthState + NULL|self)
+          CALL                     0
+          POP_TOP
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR               65 (_callComponents + NULL|self)
+          LOAD_CONST               2 ('on_reload_model')
+          CALL                     1
+          POP_TOP
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR                2 (model)
+          LOAD_ATTR               67 (PostprocessPerformance + NULL|self)
+          CALL                     0
+          POP_TOP
+          LOAD_CONST               0 (None)
+          RETURN_VALUE
+
+
+### MeleeCase.RefreshModelSkin — gclient/gameplay/logic_base/equips/melee_case.py:439
+args=('self',) defaults=None
+          RESUME                   0
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR                0 (guise_id)
+          TO_BOOL
+          POP_JUMP_IF_FALSE       82 (to L1)
+          NOT_TAKEN
+          LOAD_GLOBAL              2 (gun_skin_template_data)
+          LOAD_ATTR                4 (data)
+          LOAD_ATTR                7 (get + NULL|self)
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR                0 (guise_id)
+          BUILD_MAP                0
+          CALL                     2
+          LOAD_ATTR                7 (get + NULL|self)
+          LOAD_CONST               0 ('gun_skin_part_mat_list')
+          CALL                     1
+          TO_BOOL
+          POP_JUMP_IF_FALSE       19 (to L1)
+          NOT_TAKEN
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR                0 (guise_id)
+          LOAD_FAST_BORROW         0 (self)
+          STORE_ATTR               4 (skin_id)
+          JUMP_FORWARD             7 (to L2)
+  L1:     LOAD_CONST               1 (None)
+          LOAD_FAST_BORROW         0 (self)
+          STORE_ATTR               4 (skin_id)
+  L2:     LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR                8 (skin_id)
+          TO_BOOL
+          POP_JUMP_IF_FALSE       40 (to L3)
+          NOT_TAKEN
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR               10 (model)
+          LOAD_ATTR               13 (LoadModelSkin + NULL|self)
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR                8 (skin_id)
+          CALL                     1
+          POP_TOP
+          LOAD_CONST               1 (None)
+          RETURN_VALUE
+  L3:     LOAD_CONST               1 (None)
+          RETURN_VALUE
+
+
+### DualMeleeCase.ChangeWeaponGuise — gclient/gameplay/logic_base/equips/dual_melee_case.py:169
+args=('self', 'guise_id', 'guise_item_id') defaults=[None]
+          COPY_FREE_VARS           1
+          RESUME                   0
+          LOAD_GLOBAL              0 (super)
+          LOAD_GLOBAL              2 (DualMeleeCase)
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_SUPER_ATTR         11 (ChangeWeaponGuise + NULL|self)
+          LOAD_FAST_BORROW         1 (guise_id)
+          CALL                     1
+          POP_TOP
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR                6 (lefthand_melee_model)
+          TO_BOOL
+          POP_JUMP_IF_TRUE         3 (to L1)
+          NOT_TAKEN
+          LOAD_CONST               0 (None)
+          RETURN_VALUE
+  L1:     LOAD_FAST_BORROW         1 (guise_id)
+          TO_BOOL
+          POP_JUMP_IF_FALSE       68 (to L2)
+          NOT_TAKEN
+          LOAD_FAST_BORROW_LOAD_FAST_BORROW 16 (guise_id, self)
+          STORE_ATTR               4 (guise_id)
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR               11 (RefreshHasGuiseDlcId + NULL|self)
+          CALL                     0
+          POP_TOP
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR               13 (_GetGuiseModelId + NULL|self)
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR               14 (body_equip_proto)
+          LOAD_ATTR               17 (get + NULL|self)
+          LOAD_CONST               1 ('model_id')
+          CALL                     1
+          LOAD_CONST               2 (True)
+          LOAD_CONST               3 (['is_sub_model'])
+          CALL_KW                  2
+          STORE_FAST               3 (model_id)
+          JUMP_FORWARD            34 (to L3)
+  L2:     LOAD_CONST               0 (None)
+          LOAD_FAST_BORROW         0 (self)
+          STORE_ATTR               4 (guise_id)
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR               18 (equip_proto)
+          LOAD_ATTR               17 (get + NULL|self)
+          LOAD_CONST               1 ('model_id')
+          CALL                     1
+          STORE_FAST               3 (model_id)
+  L3:     LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR                6 (lefthand_melee_model)
+          LOAD_ATTR               21 (ChangePartModel + NULL|self)
+          LOAD_FAST_BORROW_LOAD_FAST_BORROW 48 (model_id, self)
+          LOAD_ATTR               22 (OnWeaponModelLoad)
+          CALL                     2
+          POP_TOP
+          LOAD_CONST               0 (None)
+          RETURN_VALUE
+
+
+### CombatAvatarMember.ShowModel — gclient/gameplay/logic_base/entities/combatavatarmembers/cimp_model.py:245
+args=('self',) defaults=None
+          RESUME                   0
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR                0 (model)
+          LOAD_ATTR                0 (model)
+          TO_BOOL
+          POP_JUMP_IF_TRUE       185 (to L3)
+          NOT_TAKEN
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR                0 (model)
+          LOAD_ATTR                3 (Load + NULL|self)
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR                5 (GetModelData + NULL|self)
+          CALL                     0
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR                6 (OnLoadModel)
+          CALL                     2
+          POP_TOP
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR                0 (model)
+          LOAD_ATTR                9 (CreateCharCtrl + NULL|self)
+          LOAD_GLOBAL             10 (cconst)
+          LOAD_ATTR               12 (PLAYER_CHARCTRL_RADIUS)
+          LOAD_GLOBAL             10 (cconst)
+          LOAD_ATTR               14 (PLAYER_CHARCTRL_HALFHEIGHT)
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR               16 (is_replay_avatar)
+          TO_BOOL
+          POP_JUMP_IF_FALSE       17 (to L1)
+          NOT_TAKEN
+          LOAD_GLOBAL             10 (cconst)
+          LOAD_ATTR               18 (PHYSICS_SELF)
+          JUMP_FORWARD            15 (to L2)
+  L1:     LOAD_GLOBAL             10 (cconst)
+          LOAD_ATTR               20 (PHYSICS_CHARCTRL)
+  L2:     CALL                     3
+          POP_TOP
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR                0 (model)
+          LOAD_ATTR               23 (CreateFilter + NULL|self)
+          CALL                     0
+          POP_TOP
+          JUMP_FORWARD            54 (to L4)
+  L3:     LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR                0 (model)
+          LOAD_ATTR               25 (Reload + NULL|self)
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR                5 (GetModelData + NULL|self)
+          CALL                     0
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR               26 (OnReloadModel)
+          LOAD_CONST               0 (False)
+          LOAD_CONST               1 (['use_ready_to_appear'])
+          CALL_KW                  3
+          POP_TOP
+  L4:     LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR                0 (model)
+          LOAD_ATTR               29 (SetIsCastDynamicShadow + NULL|self)
+          LOAD_CONST               2 (True)
+          CALL                     1
+          POP_TOP
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR               31 (_callComponents + NULL|self)
+          LOAD_CONST               3 ('show_model')
+          CALL                     1
+          POP_TOP
+          LOAD_CONST               4 (None)
+          RETURN_VALUE
+
+
+### PlayerCombatAvatarMember.ShowModel — gclient/gameplay/logic_base/entities/combatavatarmembers/cimp_model.py:713
+args=('self',) defaults=None
+          RESUME                   0
+          LOAD_GLOBAL              0 (genv)
+          LOAD_ATTR                2 (camera)
+          LOAD_ATTR                5 (StandBy + NULL|self)
+          CALL                     0
+          POP_TOP
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR                7 (EnterAdsState + NULL|self)
+          LOAD_CONST               0 (False)
+          LOAD_CONST               1 (True)
+          CALL                     2
+          POP_TOP
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR                8 (model)
+          LOAD_ATTR                8 (model)
+          TO_BOOL
+          POP_JUMP_IF_TRUE       151 (to L1)
+          NOT_TAKEN
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR                8 (model)
+          LOAD_ATTR               11 (Load + NULL|self)
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR               13 (GetModelData + NULL|self)
+          CALL                     0
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR               14 (OnLoadModel)
+          CALL                     2
+          POP_TOP
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR                8 (model)
+          LOAD_ATTR               17 (CreateCharCtrl + NULL|self)
+          LOAD_GLOBAL             18 (cconst)
+          LOAD_ATTR               20 (PLAYER_CHARCTRL_RADIUS)
+          LOAD_GLOBAL             18 (cconst)
+          LOAD_ATTR               22 (PLAYER_CHARCTRL_HALFHEIGHT)
+          LOAD_GLOBAL             18 (cconst)
+          LOAD_ATTR               24 (PHYSICS_SELF)
+          CALL                     3
+          POP_TOP
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR                8 (model)
+          LOAD_ATTR               27 (CreatePoseSender + NULL|self)
+          CALL                     0
+          POP_TOP
+          JUMP_FORWARD            71 (to L2)
+  L1:     LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR               29 (_callComponents + NULL|self)
+          LOAD_CONST               2 ('pre_reload_model')
+          CALL                     1
+          POP_TOP
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR                8 (model)
+          LOAD_ATTR               31 (Reload + NULL|self)
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR               13 (GetModelData + NULL|self)
+          CALL                     0
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR               32 (OnReloadPlayerModel)
+          LOAD_CONST               0 (False)
+          LOAD_CONST               3 (['use_ready_to_appear'])
+          CALL_KW                  3
+          POP_TOP
+  L2:     LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR                8 (model)
+          LOAD_ATTR               35 (SetIsCastDynamicShadow + NULL|self)
+          LOAD_CONST               1 (True)
+          CALL                     1
+          POP_TOP
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR               36 (is_replaying)
+          TO_BOOL
+          POP_JUMP_IF_TRUE        58 (to L3)
+          NOT_TAKEN
+          LOAD_SMALL_INT           0
+          LOAD_CONST               4 (['SpacePrincipleRoleMgr'])
+          IMPORT_NAME             19 (gclient.framework.entities.space)
+          IMPORT_FROM             20 (SpacePrincipleRoleMgr)
+          STORE_FAST               1 (SpacePrincipleRoleMgr)
+          POP_TOP
+          LOAD_FAST_BORROW         1 (SpacePrincipleRoleMgr)
+          LOAD_ATTR               43 (instance + NULL|self)
+          CALL                     0
+          LOAD_ATTR               45 (SetRootPrincipleRole + NULL|self)
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR                8 (model)
+          LOAD_ATTR                8 (model)
+          CALL                     1
+          POP_TOP
+  L3:     LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR               29 (_callComponents + NULL|self)
+          LOAD_CONST               5 ('show_model')
+          CALL                     1
+          POP_TOP
+          LOAD_CONST               6 (None)
+          RETURN_VALUE
+
+
+### PlayerCombatAvatarMember.OnReloadPlayerModel — gclient/gameplay/logic_base/entities/combatavatarmembers/cimp_model.py:731
+args=('self',) defaults=None
+          RESUME                   0
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR                1 (OnReloadModel + NULL|self)
+          CALL                     0
+          POP_TOP
+          LOAD_GLOBAL              2 (genv)
+          LOAD_ATTR                4 (camera)
+          STORE_FAST               1 (camera)
+          LOAD_FAST_BORROW         1 (camera)
+          LOAD_ATTR                7 (ReadyBy + NULL|self)
+          CALL                     0
+          POP_TOP
+          LOAD_CONST               0 (None)
+          RETURN_VALUE
+
+
+### CombatAvatarMember.GetHeroSkinProto — gclient/gameplay/logic_base/entities/combatavatarmembers/cimp_model.py:166
+args=('self',) defaults=None
+          RESUME                   0
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR                0 (space)
+          LOAD_ATTR                2 (game_logic)
+          STORE_FAST               1 (game_logic)
+          LOAD_FAST_BORROW         1 (game_logic)
+          TO_BOOL
+          POP_JUMP_IF_FALSE       28 (to L1)
+          NOT_TAKEN
+          LOAD_FAST_BORROW         1 (game_logic)
+          LOAD_ATTR                5 (GetDisplayHeroSkinItemId + NULL|self)
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR                6 (id)
+          CALL                     1
+          JUMP_FORWARD            50 (to L2)
+  L1:     LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR                8 (arm_clothes)
+          LOAD_ATTR               11 (get + NULL|self)
+          LOAD_GLOBAL             12 (consts)
+          LOAD_ATTR               14 (ItemSubType)
+          LOAD_ATTR               16 (Suit)
+          CALL                     1
+  L2:     STORE_FAST               2 (suit_id)
+          LOAD_FAST_BORROW         2 (suit_id)
+          TO_BOOL
+          POP_JUMP_IF_FALSE       90 (to L4)
+          NOT_TAKEN
+          LOAD_GLOBAL             18 (hero_data_util)
+          LOAD_ATTR               20 (GetHeroIdAndSkinId)
+          PUSH_NULL
+          LOAD_FAST_BORROW         2 (suit_id)
+          CALL                     1
+          UNPACK_SEQUENCE          2
+          STORE_FAST_STORE_FAST   52 (hero_id, skin_id)
+          LOAD_FAST_BORROW         3 (hero_id)
+          TO_BOOL
+          POP_JUMP_IF_FALSE       58 (to L4)
+          NOT_TAKEN
+          LOAD_FAST_BORROW         4 (skin_id)
+          POP_JUMP_IF_NONE        31 (to L3)
+          NOT_TAKEN
+          LOAD_GLOBAL             22 (hero_skin_data)
+          LOAD_ATTR               24 (data)
+          LOAD_FAST_BORROW         3 (hero_id)
+          BINARY_OP               26 ([])
+          LOAD_FAST_BORROW         4 (skin_id)
+          BINARY_OP               26 ([])
+          RETURN_VALUE
+  L3:     LOAD_GLOBAL             26 (hero_data)
+          LOAD_ATTR               24 (data)
+          LOAD_FAST_BORROW         3 (hero_id)
+          BINARY_OP               26 ([])
+          RETURN_VALUE
+  L4:     BUILD_MAP                0
+          RETURN_VALUE
+
+
+### WeaponCase.ChangeWeaponDecorate — gclient/gameplay/logic_base/equips/weapon_case.py:4162
+args=('self', 'skin_id', 'guise_id', 'hangings_id', 'sticker_info') defaults=None
+          RESUME                   0
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR                0 (is_show_simple_part_model)
+          TO_BOOL
+          POP_JUMP_IF_FALSE        3 (to L1)
+          NOT_TAKEN
+          LOAD_CONST               0 (None)
+          RETURN_VALUE
+  L1:     LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR                2 (is_gun_dlc_exists)
+          TO_BOOL
+          POP_JUMP_IF_TRUE         3 (to L2)
+          NOT_TAKEN
+          LOAD_CONST               1 (False)
+          RETURN_VALUE
+  L2:     LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR                5 (ChangeWeaponGuise + NULL|self)
+          LOAD_FAST_BORROW         2 (guise_id)
+          CALL                     1
+          POP_TOP
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR                7 (ChangeWeaponSkin + NULL|self)
+          LOAD_FAST_BORROW         1 (skin_id)
+          CALL                     1
+          POP_TOP
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR                9 (ChangeWeaponHangings + NULL|self)
+          LOAD_FAST_BORROW         3 (hangings_id)
+          CALL                     1
+          POP_TOP
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR               11 (ChangeWeaponSticker + NULL|self)
+          LOAD_FAST_BORROW         4 (sticker_info)
+          CALL                     1
+          POP_TOP
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR               12 (is_fps_weapon)
+          TO_BOOL
+          POP_JUMP_IF_FALSE      160 (to L8)
+          NOT_TAKEN
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR               14 (is_in_combat)
+          TO_BOOL
+          POP_JUMP_IF_FALSE      140 (to L7)
+          NOT_TAKEN
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR               16 (is_cur_taking)
+          TO_BOOL
+          POP_JUMP_IF_FALSE      120 (to L6)
+          NOT_TAKEN
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR               18 (hand_model)
+          TO_BOOL
+          POP_JUMP_IF_FALSE      100 (to L5)
+          NOT_TAKEN
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR               18 (hand_model)
+          LOAD_ATTR               20 (parachute_graph_id)
+          TO_BOOL
+          POP_JUMP_IF_FALSE        3 (to L3)
+          NOT_TAKEN
+          LOAD_CONST               0 (None)
+          RETURN_VALUE
+  L3:     LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR               22 (owner)
+          STORE_FAST               5 (owner)
+          LOAD_FAST_BORROW         5 (owner)
+          LOAD_ATTR               24 (IsPlayerCombatAvatar)
+          COPY                     1
+          TO_BOOL
+          POP_JUMP_IF_FALSE       20 (to L4)
+          NOT_TAKEN
+          POP_TOP
+          LOAD_FAST_BORROW         5 (owner)
+          LOAD_ATTR               27 (EnterAdsState + NULL|self)
+          LOAD_CONST               1 (False)
+          LOAD_CONST               2 (True)
+          LOAD_CONST               3 (['is_force_out'])
+          CALL_KW                  2
+  L4:     POP_TOP
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR               29 (RaiseWeapon + NULL|self)
+          CALL                     0
+          POP_TOP
+          LOAD_CONST               0 (None)
+          RETURN_VALUE
+  L5:     LOAD_CONST               0 (None)
+          RETURN_VALUE
+  L6:     LOAD_CONST               0 (None)
+          RETURN_VALUE
+  L7:     LOAD_CONST               0 (None)
+          RETURN_VALUE
+  L8:     LOAD_CONST               0 (None)
+          RETURN_VALUE
+
+
+### WeaponCase.RefreshWeaponDecorate — gclient/gameplay/logic_base/equips/weapon_case.py:4126
+args=('self',) defaults=None
+          RESUME                   0
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR                1 (DesideShowSimplePartModel + NULL|self)
+          CALL                     0
+          LOAD_FAST_BORROW         0 (self)
+          STORE_ATTR               1 (is_show_simple_part_model)
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR                5 (RefreshGunDlcExists + NULL|self)
+          CALL                     0
+          POP_TOP
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR                2 (is_show_simple_part_model)
+          TO_BOOL
+          POP_JUMP_IF_TRUE        19 (to L1)
+          NOT_TAKEN
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR                6 (is_gun_dlc_exists)
+          TO_BOOL
+          POP_JUMP_IF_TRUE        12 (to L2)
+          NOT_TAKEN
+  L1:     LOAD_CONST               0 (None)
+          STORE_FAST               1 (guise_id)
+          BUILD_MAP                0
+          STORE_FAST               2 (part_guise_info)
+          LOAD_CONST               0 (None)
+          STORE_FAST               3 (skin_id)
+          LOAD_CONST               0 (None)
+          STORE_FAST               4 (hangings_id)
+          BUILD_MAP                0
+          STORE_FAST               5 (sticker_info)
+          JUMP_FORWARD            60 (to L3)
+  L2:     LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR                8 (backup_guise_id)
+          STORE_FAST               1 (guise_id)
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR               10 (backup_part_guise_info)
+          STORE_FAST               2 (part_guise_info)
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR               12 (backup_skin_id)
+          STORE_FAST               3 (skin_id)
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR               14 (backup_hangings_id)
+          STORE_FAST               4 (hangings_id)
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR               16 (backup_sticker_info)
+          STORE_FAST               5 (sticker_info)
+  L3:     LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR               19 (ChangeWeaponPartGuise + NULL|self)
+          LOAD_FAST_BORROW         2 (part_guise_info)
+          LOAD_CONST               1 (False)
+          LOAD_CONST               1 (False)
+          LOAD_CONST               2 (['data_changed', 'change_part'])
+          CALL_KW                  3
+          POP_TOP
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR               21 (ChangeWeaponGuise + NULL|self)
+          LOAD_FAST_BORROW         1 (guise_id)
+          LOAD_CONST               1 (False)
+          LOAD_CONST               3 (['data_changed'])
+          CALL_KW                  2
+          POP_TOP
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR               23 (ChangeWeaponSkin + NULL|self)
+          LOAD_FAST_BORROW         3 (skin_id)
+          LOAD_CONST               1 (False)
+          LOAD_CONST               3 (['data_changed'])
+          CALL_KW                  2
+          POP_TOP
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR               25 (ChangeWeaponHangings + NULL|self)
+          LOAD_FAST_BORROW         4 (hangings_id)
+          LOAD_CONST               1 (False)
+          LOAD_CONST               3 (['data_changed'])
+          CALL_KW                  2
+          POP_TOP
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR               27 (ChangeWeaponSticker + NULL|self)
+          LOAD_FAST_BORROW         5 (sticker_info)
+          LOAD_CONST               1 (False)
+          LOAD_CONST               3 (['data_changed'])
+          CALL_KW                  2
+          POP_TOP
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR               29 (InitWeapon + NULL|self)
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR               30 (part_slots)
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR               32 (weapon_body)
+          LOAD_ATTR               34 (part_loaded_callback)
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR               32 (weapon_body)
+          LOAD_ATTR               36 (all_loaded_callback)
+          LOAD_CONST               4 (True)
+          LOAD_CONST               5 (['is_reload'])
+          CALL_KW                  4
+          POP_TOP
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR               38 (dual_weapon_body)
+          TO_BOOL
+          POP_JUMP_IF_FALSE       84 (to L4)
+          NOT_TAKEN
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR               38 (dual_weapon_body)
+          LOAD_ATTR               41 (InitGuiseIllusion + NULL|self)
+          CALL                     0
+          POP_TOP
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR               38 (dual_weapon_body)
+          LOAD_ATTR               29 (InitWeapon + NULL|self)
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR               43 (_GetWeaponBodyPartSlots + NULL|self)
+          CALL                     0
+          CALL                     1
+          POP_TOP
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR               45 (RefreshGuiseSkinAnimPoseForDualWeapon + NULL|self)
+          CALL                     0
+          POP_TOP
+  L4:     LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR               46 (is_fps_weapon)
+          TO_BOOL
+          POP_JUMP_IF_FALSE      150 (to L9)
+          NOT_TAKEN
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR               48 (is_in_combat)
+          TO_BOOL
+          POP_JUMP_IF_FALSE      130 (to L8)
+          NOT_TAKEN
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR               50 (is_cur_taking)
+          TO_BOOL
+          POP_JUMP_IF_FALSE      110 (to L7)
+          NOT_TAKEN
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR               52 (hand_model)
+          STORE_FAST               6 (hand_model)
+          LOAD_FAST_BORROW         6 (hand_model)
+          TO_BOOL
+          POP_JUMP_IF_FALSE       21 (to L5)
+          NOT_TAKEN
+          LOAD_FAST_BORROW         6 (hand_model)
+          LOAD_ATTR               54 (parachute_graph_id)
+          TO_BOOL
+          POP_JUMP_IF_FALSE        3 (to L5)
+          NOT_TAKEN
+          LOAD_CONST               0 (None)
+          RETURN_VALUE
+  L5:     LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR               56 (owner)
+          STORE_FAST               7 (owner)
+          LOAD_FAST_BORROW         7 (owner)
+          LOAD_ATTR               58 (IsPlayerCombatAvatar)
+          COPY                     1
+          TO_BOOL
+          POP_JUMP_IF_FALSE       20 (to L6)
+          NOT_TAKEN
+          POP_TOP
+          LOAD_FAST_BORROW         7 (owner)
+          LOAD_ATTR               61 (EnterAdsState + NULL|self)
+          LOAD_CONST               1 (False)
+          LOAD_CONST               4 (True)
+          LOAD_CONST               6 (['is_force_out'])
+          CALL_KW                  2
+  L6:     POP_TOP
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR               63 (RaiseWeapon + NULL|self)
+          CALL                     0
+          POP_TOP
+          LOAD_CONST               0 (None)
+          RETURN_VALUE
+  L7:     LOAD_CONST               0 (None)
+          RETURN_VALUE
+  L8:     LOAD_CONST               0 (None)
+          RETURN_VALUE
+  L9:     LOAD_CONST               0 (None)
+          RETURN_VALUE
+
+
+### AvatarModel.AddWeapon — gclient/gameplay/logic_base/models/avatar_model.py:2766
+args=('self', 'guid') defaults=None
+          RESUME                   0
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR                0 (owner)
+          LOAD_ATTR                2 (backpack)
+          LOAD_ATTR                5 (Get + NULL|self)
+          LOAD_FAST_BORROW         1 (guid)
+          CALL                     1
+          STORE_FAST               2 (equip)
+          LOAD_FAST_BORROW         2 (equip)
+          TO_BOOL
+          POP_JUMP_IF_TRUE         3 (to L1)
+          NOT_TAKEN
+          LOAD_CONST               0 (None)
+          RETURN_VALUE
+  L1:     LOAD_FAST_BORROW         2 (equip)
+          LOAD_ATTR                6 (display_equip_id)
+          STORE_FAST               3 (equip_id)
+          LOAD_FAST_BORROW         2 (equip)
+          LOAD_ATTR                8 (guid)
+          STORE_FAST               4 (equip_guid)
+          LOAD_FAST_BORROW         2 (equip)
+          LOAD_ATTR               10 (skin_template_id)
+          STORE_FAST               5 (skin_id)
+          LOAD_FAST_BORROW         2 (equip)
+          LOAD_ATTR               12 (guise_template_id)
+          STORE_FAST               6 (guise_id)
+          LOAD_FAST_BORROW         3 (equip_id)
+          TO_BOOL
+          POP_JUMP_IF_FALSE        9 (to L2)
+          NOT_TAKEN
+          LOAD_FAST_BORROW         4 (equip_guid)
+          TO_BOOL
+          POP_JUMP_IF_TRUE         3 (to L3)
+          NOT_TAKEN
+  L2:     LOAD_CONST               0 (None)
+          RETURN_VALUE
+  L3:     LOAD_FAST_BORROW_LOAD_FAST_BORROW 64 (equip_guid, self)
+          LOAD_ATTR               14 (weapon_dict)
+          CONTAINS_OP              0 (in)
+          POP_JUMP_IF_FALSE       38 (to L4)
+          NOT_TAKEN
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR               14 (weapon_dict)
+          LOAD_FAST_BORROW         4 (equip_guid)
+          BINARY_OP               26 ([])
+          LOAD_ATTR               16 (is_match_server)
+          TO_BOOL
+          POP_JUMP_IF_FALSE        3 (to L4)
+          NOT_TAKEN
+          LOAD_CONST               0 (None)
+          RETURN_VALUE
+  L4:     LOAD_CONST               1 ('is_tps_weapon')
+          LOAD_CONST               2 (True)
+          BUILD_MAP                1
+          STORE_FAST               7 (extra)
+          LOAD_FAST_BORROW         2 (equip)
+          LOAD_ATTR               18 (slot)
+          LOAD_GLOBAL             20 (consts)
+          LOAD_ATTR               22 (BackpackSlot)
+          LOAD_ATTR               24 (SLOT_PANPAN)
+          COMPARE_OP              88 (bool(==))
+          POP_JUMP_IF_FALSE       31 (to L5)
+          NOT_TAKEN
+          LOAD_FAST_BORROW         2 (equip)
+          LOAD_ATTR               26 (panpan_info)
+          LOAD_FAST_BORROW         7 (extra)
+          LOAD_CONST               3 ('panpan_info')
+          STORE_SUBSCR
+          LOAD_FAST_BORROW         2 (equip)
+          LOAD_ATTR               28 (guise_item_id)
+          LOAD_FAST_BORROW         7 (extra)
+          LOAD_CONST               4 ('guise_item_id')
+          STORE_SUBSCR
+  L5:     LOAD_GLOBAL             30 (EquipCaseFactory)
+          LOAD_ATTR               32 (Create)
+          PUSH_NULL
+          LOAD_FAST_BORROW_LOAD_FAST_BORROW 48 (equip_id, self)
+          LOAD_ATTR                0 (owner)
+          LOAD_FAST_BORROW_LOAD_FAST_BORROW 67 (equip_guid, equip_id)
+          LOAD_FAST_BORROW_LOAD_FAST_BORROW 86 (skin_id, guise_id)
+          LOAD_CONST               5 (False)
+          LOAD_FAST_BORROW         7 (extra)
+          LOAD_CONST               6 (['is_fps_weapon', 'extra'])
+          CALL_KW                  8
+          STORE_FAST               8 (weapon_case)
+          LOAD_FAST_BORROW         8 (weapon_case)
+          TO_BOOL
+          POP_JUMP_IF_TRUE         3 (to L6)
+          NOT_TAKEN
+          LOAD_CONST               0 (None)
+          RETURN_VALUE
+  L6:     LOAD_FAST_BORROW         8 (weapon_case)
+          LOAD_ATTR               35 (InitWeapon + NULL|self)
+          CALL                     0
+          POP_TOP
+          LOAD_FAST_BORROW_LOAD_FAST_BORROW 128 (weapon_case, self)
+          LOAD_ATTR               14 (weapon_dict)
+          LOAD_FAST_BORROW         1 (guid)
+          STORE_SUBSCR
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR               37 (CheckHideOnWeaponCaseCreated + NULL|self)
+          LOAD_FAST_BORROW         8 (weapon_case)
+          CALL                     1
+          POP_TOP
+          LOAD_CONST               0 (None)
+          RETURN_VALUE
+
+
+### HeirloomCase.ChangeHeirloomAttr — gclient/gameplay/logic_base/equips/heirloom_case.py:1184
+args=('self', 'blade_attr', 'handle_attr', 'core_attr', 'effect_attr', 'level') defaults=[None, None, None, None, None]
+          RESUME                   0
+          LOAD_GLOBAL              1 (getattr + NULL)
+          LOAD_FAST_BORROW         1 (blade_attr)
+          LOAD_CONST               0 ('get')
+          LOAD_CONST               1 (None)
+          CALL                     3
+          STORE_FAST               6 (get_value)
+          LOAD_FAST_BORROW         6 (get_value)
+          TO_BOOL
+          POP_JUMP_IF_FALSE       36 (to L2)
+          NOT_TAKEN
+          LOAD_FAST_BORROW         2 (handle_attr)
+          POP_JUMP_IF_NOT_NONE    32 (to L2)
+          NOT_TAKEN
+          LOAD_FAST_BORROW         3 (core_attr)
+          POP_JUMP_IF_NOT_NONE    28 (to L2)
+          NOT_TAKEN
+          LOAD_FAST_BORROW         4 (effect_attr)
+          POP_JUMP_IF_NOT_NONE    24 (to L2)
+          NOT_TAKEN
+          LOAD_FAST_BORROW         5 (level)
+          POP_JUMP_IF_NOT_NONE    10 (to L1)
+          NOT_TAKEN
+          LOAD_FAST_BORROW         6 (get_value)
+          PUSH_NULL
+          LOAD_CONST               2 ('level')
+          LOAD_CONST               1 (None)
+          CALL                     2
+          STORE_FAST               5 (level)
+  L1:     LOAD_FAST_BORROW         6 (get_value)
+          PUSH_NULL
+          LOAD_CONST               3 ('attrs')
+          LOAD_FAST_BORROW         1 (blade_attr)
+          CALL                     2
+          STORE_FAST               7 (attrs)
+          JUMP_FORWARD             4 (to L3)
+  L2:     LOAD_FAST_BORROW_LOAD_FAST_BORROW 18 (blade_attr, handle_attr)
+          LOAD_FAST_BORROW_LOAD_FAST_BORROW 52 (core_attr, effect_attr)
+          BUILD_TUPLE              4
+          STORE_FAST               7 (attrs)
+  L3:     LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR                3 (_SetHeirloomAttrs + NULL|self)
+          LOAD_FAST_BORROW         7 (attrs)
+          CALL                     1
+          POP_TOP
+          LOAD_FAST_BORROW         5 (level)
+          POP_JUMP_IF_NONE         7 (to L4)
+          NOT_TAKEN
+          LOAD_FAST_BORROW_LOAD_FAST_BORROW 80 (level, self)
+          STORE_ATTR               2 (level)
+  L4:     LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR                7 (RefreshWeaponAppearanceAttrs + NULL|self)
+          CALL                     0
+          POP_TOP
+          LOAD_CONST               1 (None)
+          RETURN_VALUE
+
+
+### HeirloomCase.RefreshGuiseAppearance — gclient/gameplay/logic_base/equips/heirloom_case.py:1256
+args=('self',) defaults=None
+          RESUME                   0
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR                0 (weapon_body)
+          TO_BOOL
+          POP_JUMP_IF_FALSE       33 (to L1)
+          NOT_TAKEN
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR                0 (weapon_body)
+          LOAD_ATTR                3 (IsAllPartsModelLoaded + NULL|self)
+          CALL                     0
+          TO_BOOL
+          POP_JUMP_IF_TRUE         3 (to L2)
+          NOT_TAKEN
+  L1:     LOAD_CONST               0 (None)
+          RETURN_VALUE
+  L2:     LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR                0 (weapon_body)
+          LOAD_ATTR                5 (RefreshHeirloomAppearance + NULL|self)
+          CALL                     0
+          POP_TOP
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR                7 (RefreshModelSkin + NULL|self)
+          CALL                     0
+          POP_TOP
+          LOAD_CONST               0 (None)
+          RETURN_VALUE
+
+
+### HeirloomCase.RefreshModelSkin — gclient/gameplay/logic_base/equips/heirloom_case.py:1272
+args=('self',) defaults=None
+          RESUME                   0
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR                1 (GetSkinDictByAttrs + NULL|self)
+          CALL                     0
+          LOAD_FAST_BORROW         0 (self)
+          STORE_ATTR               1 (skin_dict)
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR                2 (skin_dict)
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR                4 (weapon_body)
+          STORE_ATTR               1 (skin_dict)
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR                7 (LoadModelSkin + NULL|self)
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR                2 (skin_dict)
+          CALL                     1
+          POP_TOP
+          LOAD_CONST               0 (None)
+          RETURN_VALUE
+
+
+### WeaponGuiseComponent.WeaponBodyIllusion — gclient/util/gun_skin_util.py:2180
+args=('self', 'need_callback') defaults=None
+           RESUME                   0
+           LOAD_FAST_BORROW         0 (self)
+           LOAD_ATTR                1 (ClearIllusionEffect + NULL|self)
+           CALL                     0
+           POP_TOP
+           LOAD_FAST_BORROW         0 (self)
+           LOAD_ATTR                3 (InitGuiseIllusion + NULL|self)
+           CALL                     0
+           POP_TOP
+           LOAD_FAST_BORROW         0 (self)
+           LOAD_ATTR                4 (is_in_combat)
+           TO_BOOL
+           POP_JUMP_IF_FALSE       80 (to L3)
+           NOT_TAKEN
+           LOAD_FAST_BORROW         0 (self)
+           LOAD_ATTR                6 (is_fps_weapon)
+           TO_BOOL
+           POP_JUMP_IF_TRUE        62 (to L3)
+           NOT_TAKEN
+           LOAD_FAST                0 (self)
+           LOAD_ATTR                9 (InitWeapon + NULL|self)
+           LOAD_FAST_BORROW         0 (self)
+           LOAD_ATTR               10 (part_slots)
+           LOAD_FAST_BORROW         0 (self)
+           LOAD_ATTR               12 (part_loaded_callback)
+           LOAD_FAST_BORROW         1 (need_callback)
+           TO_BOOL
+           POP_JUMP_IF_FALSE       13 (to L1)
+           NOT_TAKEN
+           LOAD_FAST_BORROW         0 (self)
+           LOAD_ATTR               14 (all_loaded_callback)
+           JUMP_FORWARD             1 (to L2)
+   L1:     LOAD_CONST               0 (None)
+   L2:     CALL                     3
+           POP_TOP
+           LOAD_CONST               0 (None)
+           RETURN_VALUE
+   L3:     LOAD_FAST_BORROW         0 (self)
+           LOAD_ATTR               16 (is_illusion)
+           TO_BOOL
+           POP_JUMP_IF_TRUE        72 (to L6)
+           NOT_TAKEN
+           LOAD_FAST                0 (self)
+           LOAD_ATTR                9 (InitWeapon + NULL|self)
+           LOAD_FAST_BORROW         0 (self)
+           LOAD_ATTR               18 (weapon_case)
+           LOAD_ATTR               10 (part_slots)
+           LOAD_FAST_BORROW         0 (self)
+           LOAD_ATTR               12 (part_loaded_callback)
+           LOAD_FAST_BORROW         1 (need_callback)
+           TO_BOOL
+           POP_JUMP_IF_FALSE       13 (to L4)
+           NOT_TAKEN
+           LOAD_FAST_BORROW         0 (self)
+           LOAD_ATTR               14 (all_loaded_callback)
+           JUMP_FORWARD             1 (to L5)
+   L4:     LOAD_CONST               0 (None)
+   L5:     CALL                     3
+           POP_TOP
+           LOAD_CONST               0 (None)
+           RETURN_VALUE
+   L6:     LOAD_FAST_BORROW         0 (self)
+           LOAD_ATTR                4 (is_in_combat)
+           TO_BOOL
+           POP_JUMP_IF_FALSE       29 (to L7)
+           NOT_TAKEN
+           LOAD_FAST_BORROW         0 (self)
+           LOAD_ATTR               18 (weapon_case)
+           LOAD_ATTR               21 (SetIsLoadForWarmingUp + NULL|self)
+           LOAD_CONST               1 (False)
+           CALL                     1
+           POP_TOP
+           JUMP_FORWARD            55 (to L8)
+   L7:     LOAD_FAST_BORROW         0 (self)
+           LOAD_ATTR               18 (weapon_case)
+           LOAD_ATTR               22 (load_for_warmingup)
+           TO_BOOL
+           POP_JUMP_IF_FALSE       28 (to L8)
+           NOT_TAKEN
+           LOAD_FAST_BORROW         0 (self)
+           LOAD_ATTR               18 (weapon_case)
+           LOAD_ATTR               21 (SetIsLoadForWarmingUp + NULL|self)
+           LOAD_CONST               2 (True)
+           CALL                     1
+           POP_TOP
+   L8:     LOAD_FAST                0 (self)
+           LOAD_ATTR                9 (InitWeapon + NULL|self)
+           LOAD_FAST_BORROW         0 (self)
+           LOAD_ATTR               24 (guise_part_slots)
+           LOAD_FAST_BORROW         0 (self)
+           LOAD_ATTR               12 (part_loaded_callback)
+           LOAD_FAST_BORROW         1 (need_callback)
+           TO_BOOL
+           POP_JUMP_IF_FALSE       13 (to L9)
+           NOT_TAKEN
+           LOAD_FAST_BORROW         0 (self)
+           LOAD_ATTR               14 (all_loaded_callback)
+           JUMP_FORWARD             1 (to L10)
+   L9:     LOAD_CONST               0 (None)
+  L10:     CALL                     3
+           POP_TOP
+           LOAD_FAST_BORROW         0 (self)
+           LOAD_ATTR                4 (is_in_combat)
+           TO_BOOL
+           POP_JUMP_IF_FALSE       75 (to L12)
+           NOT_TAKEN
+           LOAD_FAST_BORROW         0 (self)
+           LOAD_ATTR                6 (is_fps_weapon)
+           TO_BOOL
+           POP_JUMP_IF_FALSE       55 (to L11)
+           NOT_TAKEN
+           LOAD_FAST_BORROW         0 (self)
+           LOAD_ATTR               18 (weapon_case)
+           LOAD_ATTR               27 (RefreshBackupChargerModel + NULL|self)
+           CALL                     0
+           POP_TOP
+           LOAD_FAST_BORROW         0 (self)
+           LOAD_ATTR               18 (weapon_case)
+           LOAD_ATTR               29 (InitHandGraphValue + NULL|self)
+           CALL                     0
+           POP_TOP
+           LOAD_CONST               0 (None)
+           RETURN_VALUE
+  L11:     LOAD_CONST               0 (None)
+           RETURN_VALUE
+  L12:     LOAD_CONST               0 (None)
+           RETURN_VALUE
+
+
+### WeaponCaseBase._GetGuiseModelId — gclient/gameplay/logic_base/equips/weapon_case_base.py:152
+args=('self', 'origin_model_id', 'is_sub_model') defaults=[False]
+          RESUME                   0
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR                0 (guise_template_data)
+          TO_BOOL
+          POP_JUMP_IF_TRUE         3 (to L1)
+          NOT_TAKEN
+          LOAD_FAST_BORROW         1 (origin_model_id)
+          RETURN_VALUE
+  L1:     LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR                3 (GetGunSkinPartModelList + NULL|self)
+          LOAD_FAST_BORROW         1 (origin_model_id)
+          BUILD_LIST               1
+          LOAD_FAST_BORROW         2 (is_sub_model)
+          CALL                     2
+          STORE_FAST               3 (model_list)
+          LOAD_FAST_BORROW         3 (model_list)
+          LOAD_SMALL_INT           0
+          BINARY_OP               26 ([])
+          STORE_FAST               4 (guise_model_id)
+          LOAD_FAST_BORROW         0 (self)
+          LOAD_ATTR                4 (has_guise_dlc)
+          TO_BOOL
+          POP_JUMP_IF_FALSE        3 (to L2)
+          NOT_TAKEN
+          LOAD_FAST_BORROW         4 (guise_model_id)
+          RETURN_VALUE
+  L2:     LOAD_FAST_BORROW         1 (origin_model_id)
+          RETURN_VALUE
+
+
+### WeaponSkinComponent.LoadModelSkin — gclient/util/gun_skin_util.py:1523
+args=('self', 'skin_id', 'is_init', 'start_load') defaults=[False, False]
+           RESUME                   0
+           LOAD_FAST_BORROW         0 (self)
+           LOAD_ATTR                0 (_is_destroyed)
+           TO_BOOL
+           POP_JUMP_IF_FALSE        3 (to L1)
+           NOT_TAKEN
+           LOAD_CONST               0 (None)
+           RETURN_VALUE
+   L1:     LOAD_FAST_BORROW         0 (self)
+           LOAD_ATTR                2 (_loading_skin_texture_handles)
+           STORE_FAST               4 (pending_handles)
+           BUILD_MAP                0
+           LOAD_FAST_BORROW         0 (self)
+           STORE_ATTR               1 (_loading_skin_texture_handles)
+           LOAD_FAST_BORROW         0 (self)
+           LOAD_ATTR                4 (loading_skin_texture)
+           LOAD_ATTR                7 (clear + NULL|self)
+           CALL                     0
+           POP_TOP
+           LOAD_FAST_BORROW         4 (pending_handles)
+           LOAD_ATTR                9 (values + NULL|self)
+           CALL                     0
+           GET_ITER
+   L2:     FOR_ITER                14 (to L3)
+           STORE_FAST               5 (handle)
+           LOAD_GLOBAL             11 (_ReleaseGunSkinTexture + NULL)
+           LOAD_FAST_BORROW         5 (handle)
+           CALL                     1
+           POP_TOP
+           JUMP_BACKWARD           16 (to L2)
+   L3:     END_FOR
+           POP_ITER
+           LOAD_GLOBAL             13 (getattr + NULL)
+           LOAD_FAST_BORROW         0 (self)
+           LOAD_CONST               1 ('_skin_texture_generation')
+           LOAD_SMALL_INT           0
+           CALL                     3
+           LOAD_SMALL_INT           1
+           BINARY_OP                0 (+)
+           LOAD_FAST_BORROW         0 (self)
+           STORE_ATTR               7 (_skin_texture_generation)
+           LOAD_FAST_BORROW         0 (self)
+           LOAD_ATTR               14 (_skin_texture_generation)
+           STORE_FAST               6 (generation)
+           LOAD_CONST               2 (False)
+           LOAD_FAST_BORROW         0 (self)
+           STORE_ATTR               8 (is_skin_loaded)
+           LOAD_GLOBAL             18 (gun_skin_template_data)
+           LOAD_ATTR               20 (data)
+           LOAD_ATTR               23 (get + NULL|self)
+           LOAD_FAST_BORROW         1 (skin_id)
+           CALL                     1
+           STORE_FAST               7 (skin_template_data)
+           LOAD_FAST_BORROW         7 (skin_template_data)
+           TO_BOOL
+           POP_JUMP_IF_FALSE       60 (to L4)
+           NOT_TAKEN
+           LOAD_CONST               3 ('visible_limit')
+           LOAD_FAST_BORROW         7 (skin_template_data)
+           CONTAINS_OP              0 (in)
+           POP_JUMP_IF_FALSE       53 (to L4)
+           NOT_TAKEN
+           LOAD_GLOBAL             24 (common_util)
+           LOAD_ATTR               26 (IsEnableDataVisible)
+           PUSH_NULL
+           LOAD_GLOBAL             28 (genv)
+           LOAD_ATTR               30 (avatar)
+           LOAD_FAST_BORROW         7 (skin_template_data)
+           LOAD_CONST               3 ('visible_limit')
+           BINARY_OP               26 ([])
+           CALL                     2
+           TO_BOOL
+           POP_JUMP_IF_TRUE         3 (to L4)
+           NOT_TAKEN
+           LOAD_SMALL_INT           0
+           STORE_FAST               1 (skin_id)
+   L4:     LOAD_FAST_BORROW_LOAD_FAST_BORROW 16 (skin_id, self)
+           STORE_ATTR              16 (skin_id)
+           LOAD_FAST_BORROW         0 (self)
+           LOAD_ATTR               34 (is_destroyed)
+           TO_BOOL
+           POP_JUMP_IF_TRUE        19 (to L5)
+           NOT_TAKEN
+           LOAD_FAST_BORROW         0 (self)
+           LOAD_ATTR               36 (is_loaded)
+           TO_BOOL
+           POP_JUMP_IF_TRUE         3 (to L6)
+           NOT_TAKEN
+   L5:     LOAD_CONST               0 (None)
+           RETURN_VALUE
+   L6:     LOAD_FAST_BORROW         1 (skin_id)
+           TO_BOOL
+           POP_JUMP_IF_TRUE        66 (to L9)
+           NOT_TAKEN
+           LOAD_FAST_BORROW         2 (is_init)
+           TO_BOOL
+           UNARY_NOT
+           COPY                     1
+           TO_BOOL
+           POP_JUMP_IF_FALSE       17 (to L7)
+           NOT_TAKEN
+           POP_TOP
+           LOAD_FAST_BORROW         0 (self)
+           LOAD_ATTR               39 (LoadModelBaseSkin + NULL|self)
+           CALL                     0
+   L7:     POP_TOP
+           LOAD_FAST_BORROW         3 (start_load)
+           TO_BOOL
+           UNARY_NOT
+           COPY                     1
+           TO_BOOL
+           POP_JUMP_IF_FALSE       18 (to L8)
+           NOT_TAKEN
+           POP_TOP
+           LOAD_FAST_BORROW         0 (self)
+           LOAD_ATTR               41 (OnSkinLoaded + NULL|self)
+           LOAD_FAST_BORROW         2 (is_init)
+           CALL                     1
+   L8:     POP_TOP
+           LOAD_CONST               0 (None)
+           RETURN_VALUE
+   L9:     LOAD_GLOBAL             28 (genv)
+           LOAD_ATTR               42 (dlc_manager)
+           STORE_FAST               8 (dlc_mgr)
+           LOAD_FAST_BORROW         8 (dlc_mgr)
+           LOAD_ATTR               45 (CheckDlcExists + NULL|self)
+           LOAD_FAST_BORROW         8 (dlc_mgr)
+           LOAD_ATTR               47 (InitSkinDlcId + NULL|self)
+           LOAD_FAST_BORROW         1 (skin_id)
+           CALL                     1
+           CALL                     1
+           TO_BOOL
+           POP_JUMP_IF_TRUE        66 (to L12)
+           NOT_TAKEN
+           LOAD_FAST_BORROW         2 (is_init)
+           TO_BOOL
+           UNARY_NOT
+           COPY                     1
+           TO_BOOL
+           POP_JUMP_IF_FALSE       17 (to L10)
+           NOT_TAKEN
+           POP_TOP
+           LOAD_FAST_BORROW         0 (self)
+           LOAD_ATTR               39 (LoadModelBaseSkin + NULL|self)
+           CALL                     0
+  L10:     POP_TOP
+           LOAD_FAST_BORROW         3 (start_load)
+           TO_BOOL
+           UNARY_NOT
+           COPY                     1
+           TO_BOOL
+           POP_JUMP_IF_FALSE       18 (to L11)
+           NOT_TAKEN
+           POP_TOP
+           LOAD_FAST_BORROW         0 (self)
+           LOAD_ATTR               41 (OnSkinLoaded + NULL|self)
+           LOAD_FAST_BORROW         2 (is_init)
+           CALL                     1
+  L11:     POP_TOP
+           LOAD_CONST               0 (None)
+           RETURN_VALUE
+  L12:     LOAD_FAST_BORROW         7 (skin_template_data)
+           TO_BOOL
+           POP_JUMP_IF_TRUE        35 (to L14)
+           NOT_TAKEN
+           LOAD_FAST_BORROW         3 (start_load)
+           TO_BOOL
+           UNARY_NOT
+           COPY                     1
+           TO_BOOL
+           POP_JUMP_IF_FALSE       18 (to L13)
+           NOT_TAKEN
+           POP_TOP
+           LOAD_FAST_BORROW         0 (self)
+           LOAD_ATTR               41 (OnSkinLoaded + NULL|self)
+           LOAD_FAST_BORROW         2 (is_init)
+           CALL                     1
+  L13:     POP_TOP
+           LOAD_CONST               0 (None)
+           RETURN_VALUE
+  L14:     LOAD_FAST_BORROW         7 (skin_template_data)
+           LOAD_ATTR               23 (get + NULL|self)
+           LOAD_CONST               4 ('gun_skin_type')
+           LOAD_GLOBAL             48 (consts)
+           LOAD_ATTR               50 (GunSkinType)
+           LOAD_ATTR               52 (Base)
+           CALL                     2
+           STORE_FAST               9 (skin_type)
+           LOAD_GLOBAL             55 (list + NULL)
+           LOAD_FAST_BORROW         7 (skin_template_data)
+           LOAD_ATTR               23 (get + NULL|self)
+           LOAD_CONST               5 ('gun_skin_part_type_list')
+           BUILD_LIST               0
+           CALL                     2
+           CALL                     1
+           STORE_FAST              10 (skin_part_type_list)
+           LOAD_FAST_BORROW         7 (skin_template_data)
+           LOAD_ATTR               23 (get + NULL|self)
+           LOAD_CONST               6 ('gun_skin_part_mat_list')
+           CALL                     1
+           STORE_FAST              11 (skin_part_mat_list)
+           LOAD_FAST_BORROW         7 (skin_template_data)
+           LOAD_ATTR               23 (get + NULL|self)
+           LOAD_CONST               7 ('gun_skin_part_tiling_list')
+           BUILD_LIST               0
+           CALL                     2
+           STORE_FAST              12 (skin_part_tiling_list)
+           LOAD_FAST_BORROW         0 (self)
+           LOAD_ATTR               56 (part_type)
+           LOAD_GLOBAL             48 (consts)
+           LOAD_ATTR               58 (WeaponPartType_Recevier)
+           COMPARE_OP              88 (bool(==))
+           POP_JUMP_IF_FALSE      149 (to L18)
+           NOT_TAKEN
+           LOAD_FAST_BORROW         0 (self)
+           LOAD_ATTR               60 (weapon_case)
+           TO_BOOL
+           POP_JUMP_IF_FALSE      131 (to L18)
+           NOT_TAKEN
+           LOAD_FAST_BORROW         0 (self)
+           LOAD_ATTR               60 (weapon_case)
+           LOAD_ATTR               62 (guise_id)
+           TO_BOOL
+           POP_JUMP_IF_FALSE      103 (to L18)
+           NOT_TAKEN
+           LOAD_GLOBAL             18 (gun_skin_template_data)
+           LOAD_ATTR               20 (data)
+           LOAD_ATTR               23 (get + NULL|self)
+           LOAD_FAST_BORROW         0 (self)
+           LOAD_ATTR               60 (weapon_case)
+           LOAD_ATTR               62 (guise_id)
+           BUILD_MAP                0
+           CALL                     2
+           LOAD_ATTR               23 (get + NULL|self)
+           LOAD_CONST               8 ('gun_skin_no_camo_part_list')
+           BUILD_LIST               0
+           CALL                     2
+           STORE_FAST              13 (no_skin_part_type_list)
+           LOAD_FAST_BORROW        13 (no_skin_part_type_list)
+           GET_ITER
+  L15:     FOR_ITER                28 (to L17)
+           STORE_FAST              14 (part_type)
+           LOAD_FAST_BORROW_LOAD_FAST_BORROW 234 (part_type, skin_part_type_list)
+           CONTAINS_OP              0 (in)
+           POP_JUMP_IF_TRUE         3 (to L16)
+           NOT_TAKEN
+           JUMP_BACKWARD           11 (to L15)
+  L16:     LOAD_FAST_BORROW        10 (skin_part_type_list)
+           LOAD_ATTR               65 (remove + NULL|self)
+           LOAD_FAST_BORROW        14 (part_type)
+           CALL                     1
+           POP_TOP
+           JUMP_BACKWARD           30 (to L15)
+  L17:     END_FOR
+           POP_ITER
+  L18:     LOAD_FAST_BORROW         0 (self)
+           LOAD_ATTR               66 (is_fps_model)
+           COPY                     1
+           TO_BOOL
+           POP_JUMP_IF_TRUE        72 (to L19)
+           NOT_TAKEN
+           POP_TOP
+           LOAD_GLOBAL             28 (genv)
+           LOAD_ATTR               68 (highlevel_tps_weapon)
+           COPY                     1
+           TO_BOOL
+           POP_JUMP_IF_TRUE        48 (to L19)
+           NOT_TAKEN
+           POP_TOP
+           LOAD_FAST_BORROW         0 (self)
+           LOAD_ATTR               70 (owner)
+           LOAD_ATTR               72 (IsCombatAvatar)
+           TO_BOOL
+           UNARY_NOT
+           COPY                     1
+           TO_BOOL
+           POP_JUMP_IF_TRUE        13 (to L19)
+           NOT_TAKEN
+           POP_TOP
+           LOAD_FAST_BORROW         0 (self)
+           LOAD_ATTR               74 (use_highlevel)
+  L19:     STORE_FAST              15 (enable_skin)
+           LOAD_FAST_BORROW        15 (enable_skin)
+           TO_BOOL
+           POP_JUMP_IF_FALSE       57 (to L20)
+           NOT_TAKEN
+           LOAD_FAST_BORROW         9 (skin_type)
+           LOAD_GLOBAL             48 (consts)
+           LOAD_ATTR               50 (GunSkinType)
+           LOAD_ATTR               52 (Base)
+           COMPARE_OP              88 (bool(==))
+           POP_JUMP_IF_TRUE        26 (to L20)
+           NOT_TAKEN
+           LOAD_FAST_BORROW         0 (self)
+           LOAD_ATTR               56 (part_type)
+           LOAD_FAST_BORROW        10 (skin_part_type_list)
+           CONTAINS_OP              1 (not in)
+           POP_JUMP_IF_TRUE         9 (to L20)
+           NOT_TAKEN
+           LOAD_FAST_BORROW        11 (skin_part_mat_list)
+           TO_BOOL
+           POP_JUMP_IF_TRUE        69 (to L23)
+           NOT_TAKEN
+  L20:     LOAD_FAST_BORROW         2 (is_init)
+           TO_BOOL
+           UNARY_NOT
+           COPY                     1
+           TO_BOOL
+           POP_JUMP_IF_FALSE       17 (to L21)
+           NOT_TAKEN
+           POP_TOP
+           LOAD_FAST_BORROW         0 (self)
+           LOAD_ATTR               39 (LoadModelBaseSkin + NULL|self)
+           CALL                     0
+  L21:     POP_TOP
+           LOAD_FAST_BORROW         3 (start_load)
+           TO_BOOL
+           UNARY_NOT
+           COPY                     1
+           TO_BOOL
+           POP_JUMP_IF_FALSE       21 (to L22)
+           NOT_TAKEN
+           POP_TOP
+           LOAD_FAST_BORROW         0 (self)
+           LOAD_ATTR               41 (OnSkinLoaded + NULL|self)
+           LOAD_FAST_BORROW         2 (is_init)
+           CALL                     1
+           POP_TOP
+           LOAD_CONST               0 (None)
+           RETURN_VALUE
+  L22:     POP_TOP
+           LOAD_CONST               0 (None)
+           RETURN_VALUE
+  L23:     LOAD_FAST_BORROW         2 (is_init)
+           TO_BOOL
+           UNARY_NOT
+           COPY                     1
+           TO_BOOL
+           POP_JUMP_IF_FALSE       23 (to L24)
+           NOT_TAKEN
+           POP_TOP
+           LOAD_FAST_BORROW         0 (self)
+           LOAD_ATTR               77 (BatchResetShaderGraphParameter + NULL|self)
+           LOAD_GLOBAL             78 (GUN_SKIN_SHADER_PARAMS)
+           LOAD_CONST              18 (-1)
+           CALL                     2
+  L24:     POP_TOP
+           LOAD_GLOBAL             81 (dict + NULL)
+           LOAD_GLOBAL             55 (list + NULL)
+           LOAD_GLOBAL             83 (zip + NULL)
+           LOAD_FAST_BORROW_LOAD_FAST_BORROW 171 (skin_part_type_list, skin_part_mat_list)
+           CALL                     2
+           CALL                     1
+           CALL                     1
+           LOAD_ATTR               23 (get + NULL|self)
+           LOAD_FAST_BORROW         0 (self)
+           LOAD_ATTR               56 (part_type)
+           CALL                     1
+           STORE_FAST              16 (skin_mat_id)
+           LOAD_FAST_BORROW        16 (skin_mat_id)
+           POP_JUMP_IF_NOT_NONE    66 (to L27)
+           NOT_TAKEN
+           LOAD_FAST_BORROW         2 (is_init)
+           TO_BOOL
+           UNARY_NOT
+           COPY                     1
+           TO_BOOL
+           POP_JUMP_IF_FALSE       17 (to L25)
+           NOT_TAKEN
+           POP_TOP
+           LOAD_FAST_BORROW         0 (self)
+           LOAD_ATTR               39 (LoadModelBaseSkin + NULL|self)
+           CALL                     0
+  L25:     POP_TOP
+           LOAD_FAST_BORROW         3 (start_load)
+           TO_BOOL
+           UNARY_NOT
+           COPY                     1
+           TO_BOOL
+           POP_JUMP_IF_FALSE       18 (to L26)
+           NOT_TAKEN
+           POP_TOP
+           LOAD_FAST_BORROW         0 (self)
+           LOAD_ATTR               41 (OnSkinLoaded + NULL|self)
+           LOAD_FAST_BORROW         2 (is_init)
+           CALL                     1
+  L26:     POP_TOP
+           LOAD_CONST               0 (None)
+           RETURN_VALUE
+  L27:     LOAD_GLOBAL             84 (gun_skin_material_data)
+           LOAD_ATTR               20 (data)
+           LOAD_ATTR               22 (get)
+           STORE_FAST              17 (skin_data_getter)
+           LOAD_FAST_BORROW        17 (skin_data_getter)
+           PUSH_NULL
+           LOAD_FAST_BORROW        16 (skin_mat_id)
+           CALL                     1
+           STORE_FAST              18 (skin_data)
+           LOAD_FAST_BORROW        18 (skin_data)
+           TO_BOOL
+           POP_JUMP_IF_TRUE        35 (to L29)
+           NOT_TAKEN
+           LOAD_FAST_BORROW         3 (start_load)
+           TO_BOOL
+           UNARY_NOT
+           COPY                     1
+           TO_BOOL
+           POP_JUMP_IF_FALSE       18 (to L28)
+           NOT_TAKEN
+           POP_TOP
+           LOAD_FAST_BORROW         0 (self)
+           LOAD_ATTR               41 (OnSkinLoaded + NULL|self)
+           LOAD_FAST_BORROW         2 (is_init)
+           CALL                     1
+  L28:     POP_TOP
+           LOAD_CONST               0 (None)
+           RETURN_VALUE
+  L29:     LOAD_GLOBAL             81 (dict + NULL)
+           LOAD_GLOBAL             55 (list + NULL)
+           LOAD_GLOBAL             83 (zip + NULL)
+           LOAD_FAST_BORROW        18 (skin_data)
+           LOAD_CONST               9 ('pre_mat_param_name')
+           BINARY_OP               26 ([])
+           LOAD_FAST_BORROW        18 (skin_data)
+           LOAD_CONST              10 ('pre_mat_param_value')
+           BINARY_OP               26 ([])
+           CALL                     2
+           CALL                     1
+           CALL                     1
+           STORE_FAST              19 (skin_param_dict)
+           LOAD_FAST_BORROW        19 (skin_param_dict)
+           LOAD_ATTR               87 (items + NULL|self)
+           CALL                     0
+           GET_ITER
+  L30:     FOR_ITER                25 (to L31)
+           UNPACK_SEQUENCE          2
+           STORE_FAST              20 (param)
+           STORE_FAST              21 (value)
+           LOAD_FAST_BORROW         0 (self)
+           LOAD_ATTR               89 (SetShaderGraphParameter + NULL|self)
+           LOAD_FAST_BORROW        20 (param)
+           LOAD_FAST_BORROW        21 (value)
+           LOAD_CONST              18 (-1)
+           CALL                     3
+           POP_TOP
+           JUMP_BACKWARD           27 (to L30)
+  L31:     END_FOR
+           POP_ITER
+           LOAD_FAST_BORROW         0 (self)
+           LOAD_ATTR               60 (weapon_case)
+           TO_BOOL
+           POP_JUMP_IF_FALSE       78 (to L32)
+           NOT_TAKEN
+           LOAD_GLOBAL             91 (NormalizeUpgradeGuiseId + NULL)
+           LOAD_FAST_BORROW         0 (self)
+           LOAD_ATTR               60 (weapon_case)
+           LOAD_ATTR               62 (guise_id)
+           CALL                     1
+           LOAD_CONST              19 ([101199026, 451199016])
+           CONTAINS_OP              0 (in)
+           POP_JUMP_IF_FALSE       42 (to L32)
+           NOT_TAKEN
+           LOAD_FAST_BORROW        19 (skin_param_dict)
+           LOAD_ATTR               23 (get + NULL|self)
+           LOAD_CONST              11 ('cAO')
+           CALL                     1
+           LOAD_SMALL_INT           0
+           COMPARE_OP              88 (bool(==))
+           POP_JUMP_IF_FALSE       20 (to L32)
+           NOT_TAKEN
+           LOAD_FAST_BORROW         0 (self)
+           LOAD_ATTR               89 (SetShaderGraphParameter + NULL|self)
+           LOAD_CONST              11 ('cAO')
+           LOAD_CONST              12 ('-0.5')
+           LOAD_CONST              18 (-1)
+           CALL                     3
+           POP_TOP
+  L32:     LOAD_GLOBAL             93 (UpdateSwitchesByTextures + NULL)
+           LOAD_FAST_BORROW         0 (self)
+           LOAD_FAST_BORROW        18 (skin_data)
+           CALL                     2
+           POP_TOP
+           LOAD_FAST_BORROW        10 (skin_part_type_list)
+           LOAD_ATTR               95 (index + NULL|self)
+           LOAD_FAST_BORROW         0 (self)
+           LOAD_ATTR               56 (part_type)
+           CALL                     1
+           STORE_FAST              22 (part_type_idx)
+           LOAD_FAST_BORROW        22 (part_type_idx)
+           LOAD_GLOBAL             97 (len + NULL)
+           LOAD_FAST_BORROW        12 (skin_part_tiling_list)
+           CALL                     1
+           COMPARE_OP              18 (bool(<))
+           POP_JUMP_IF_FALSE       27 (to L33)
+           NOT_TAKEN
+           LOAD_FAST_BORROW         0 (self)
+           LOAD_ATTR               89 (SetShaderGraphParameter + NULL|self)
+           LOAD_CONST              13 ('OverlayMaskTiling')
+           LOAD_FAST_BORROW        12 (skin_part_tiling_list)
+           LOAD_FAST_BORROW        22 (part_type_idx)
+           BINARY_OP               26 ([])
+           LOAD_CONST              18 (-1)
+           CALL                     3
+           POP_TOP
+  L33:     LOAD_GLOBAL             81 (dict + NULL)
+           LOAD_CONST              14 ({'_type': 'code', '_ptr': '0x2ac36340140'})
+           MAKE_FUNCTION
+           LOAD_GLOBAL             83 (zip + NULL)
+           LOAD_FAST_BORROW        18 (skin_data)
+           LOAD_ATTR               23 (get + NULL|self)
+           LOAD_CONST              15 ('texture_param_name')
+           LOAD_CONST              20 ([])
+           CALL                     2
+           LOAD_FAST_BORROW        18 (skin_data)
+           LOAD_ATTR               23 (get + NULL|self)
+           LOAD_CONST              16 ('texture_param_path')
+           LOAD_CONST              20 ([])
+           CALL                     2
+           CALL                     2
+           GET_ITER
+           CALL                     0
+           CALL                     1
+           STORE_FAST              23 (texture_dict)
+           LOAD_GLOBAL             99 (set + NULL)
+           LOAD_FAST_BORROW         0 (self)
+           LOAD_ATTR              100 (_holding_skin_texture_handles)
+           CALL                     1
+           STORE_FAST              24 (stale_params)
+           LOAD_FAST_BORROW        24 (stale_params)
+           LOAD_ATTR              103 (update + NULL|self)
+           LOAD_FAST_BORROW         0 (self)
+           LOAD_ATTR                2 (_loading_skin_texture_handles)
+           CALL                     1
+           POP_TOP
+           LOAD_FAST_BORROW        24 (stale_params)
+           LOAD_ATTR              105 (difference_update + NULL|self)
+           LOAD_FAST_BORROW        23 (texture_dict)
+           CALL                     1
+           POP_TOP
+           LOAD_FAST_BORROW        24 (stale_params)
+           TO_BOOL
+           POP_JUMP_IF_FALSE       36 (to L34)
+           NOT_TAKEN
+           LOAD_FAST_BORROW         0 (self)
+           LOAD_ATTR               77 (BatchResetShaderGraphParameter + NULL|self)
+           LOAD_FAST_BORROW        24 (stale_params)
+           LOAD_CONST              18 (-1)
+           CALL                     2
+           POP_TOP
+           LOAD_FAST_BORROW         0 (self)
+           LOAD_ATTR              107 (_ReleaseSkinTextureParams + NULL|self)
+           LOAD_FAST_BORROW        24 (stale_params)
+           CALL                     1
+           POP_TOP
+  L34:     LOAD_FAST_BORROW        23 (texture_dict)
+           LOAD_ATTR               87 (items + NULL|self)
+           CALL                     0
+           GET_ITER
+  L35:     FOR_ITER                21 (to L36)
+           UNPACK_SEQUENCE          2
+           STORE_FAST              25 (t_param)
+           STORE_FAST              26 (t_path)
+           LOAD_FAST_BORROW        26 (t_path)
+           LOAD_FAST_BORROW         0 (self)
+           LOAD_ATTR                4 (loading_skin_texture)
+           LOAD_FAST_BORROW        25 (t_param)
+           STORE_SUBSCR
+           JUMP_BACKWARD           23 (to L35)
+  L36:     END_FOR
+           POP_ITER
+           LOAD_FAST_BORROW        23 (texture_dict)
+           LOAD_ATTR               87 (items + NULL|self)
+           CALL                     0
+           GET_ITER
+  L37:     FOR_ITER               123 (to L41)
+           UNPACK_SEQUENCE          2
+           STORE_FAST              25 (t_param)
+           STORE_FAST              26 (t_path)
+           LOAD_FAST_BORROW         0 (self)
+           LOAD_ATTR              109 (HoldSkinTexture + NULL|self)
+           LOAD_FAST_BORROW        25 (t_param)
+           LOAD_FAST_BORROW        26 (t_path)
+           LOAD_GLOBAL            111 (partial + NULL)
+           LOAD_FAST_BORROW         0 (self)
+           LOAD_ATTR              112 (LoadSkinTextureCallback)
+           LOAD_FAST_BORROW        25 (t_param)
+           LOAD_FAST_BORROW_LOAD_FAST_BORROW 35 (is_init, start_load)
+           LOAD_CONST              17 (['is_init', 'start_load'])
+           CALL_KW                  4
+           CALL                     3
+           STORE_FAST              27 (loaded)
+           LOAD_FAST_BORROW         0 (self)
+           LOAD_ATTR                0 (_is_destroyed)
+           TO_BOOL
+           POP_JUMP_IF_TRUE        18 (to L38)
+           NOT_TAKEN
+           LOAD_FAST_BORROW         0 (self)
+           LOAD_ATTR               14 (_skin_texture_generation)
+           LOAD_FAST_BORROW         6 (generation)
+           COMPARE_OP             119 (bool(!=))
+           POP_JUMP_IF_FALSE        4 (to L39)
+           NOT_TAKEN
+  L38:     POP_TOP
+           LOAD_CONST               0 (None)
+           RETURN_VALUE
+  L39:     LOAD_FAST_BORROW        27 (loaded)
+           TO_BOOL
+           POP_JUMP_IF_FALSE        3 (to L40)
+           NOT_TAKEN
+           JUMP_BACKWARD           95 (to L37)
+  L40:     LOAD_FAST_BORROW         0 (self)
+           LOAD_ATTR                4 (loading_skin_texture)
+           LOAD_ATTR              115 (pop + NULL|self)
+           LOAD_FAST_BORROW        25 (t_param)
+           LOAD_CONST               0 (None)
+           CALL                     2
+           POP_TOP
+           JUMP_BACKWARD          125 (to L37)
+  L41:     END_FOR
+           POP_ITER
+           LOAD_FAST_BORROW         0 (self)
+           LOAD_ATTR                4 (loading_skin_texture)
+           TO_BOOL
+           POP_JUMP_IF_TRUE        55 (to L44)
+           NOT_TAKEN
+           LOAD_FAST_BORROW         0 (self)
+           LOAD_ATTR               16 (is_skin_loaded)
+           TO_BOOL
+           POP_JUMP_IF_TRUE        35 (to L43)
+           NOT_TAKEN
+           LOAD_FAST_BORROW         3 (start_load)
+           TO_BOOL
+           UNARY_NOT
+           COPY                     1
+           TO_BOOL
+           POP_JUMP_IF_FALSE       18 (to L42)
+           NOT_TAKEN
+           POP_TOP
+           LOAD_FAST_BORROW         0 (self)
+           LOAD_ATTR               41 (OnSkinLoaded + NULL|self)
+           LOAD_FAST_BORROW         2 (is_init)
+           CALL                     1
+  L42:     POP_TOP
+           LOAD_CONST               0 (None)
+           RETURN_VALUE
+  L43:     LOAD_CONST               0 (None)
+           RETURN_VALUE
+  L44:     LOAD_CONST               0 (None)
+           RETURN_VALUE
