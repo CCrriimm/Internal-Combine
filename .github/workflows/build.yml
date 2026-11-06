@@ -1,0 +1,34 @@
+name: Build
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build-windows-x64:
+    name: Build (Windows x64 Release)
+    runs-on: windows-latest
+    timeout-minutes: 90
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Configure CMake
+        run: cmake -S . -B build -A x64
+
+      - name: Build loader, Python bridge and overlay
+        run: cmake --build build --config Release --target bs_loader bs_pyexec bs_overlay
+
+      - name: Embed runtime payload into loader
+        run: cmake --build build --config Release --target pack_loader
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: bs-x64-release-${{ github.sha }}
+          path: |
+            build/Release
+            dist
+          if-no-files-found: error
+          retention-days: 30
