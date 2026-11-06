@@ -733,11 +733,13 @@ static const uint32_t kDefaultTeamLine[4] = {
     (200u << 24) | (115u << 16) | (242u << 8) | 115u,
     (200u << 24) | (255u << 16) | (127u << 8) | 217u,
 };
-static const uint32_t kDefaultArmorTier[4] = {
-    (245u << 24) | (158u << 16) | (148u << 8) | 140u,
-    (245u << 24) | (255u << 16) | (140u << 8) | 51u,
-    (245u << 24) | (255u << 16) | (82u << 8) | 173u,
-    (245u << 24) | (31u << 16) | (194u << 8) | 255u,
+// Derived from the tier palette in esp_armor_tier.hpp (the anchors 50/75/100/125
+// with 245 alpha), so the defaults and the tier maths share one definition.
+static constexpr uint32_t kDefaultArmorTier[4] = {
+    (armortier::Packed(50.0f) & 0x00FFFFFFu) | (245u << 24),
+    (armortier::Packed(75.0f) & 0x00FFFFFFu) | (245u << 24),
+    (armortier::Packed(100.0f) & 0x00FFFFFFu) | (245u << 24),
+    (armortier::Packed(125.0f) & 0x00FFFFFFu) | (245u << 24),
 };
 static const uint32_t kDefaultLoot = (245u << 24) | (255u << 16) | (230u << 8) | 51u;
 

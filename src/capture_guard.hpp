@@ -48,15 +48,6 @@ enum class Status : int {
     WindowLost,   // no usable window (game closing / recreating it)
 };
 
-inline const char* StatusName(Status s) {
-    switch (s) {
-        case Status::Active: return "active";
-        case Status::Denied: return "denied";
-        case Status::WindowLost: return "no window";
-        default: return "off";
-    }
-}
-
 struct Blackout {
     HWND window = nullptr;
     bool requested = false;   // what the user (or the default) asked for

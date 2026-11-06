@@ -57,7 +57,7 @@ inline constexpr Rgba Tier(float max_armor, const Rgba& grey50, const Rgba& blue
     return gold125;
 }
 
-inline uint32_t Pack(const Rgba& c) {
+inline constexpr uint32_t Pack(const Rgba& c) {
     const auto channel = [](float v) {
         const float scaled = Clamp01(v) * 255.0f;
         return static_cast<uint32_t>(scaled + 0.5f);
@@ -65,8 +65,9 @@ inline uint32_t Pack(const Rgba& c) {
     return (channel(c.a) << 24) | (channel(c.b) << 16) | (channel(c.g) << 8) | channel(c.r);
 }
 
-// ImU32 is 0xAABBGGRR.
-inline uint32_t Packed(float max_armor) {
+// ImU32 is 0xAABBGGRR. Also the source of the config's default tier colours,
+// so the palette in this header and the shipped defaults cannot drift apart.
+inline constexpr uint32_t Packed(float max_armor) {
     return Pack(Tier(max_armor));
 }
 

@@ -70,6 +70,13 @@ int main() {
     CHECK(((packed >> 16) & 0xFFu) == 255u); // blue channel of the purple tier
     CHECK(Packed(50) != Packed(125));
 
+    // The overlay derives cfg defaults from these anchors; if a tier colour
+    // changes, saved/migrated configs must not silently change meaning.
+    const uint32_t cfg_grey = (Packed(50) & 0x00FFFFFFu) | (245u << 24);
+    const uint32_t cfg_gold = (Packed(125) & 0x00FFFFFFu) | (245u << 24);
+    CHECK(cfg_grey == 4120810636u);
+    CHECK(cfg_gold == 4112499455u);
+
     if (failures) { std::printf("%d armor tier checks failed\n", failures); return 1; }
     std::printf("armor tier checks passed\n");
     return 0;
