@@ -30,7 +30,11 @@ class ConfigStoreTests(unittest.TestCase):
                 candidates.extend(glob.glob(str(Path(directory) / 'Microsoft Visual Studio/*/*/VC/Auxiliary/Build/vcvars64.bat')))
         if not candidates:
             self.skipTest('MSVC is required for the native config regression harness')
-        functions = '\n'.join(cpp_function(source, signature) for signature in (
+        # The Comet tail defaults are shared by DefaultCfg() and the migration,
+        # so the table declarations have to come along with the functions.
+        tables = source[source.index('static const uint32_t kDefaultTeamBox'):
+                        source.index('static void DefaultCfg()')]
+        functions = tables + '\n'.join(cpp_function(source, signature) for signature in (
             'static void DefaultCfg()', 'static bool LoadCfg()', 'static bool SaveCfg()',
             'bool SaveConfiguration()', 'const char* ConfigurationStatus()'))
         version = re.search(r'static const uint32_t VERSION = (\d+);', source)[1]
@@ -68,10 +72,11 @@ bool WriteAll(const wchar_t* p,const void* data,size_t count){
 }
 void put(const wchar_t* p,const Cfg& c){auto ptr=reinterpret_cast<const uint8_t*>(&c);files[p]={ptr,ptr+sizeof(c)};}
 Cfg get(const wchar_t* p){Cfg c{};assert(files[p].size()==sizeof(c));memcpy(&c,files[p].data(),sizeof(c));return c;}
+static void Log(const char*, ...) {}
 '''.replace('HEADER_PATH', header).replace('IMGUI_PATH', (project / 'third_party/imgui-master/imgui.h').as_posix()).replace('VERSION_VALUE', version)
         checks = r'''
 int main(){
- static_assert(sizeof(Cfg)==160);
+ static_assert(sizeof(Cfg)==224);
  DefaultCfg();g_cfg_ready=g_cfg_dirty=true;
  assert(!(g_cfg.reserved&OPT_AIM_SILENT));
  assert(g_cfg.col_fov==IM_COL32(89,162,255,180));
@@ -120,10 +125,36 @@ int main(){
  disk=get(L"saved");disk.reserved&=~OPT_FOV_COLOR_SET;disk.col_fov=5;put(L"saved",disk);
  assert(LoadCfg());assert(g_cfg.col_fov==IM_COL32(89,162,255,180));
  g_cfg.col_fov=0;assert(SaveCfg());assert(LoadCfg());assert(g_cfg.col_fov==0);
+
+ // ---- v7 -> v8 layout migration -------------------------------------------
+ // A v7 file is the first 148 bytes of the current struct (everything up to
+ // col_armor) followed by the old trailing pad[3]: 160 bytes total.
+ DefaultCfg();g_cfg.col_box=IM_COL32(11,22,33,244);g_cfg.aim_smooth=.42f;
+ g_cfg.pad[0]=CFG_UI_TAG;g_cfg.pad[1]=3;g_cfg.pad[2]=1;g_cfg_dirty=true;
+ assert(SaveCfg());Cfg modern=get(L"saved");
+ std::vector<uint8_t> legacy_v7(160,0);
+ memcpy(legacy_v7.data(),&modern,148);
+ memcpy(legacy_v7.data()+148,modern.pad,sizeof(modern.pad));
+ uint32_t v7_magic=CFG_MAGIC,v7_version=7;
+ memcpy(legacy_v7.data(),&v7_magic,4);memcpy(legacy_v7.data()+4,&v7_version,4);
+ files[L"saved"]=legacy_v7;
+ assert(LoadCfg());
+ assert(g_cfg.col_box==IM_COL32(11,22,33,244));   // user colours survive
+ assert(g_cfg.aim_smooth==.42f);                  // and settings
+ assert(g_cfg.pad[0]==CFG_UI_TAG&&g_cfg.pad[1]==3&&g_cfg.pad[2]==1);
+ assert(g_cfg.col_team_box[0]==IM_COL32(90,170,255,235));  // new tail defaults
+ assert(g_cfg.col_armor_tier[3]==IM_COL32(255,194,31,245));
+ assert(g_cfg.col_loot==IM_COL32(51,230,255,245));
+ assert(g_cfg.opts==OPT2_OBS_PROTECT&&g_cfg.loot_max_dist==120.f);
+ assert(g_cfg_dirty);                             // rewritten on next autosave
+ assert(SaveCfg());assert(files[L"saved"].size()==sizeof(Cfg));
+ // A v7 file with a corrupt header is still rejected, not guessed at.
+ files[L"saved"]=legacy_v7;files[L"saved"][0]=0;
+ assert(!LoadCfg());
  return 0;
 }
 '''
-        with tempfile.TemporaryDirectory(prefix='ciye-config-test-') as temp:
+        with tempfile.TemporaryDirectory(prefix='comet-config-test-') as temp:
             folder = Path(temp)
             cpp = folder / 'config_test.cpp'
             cpp.write_text(prefix + functions + checks, encoding='utf-8')

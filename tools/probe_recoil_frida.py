@@ -78,13 +78,13 @@ result = {'captured_at_unix': time.time(), 'in_hall': getattr(g, 'is_in_hall', N
           'placer_type': type(placer).__name__, 'placer_fields': values,
           'scanned_modules': len(modules), 'methods': rows}
 if TRACE:
-    key = '_ciye_recoil_observe'
+    key = '_comet_recoil_observe'
     if hasattr(builtins, key):
         raise RuntimeError('A recoil observation is already active')
     tool_id = next((i for i in (3, 4, 5) if sys.monitoring.get_tool(i) is None), None)
     if tool_id is None:
         raise RuntimeError('No free Python monitoring tool ID')
-    sys.monitoring.use_tool_id(tool_id, 'ciye-recoil-observe')
+    sys.monitoring.use_tool_id(tool_id, 'comet-recoil-observe')
     state = {'tool_id': tool_id, 'codes': [], 'events': [], 'counts': {}, 'labels': codes}
     setattr(builtins, key, state)
     def on_start(code, offset):
@@ -103,7 +103,7 @@ with open(OUTPUT, 'w', encoding='utf-8') as handle:
 
 CLEANUP = r'''
 import builtins, json, sys, time
-state = getattr(builtins, '_ciye_recoil_observe', None)
+state = getattr(builtins, '_comet_recoil_observe', None)
 if state is not None:
     tool_id = state['tool_id']
     for code in state['codes']:
@@ -112,7 +112,7 @@ if state is not None:
     sys.monitoring.free_tool_id(tool_id)
     result = {'finished_at_unix': time.time(), 'counts': state['counts'],
               'events': state['events'], 'monitoring_removed': sys.monitoring.get_tool(tool_id) is None}
-    delattr(builtins, '_ciye_recoil_observe')
+    delattr(builtins, '_comet_recoil_observe')
     with open(OUTPUT, 'w', encoding='utf-8') as handle:
         json.dump(result, handle, indent=2)
 '''

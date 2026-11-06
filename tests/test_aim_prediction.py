@@ -146,12 +146,15 @@ class PredictionTests(unittest.TestCase):
                         '_poll_input_keystate': lambda key: True, '_get_track_mode_toggle': lambda cfg: False,
                         '_filter_view_direction': lambda e,c,t,cfg,dt: t,
                         '_get_placer': lambda: types.SimpleNamespace(TurnView=lambda *args: None),
-                        '_cam_dir': lambda cam: (0,0,1), '_key_diag': lambda key: '', '_sys_log': lambda msg: None})
+                        '_cam_dir': lambda cam: (0,0,1), '_key_diag': lambda key: '', '_sys_log': lambda msg: None,
+                        # Comet port: aim-only input noise stays off in this harness.
+                        'OPT2_AIM_NOISE': 1 << 6, 'IDX_OPTS': 50, 'IDX_NOISE_STRENGTH': 52,
+                        '_opt2': lambda cfg, bit: False, '_noise_strength': lambda cfg: 0.0})
         for retained in (False, True):
             turns = []
             self.ns['_pick'] = lambda *args: None if retained else best
             self.ns['_pick_eid'] = lambda *args: best
-            self.ns['_apply_view_transform'] = lambda p,c,t,s,dt: turns.append(t)
+            self.ns['_apply_view_transform'] = lambda p,c,t,s,dt,*a: turns.append(t)
             self.ns['_update_cam_trajectory'](self.cfg, [best], object(), (0,0,0), False, 1/60)
             self.assertGreater(turns[0][0], point[0])
 

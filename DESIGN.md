@@ -1,5 +1,5 @@
 ---
-name: CiyE native interface
+name: Comet native interface
 description: Source-adapted charcoal and lavender Windows menu and loader
 colors:
   accent: "#9B8AF4"
@@ -85,13 +85,13 @@ components:
     padding: "18px 20px"
 ---
 
-# Design System: CiyE native interface
+# Design System: Comet native interface
 
 ## Overview
 
-**Creative North Star: "The CiyE control surface"**
+**Creative North Star: "The Comet control surface"**
 
-A compact native Windows control surface adapted from the user-supplied 34Cheat UI source. Charcoal surfaces, a lavender accent, a cube mark and restrained line icons connect the menu and loader while retaining CiyE branding and Blood Strike feature content.
+A compact native Windows control surface adapted from the user-supplied 34Cheat UI source. Charcoal surfaces, a lavender accent, a cube mark and restrained line icons connect the menu and loader while retaining Comet branding and Blood Strike feature content.
 
 This refresh merges the earlier interface constraints with the UI reference implementation in `reference/34Cheat-UI`. The six donor files are retained under `reference/34Cheat-UI`. The donor uses Direct2D and depends on unavailable original project headers; the implemented port uses the existing Win32/DirectX 11 ImGui backend. Shared style and widgets live in `bs-cheat/src/ui_theme.h`; menu and loader composition live in `overlay.cpp` and `loader.cpp`.
 
@@ -132,7 +132,7 @@ Navigation retains Visuals / Aim / Skins / Settings with authored eye, target, s
 
 Skins retains Characters / Knives / Guns / Inventory, search, rarity labels, current-hero filtering, explicit reload and auto-apply controls. Preserve highest valid gun-level filtering. Artifact skins remain reference-only with disabled apply actions and an explanatory message.
 
-Inventory contains only the active saved choice per hero/weapon group. Clicking a selectable skin name or Apply replaces and atomically persists its slot at `%LOCALAPPDATA%/CiyE/BloodStrike/skin_inventory.bin`; older inactive history is discarded on load. Inventory exposes Remove, includes saved choices in search without a loaded catalog, and reports read/write failures without replacing a damaged file with defaults. Auto apply follows the existing global switch and matches loaded combat equipment, including training and subsequent matches; the latest compatible knife selection wins when melee categories overlap. These choices do not establish account ownership.
+Inventory contains only the active saved choice per hero/weapon group. Clicking a selectable skin name or Apply replaces and atomically persists its slot at `%LOCALAPPDATA%/Comet/BloodStrike/skin_inventory.bin`; older inactive history is discarded on load. Inventory exposes Remove, includes saved choices in search without a loaded catalog, and reports read/write failures without replacing a damaged file with defaults. Auto apply follows the existing global switch and matches loaded combat equipment, including training and subsequent matches; the latest compatible knife selection wins when melee categories overlap. These choices do not establish account ownership.
 
 Loader retains its existing modes, start options, callbacks, connected startup timeline and collapsed activity details. Status markers reflect real process/session state; do not invent percentages or readiness.
 
@@ -140,7 +140,7 @@ Keyboard navigation is enabled in both ImGui contexts. Tab/Shift+Tab move focus;
 
 ## Do's and Don'ts
 
-- Do retain CiyE naming and the existing feature content.
+- Do retain Comet naming and the existing feature content.
 - Do use native ImGui interaction for keyboard focus, activation and clamped slider values.
 - Do keep catalog and Inventory errors visible and content reachable through scrolling.
 - Don't add a sidebar footer, attachment dot, attachment text or Insert hint.

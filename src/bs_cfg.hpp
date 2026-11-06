@@ -42,7 +42,15 @@ struct Cfg {
     uint32_t skin_knife_item;
     uint32_t auto_skin;
     uint32_t col_armor;
-    uint32_t pad[3];
+    // ---- Comet port additions (layout grows only at the tail) -------------
+    uint32_t col_team_box[4];   // Box colour per team when team tints are on.
+    uint32_t col_team_line[4];  // Snapline colour per team.
+    uint32_t col_armor_tier[4]; // Max-armor tiers: 50 grey, 75 blue, 100 purple, 125 gold.
+    uint32_t col_loot;          // Ground-loot marker/distance colour.
+    uint32_t opts;              // OPT2_* bits below.
+    float    loot_max_dist;     // Ground-loot draw range in metres.
+    float    noise_strength;    // Input-noise amplitude (aimbot only).
+    uint32_t pad[3];            // pad[0]=UI tag, pad[1]=theme, pad[2]=reduced motion.
 };
 #pragma pack(pop)
 
@@ -81,6 +89,18 @@ enum : uint32_t {
     F_ESP_FILLED     = 1u << 31,
 };
 
+// Secondary option word (Cfg::opts). New toggles use these bits so the original
+// `flags` word keeps every assignment saved configurations already rely on.
+enum : uint32_t {
+    OPT2_ESP_HERO     = 1u << 0, // Enemy hero name chip
+    OPT2_ESP_LOOT     = 1u << 1, // Ground loot markers + distance
+    OPT2_TEAM_LABEL   = 1u << 2, // "Team N" chip
+    OPT2_TEAM_COLORS  = 1u << 3, // Per-team box + snapline tint
+    OPT2_ESP_ARMOR_MAX= 1u << 4, // Max-armor tier label on the armor bar
+    OPT2_OBS_PROTECT  = 1u << 5, // OBS capture exclusion for the game window
+    OPT2_AIM_NOISE    = 1u << 6, // Input noise (aimbot only)
+};
+
 inline constexpr uint32_t CFG_UI_TAG = 0x55490001;
 inline constexpr uint32_t ESP_LINE_ORIGIN_MASK = 3u; // Bottom=0, Top=1, Mid=2.
 inline constexpr uint32_t ESP_OFFSCREEN_ARROW = 1u << 2;
@@ -103,6 +123,12 @@ extern Cfg  g_cfg;
 extern bool g_cfg_dirty;
 
 inline bool Has(uint32_t f) { return (g_cfg.flags & f) != 0; }
+inline bool HasOpt2(uint32_t f) { return (g_cfg.opts & f) != 0; }
+inline void SetOpt2(uint32_t f, bool on) {
+    uint32_t prev = g_cfg.opts;
+    g_cfg.opts = on ? (g_cfg.opts | f) : (g_cfg.opts & ~f);
+    if (g_cfg.opts != prev) g_cfg_dirty = true;
+}
 inline void SetF(uint32_t f, bool on) {
     uint32_t prev = g_cfg.flags;
     g_cfg.flags = on ? (g_cfg.flags | f) : (g_cfg.flags & ~f);

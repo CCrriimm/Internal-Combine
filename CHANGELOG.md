@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Rename the shipped build to **Comet**: the packed loader is `dist/Comet.exe`, the loader window/brand mark and config folder read Comet, and the Actions artifact is `comet-x64-release-<sha>`, still one zip from the same two directories so its contents are unchanged.
+- Port the requested Comet features without touching existing behaviour: enemy hero-name chip (`hero_id` appended to the entity record), OBS capture protection via `SetWindowDisplayAffinity(WDA_EXCLUDEFROMCAPTURE)` with a timer-gated re-apply "bypass", ground-loot ESP (`CombatItemEntity`/`Supply`, packet trailer), max-armor tier colours (50 grey / 75 blue / 100 purple / 125 gold), compact team label plus per-team box and snapline colours, aimbot-only input noise, and SendInput as the runtime's only mouse-injection path (`mouse_event` and its fallback removed). See `docs/comet-port.md`.
+- Config layout grows at the tail only (`Cfg` 160 -> 224 bytes, `VERSION` 7 -> 8, `Ent` 280 -> 288). A saved v7 `cfg.bin` is migrated forward, keeping every existing setting and filling the new tail with defaults, so a layout bump does not wipe anyone's preferences; `state.bin`/`catalog.bin` are runtime-owned and are rebuilt on the version check. Remove the unconditional `WDA_NONE` in `InitOverlay` so the capture guard owns display affinity.
+- New isolated tests (capture guard, team label/tints, armor tiers, loot reader + packet trailer, mouse output) and the existing aim/tick harnesses updated for the new options word; 174 tests pass.
+
 - Recognize remote CombatAvatar variants in custom rooms, prefer cur_maxhp for current maximum health, and resolve the active local combat avatar before stale avatar references. Add regression coverage; all 143 Python tests pass. The user confirmed the updated build works in game.
 - Package the Release loader as one portable CiyE.exe with eight embedded payload files; verify embedded scripts match the runtime source.
 - Add a saved FOV color picker to Aim, reusing an unused config slot without changing the 160-byte layout. Migrate older configs to the existing blue color. Keep the original FOV projection; the scaled-preview change was withdrawn at the user's request.

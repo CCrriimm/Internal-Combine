@@ -41,7 +41,7 @@ int main() {
     assert(!radar::Project(0,0,0,1,inf,x,y));
 }
 '''
-        with tempfile.TemporaryDirectory(prefix='ciye-radar-test-') as temp:
+        with tempfile.TemporaryDirectory(prefix='comet-radar-test-') as temp:
             folder = Path(temp)
             (folder / 'test.cpp').write_text(source, encoding='utf-8')
             batch = folder / 'test.cmd'

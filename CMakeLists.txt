@@ -54,7 +54,7 @@ set_target_properties(bsmap PROPERTIES LINK_FLAGS "/MANIFEST:EMBED /MANIFESTUAC:
 # Single-exe loader (ImGui + D3D11 GUI, embedded payload)
 # ---------------------------------------------------------------------------
 
-set(CIYE_DIST_DIR "${CMAKE_SOURCE_DIR}/dist" CACHE PATH "Single output folder for the packed loader")
+set(COMET_DIST_DIR "${CMAKE_SOURCE_DIR}/dist" CACHE PATH "Single output folder for the packed loader")
 
 enable_language(RC)
 
@@ -73,10 +73,10 @@ target_compile_definitions(bs_loader PRIVATE WIN32_LEAN_AND_MEAN NOMINMAX)
 target_link_libraries(bs_loader PRIVATE d3d11 dxgi dwmapi shell32 advapi32 user32)
 set_target_properties(bs_loader PROPERTIES
     WIN32_EXECUTABLE TRUE
-    OUTPUT_NAME "CiyE"
-    RUNTIME_OUTPUT_DIRECTORY         "${CIYE_DIST_DIR}"
-    RUNTIME_OUTPUT_DIRECTORY_DEBUG   "${CIYE_DIST_DIR}"
-    RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CIYE_DIST_DIR}"
+    OUTPUT_NAME "Comet"
+    RUNTIME_OUTPUT_DIRECTORY         "${COMET_DIST_DIR}"
+    RUNTIME_OUTPUT_DIRECTORY_DEBUG   "${COMET_DIST_DIR}"
+    RUNTIME_OUTPUT_DIRECTORY_RELEASE "${COMET_DIST_DIR}"
     LINK_FLAGS "/MANIFEST:EMBED /MANIFESTUAC:\"level='requireAdministrator' uiAccess='false'\""
 )
 
@@ -120,11 +120,11 @@ if(PYTHON_EXE)
         COMMAND "${PYTHON_EXE}" "${CMAKE_CURRENT_SOURCE_DIR}/tools/pack_loader.py"
                 --exe "$<TARGET_FILE:bs_loader>" ${LOADER_PACK_ARGS}
         DEPENDS bs_loader bs_pyexec bs_overlay bsmap
-        COMMENT "Embedding payload into ${CIYE_DIST_DIR}/CiyE.exe"
+        COMMENT "Embedding payload into ${COMET_DIST_DIR}/Comet.exe"
         VERBATIM
     )
 else()
-    message(WARNING "Python not found: CiyE.exe will be built without embedded payload")
+    message(WARNING "Python not found: Comet.exe will be built without embedded payload")
 endif()
 
 # Isolated real ImGui render checks; never initializes game hooks or reads user config.

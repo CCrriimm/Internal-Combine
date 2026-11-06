@@ -49,7 +49,7 @@ int main() {
     assert(!esp::Arrow(800,600,std::numeric_limits<float>::infinity(),1,tip,dir));
 }
 '''
-        with tempfile.TemporaryDirectory(prefix='ciye-esp-test-') as temp:
+        with tempfile.TemporaryDirectory(prefix='comet-esp-test-') as temp:
             folder = Path(temp)
             (folder / 'test.cpp').write_text(source, encoding='utf-8')
             batch = folder / 'test.cmd'

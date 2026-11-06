@@ -13,7 +13,7 @@ static LRESULT CALLBACK KeyboardGameProc(HWND h,UINT message,WPARAM w,LPARAM l) 
 }
 static int CheckKeyboardInput() {
     WNDCLASSW cls{};cls.lpfnWndProc=KeyboardGameProc;cls.hInstance=GetModuleHandleW(nullptr);
-    cls.lpszClassName=L"CiyE.KeyboardCheck";RegisterClassW(&cls);
+    cls.lpszClassName=L"Comet.KeyboardCheck";RegisterClassW(&cls);
     HWND window=CreateWindowW(cls.lpszClassName,L"Keyboard check",WS_POPUP,-10000,-10000,640,480,
                               nullptr,nullptr,cls.hInstance,nullptr);
     if(!window) return 2;
@@ -90,9 +90,9 @@ int main(int argc,char** argv) {
         std::filesystem::create_directories(output);
         wchar_t executable[MAX_PATH]{};GetModuleFileNameW(nullptr,executable,MAX_PATH);
         std::filesystem::create_directories(std::filesystem::path(executable).parent_path()/"ipc");
-        WNDCLASSW wc{};wc.lpfnWndProc=DefWindowProcW;wc.hInstance=GetModuleHandleW(nullptr);wc.lpszClassName=L"CiyEImGuiPreview";
+        WNDCLASSW wc{};wc.lpfnWndProc=DefWindowProcW;wc.hInstance=GetModuleHandleW(nullptr);wc.lpszClassName=L"CometImGuiPreview";
         RegisterClassW(&wc);
-        HWND window=CreateWindowW(wc.lpszClassName,L"CiyE ImGui Preview",WS_POPUP,0,0,1200,900,nullptr,nullptr,wc.hInstance,nullptr);
+        HWND window=CreateWindowW(wc.lpszClassName,L"Comet ImGui Preview",WS_POPUP,0,0,1200,900,nullptr,nullptr,wc.hInstance,nullptr);
         DXGI_SWAP_CHAIN_DESC desc{};desc.BufferCount=1;desc.BufferDesc.Width=1200;desc.BufferDesc.Height=900;
         desc.BufferDesc.Format=DXGI_FORMAT_R8G8B8A8_UNORM;desc.BufferUsage=DXGI_USAGE_RENDER_TARGET_OUTPUT;
         desc.OutputWindow=window;desc.SampleDesc.Count=1;desc.Windowed=TRUE;desc.SwapEffect=DXGI_SWAP_EFFECT_DISCARD;
@@ -122,9 +122,9 @@ int main(int argc,char** argv) {
             for(int frame=0;frame<50;++frame) {
                 ImGui_ImplDX11_NewFrame();ImGui_ImplWin32_NewFrame();io.DisplaySize=ImVec2(1200,900);io.DeltaTime=1.f/60;
                 ImGui::NewFrame();
-                if(ImGui::FindWindowByName("##ciye_main")) {
-                    ImGui::SetWindowSize("##ciye_main",size);
-                    ImGui::SetWindowPos("##ciye_main",ImVec2((1200-size.x)*.5f,(900-size.y)*.5f));
+                if(ImGui::FindWindowByName("##comet_main")) {
+                    ImGui::SetWindowSize("##comet_main",size);
+                    ImGui::SetWindowPos("##comet_main",ImVec2((1200-size.x)*.5f,(900-size.y)*.5f));
                 }
                 DrawMenu();ImGui::Render();
                 const float clear[]={.045f,.055f,.073f,1};context->OMSetRenderTargets(1,&rtv,nullptr);

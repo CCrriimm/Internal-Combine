@@ -37,9 +37,12 @@ foreach ($f in $needed) {
 Copy-Item -LiteralPath (Join-Path $root 'pyexec\cmd.py') -Destination $py
 Copy-Item -LiteralPath (Join-Path $root 'pyexec\bs_runtime.py') -Destination $py
 Copy-Item -LiteralPath (Join-Path $root 'run_cheat.bat') -Destination $Out
-$loaderExe = Join-Path $rel 'bs_loader.exe'
+# The packed single-exe loader lands in dist/ (see CMakeLists.txt); accept
+# either location so a fresh cmake build and a packed build both work.
+$loaderExe = Join-Path $root 'dist\Comet.exe'
+if (-not (Test-Path -LiteralPath $loaderExe)) { $loaderExe = Join-Path $rel 'Comet.exe' }
 if (Test-Path -LiteralPath $loaderExe) {
-    Copy-Item -LiteralPath $loaderExe -Destination (Join-Path $Out 'CiyE_Loader.exe')
+    Copy-Item -LiteralPath $loaderExe -Destination (Join-Path $Out 'Comet.exe')
 }
 
 Copy-Item -LiteralPath (Join-Path $root 'driver\load_driver.bat') -Destination $drv
@@ -58,13 +61,15 @@ if (Test-Path -LiteralPath $vuln) {
 }
 
 $readme = @'
-CiyE BloodStrike Internal - portable build
+Comet BloodStrike Internal - portable build
 
-1. Start BloodStrike.exe and wait for the lobby.
-2. Right-click run_cheat.bat -> Run as administrator.
-3. Press INSERT in game to toggle the menu.
+Option A (single file): run Comet.exe as administrator.
+Option B: start BloodStrike.exe, wait for the lobby, then
+          right-click run_cheat.bat -> Run as administrator.
+Press INSERT in game to toggle the menu.
 
 Layout:
+  Comet.exe                    packed single-file loader
   build\Release\injector.exe   fallback injector
   build\Release\bsmap.exe      driver-mode mapper
   build\Release\bs_pyexec.dll  python bridge

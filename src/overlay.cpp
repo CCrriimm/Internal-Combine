@@ -20,6 +20,8 @@
 
 #include <cstdint>
 
+#include <cstddef>
+
 #include <cstdio>
 
 #include <cstdarg>
@@ -53,6 +55,9 @@
 #include "bs_cfg.hpp"
 #include "esp_geometry.hpp"
 #include "radar_geometry.hpp"
+#include "esp_team.hpp"
+#include "esp_armor_tier.hpp"
+#include "capture_guard.hpp"
 
 
 
@@ -102,6 +107,22 @@ struct Ent {
 
     float bones[16][2]; // 16 bones in normalized screen coords [0..1]
 
+    // Comet additions. Appended at the tail so every earlier offset in the
+    // serialized record - and therefore every existing reader - is unchanged.
+    uint32_t hero_id;   // replicated hero_id, 0 when unknown
+    uint32_t is_dying;  // runtime DYING/downed state, published for diagnostics;
+                        // the KNOCKED label still uses is_knocked above.
+
+};
+
+// Ground loot published after the player array. Owner type is an exact
+// allowlist in the runtime (CombatItemEntity / Supply); no item name is
+// invented, so `kind` only distinguishes the two captured container types.
+struct LootEnt {
+    uint64_t id;
+    float    screen[2];   // normalized [0..1]
+    float    distance;
+    uint32_t kind;        // 0 = dropped item, 1 = supply container
 };
 
 
@@ -176,9 +197,16 @@ struct CatEntry {
 
 
 
-static_assert(sizeof(Cfg) == 160, "Cfg size");
+static_assert(sizeof(Cfg) == 224, "Cfg size");
 
-static_assert(sizeof(Ent) == 280, "Ent size");
+// The v7 -> v8 migration in LoadCfg() hard-codes the boundary between the
+// legacy fields and the new Comet tail. Pin it so a future layout edit cannot
+// silently corrupt an old config instead of failing the build.
+static_assert(offsetof(Cfg, col_team_box) == 148, "v7 legacy prefix changed");
+
+static_assert(sizeof(Ent) == 288, "Ent size");
+
+static_assert(sizeof(LootEnt) == 24, "LootEnt size");
 
 static_assert(sizeof(State) == 84, "State size");
 
@@ -194,7 +222,7 @@ static const uint32_t STATE_MAGIC = 0x42535331;
 
 static const uint32_t CATALOG_MAGIC = 0x42534354;
 
-static const uint32_t VERSION = 7;
+static const uint32_t VERSION = 8;
 
 
 
@@ -204,7 +232,7 @@ static bool ReadOverlayRootHint(std::wstring& root) {
 
     if (!GetTempPathW(MAX_PATH, tmp)) return false;
 
-    std::wstring path = std::wstring(tmp) + L"CiyE_BSLoader\\root.txt";
+    std::wstring path = std::wstring(tmp) + L"Comet_BSLoader\\root.txt";
 
     HANDLE h = CreateFileW(path.c_str(), GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE,
                            nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
@@ -307,7 +335,7 @@ static const std::wstring& SavedCfgPath() {
         wchar_t local[32768]{};
         const DWORD size = GetEnvironmentVariableW(L"LOCALAPPDATA", local, 32768);
         if (!size || size >= 32768) return IpcDir() + L"\\settings.bin";
-        std::wstring dir = std::wstring(local) + L"\\CiyE";
+        std::wstring dir = std::wstring(local) + L"\\Comet";
         CreateDirectoryW(dir.c_str(), nullptr);
         dir += L"\\BloodStrike";
         CreateDirectoryW(dir.c_str(), nullptr);
@@ -377,7 +405,7 @@ static HWND g_hwnd = nullptr;
 static bool g_input_attached=false;
 static bool g_menu_owns_capture=false;
 static UINT MenuInputCloseMessage() {
-    static const UINT message=RegisterWindowMessageW(L"CiyE.MenuInput.Close");
+    static const UINT message=RegisterWindowMessageW(L"Comet.MenuInput.Close");
     return message;
 }
 
@@ -479,6 +507,12 @@ static ULONGLONG g_last_cfg_save = 0;
 static State g_state{};
 
 static std::vector<Ent> g_ents;
+
+static std::vector<LootEnt> g_loot;
+
+static teamtint::Labels g_team_labels;
+
+static comet_capture::Blackout g_obs{};
 
 static FILETIME g_state_write{};
 
@@ -685,6 +719,28 @@ static bool WriteAll(const wchar_t* path, const void* data, size_t size) {
 
 
 
+// Single source of truth for the Comet tail defaults: DefaultCfg() and the
+// v7 -> v8 migration both read these, so they cannot drift apart.
+static const uint32_t kDefaultTeamBox[4] = {
+    (235u << 24) | (255u << 16) | (170u << 8) | 90u,
+    (235u << 24) | (63u << 16) | (158u << 8) | 255u,
+    (235u << 24) | (115u << 16) | (242u << 8) | 115u,
+    (235u << 24) | (255u << 16) | (127u << 8) | 217u,
+};
+static const uint32_t kDefaultTeamLine[4] = {
+    (200u << 24) | (255u << 16) | (170u << 8) | 90u,
+    (200u << 24) | (63u << 16) | (158u << 8) | 255u,
+    (200u << 24) | (115u << 16) | (242u << 8) | 115u,
+    (200u << 24) | (255u << 16) | (127u << 8) | 217u,
+};
+static const uint32_t kDefaultArmorTier[4] = {
+    (245u << 24) | (158u << 16) | (148u << 8) | 140u,
+    (245u << 24) | (255u << 16) | (140u << 8) | 51u,
+    (245u << 24) | (255u << 16) | (82u << 8) | 173u,
+    (245u << 24) | (31u << 16) | (194u << 8) | 255u,
+};
+static const uint32_t kDefaultLoot = (245u << 24) | (255u << 16) | (230u << 8) | 51u;
+
 static void DefaultCfg() {
 
     ZeroMemory(&g_cfg, sizeof(g_cfg));
@@ -762,6 +818,22 @@ static void DefaultCfg() {
 
     g_cfg.auto_skin = 1;
 
+    // Team box / line (slots 1-4), armor tiers (50 grey, 75 blue, 100 purple,
+    // 125 gold) and the loot marker. Shared with the v7 -> v8 migration above.
+    for (int i = 0; i < 4; ++i) {
+        g_cfg.col_team_box[i] = kDefaultTeamBox[i];
+        g_cfg.col_team_line[i] = kDefaultTeamLine[i];
+        g_cfg.col_armor_tier[i] = kDefaultArmorTier[i];
+    }
+
+    g_cfg.col_loot = kDefaultLoot;
+
+    g_cfg.opts = OPT2_OBS_PROTECT;
+
+    g_cfg.loot_max_dist = 120.0f;
+
+    g_cfg.noise_strength = 0.0016f;
+
 }
 
 
@@ -773,6 +845,39 @@ static bool LoadCfg() {
     const DWORD error = attributes == INVALID_FILE_ATTRIBUTES ? GetLastError() : ERROR_SUCCESS;
     const bool missing = attributes == INVALID_FILE_ATTRIBUTES && (error == ERROR_FILE_NOT_FOUND || error == ERROR_PATH_NOT_FOUND);
     const bool read = ReadAll((missing ? CfgPath() : SavedCfgPath()).c_str(), buf);
+    // v7 -> v8 migration. The Comet tail was appended after col_armor, so the
+    // first 148 bytes of a v7 file are byte-identical to the new layout and the
+    // old pad[3] simply moves to the end. Without this, growing Cfg would throw
+    // away every saved preference once - including the user's keybinds and
+    // colours - which is not an acceptable cost for adding features.
+    bool migrated = false;
+    if (read && buf.size() == 160) {
+        uint32_t old_magic = 0, old_version = 0;
+        memcpy(&old_magic, buf.data(), sizeof(old_magic));
+        memcpy(&old_version, buf.data() + sizeof(old_magic), sizeof(old_version));
+        if (old_magic == CFG_MAGIC && old_version == 7) {
+            constexpr size_t kV7LegacyBytes = 148; // everything up to col_armor
+            Cfg m{};
+            memcpy(&m, buf.data(), kV7LegacyBytes);
+            // v7's trailing pad[3] (UI tag / theme / reduced motion) is at 148.
+            memcpy(m.pad, buf.data() + kV7LegacyBytes, sizeof(m.pad));
+            // The new tail keeps the same defaults a fresh install would get, so
+            // a migrated config cannot end up with colours switched off.
+            for (int i = 0; i < 4; ++i) {
+                m.col_team_box[i] = kDefaultTeamBox[i];
+                m.col_team_line[i] = kDefaultTeamLine[i];
+                m.col_armor_tier[i] = kDefaultArmorTier[i];
+            }
+            m.col_loot = kDefaultLoot;
+            m.opts = OPT2_OBS_PROTECT;
+            m.loot_max_dist = 120.0f;
+            m.noise_strength = 0.0016f;
+            m.version = VERSION;
+            buf.assign(reinterpret_cast<const uint8_t*>(&m),
+                       reinterpret_cast<const uint8_t*>(&m) + sizeof(m));
+            migrated = true;
+        }
+    }
     if (!read || buf.size() != sizeof(Cfg)) {
         DefaultCfg();
         g_cfg_ready = g_cfg_dirty = true;
@@ -827,6 +932,18 @@ static bool LoadCfg() {
 
     if (c.col_count == 0) c.col_count = IM_COL32(96, 235, 155, 255);
 
+    for (int i = 0; i < 4; ++i) {
+        if (c.col_team_box[i] == 0) c.col_team_box[i] = IM_COL32(90, 170, 255, 235);
+        if (c.col_team_line[i] == 0) c.col_team_line[i] = IM_COL32(90, 170, 255, 200);
+    }
+    if (c.col_armor_tier[0] == 0) c.col_armor_tier[0] = IM_COL32(140, 148, 158, 245);
+    if (c.col_armor_tier[1] == 0) c.col_armor_tier[1] = IM_COL32(51, 140, 255, 245);
+    if (c.col_armor_tier[2] == 0) c.col_armor_tier[2] = IM_COL32(173, 82, 255, 245);
+    if (c.col_armor_tier[3] == 0) c.col_armor_tier[3] = IM_COL32(255, 194, 31, 245);
+    if (c.col_loot == 0) c.col_loot = IM_COL32(51, 230, 255, 245);
+    if (!std::isfinite(c.loot_max_dist) || c.loot_max_dist < 10.0f || c.loot_max_dist > 500.0f) c.loot_max_dist = 120.0f;
+    if (!std::isfinite(c.noise_strength) || c.noise_strength < 0.0f || c.noise_strength > 0.02f) c.noise_strength = 0.0016f;
+
     if (c.aim_bone < 0 || c.aim_bone > 4) c.aim_bone = 0;
 
     if (c.aim_key < 0 || c.aim_key > 255) c.aim_key = VK_RBUTTON;
@@ -852,7 +969,10 @@ static bool LoadCfg() {
     c.flags = (c.flags & ~F_EXIT_CHEAT) | F_MENU_OPEN;
     c.apply_seq = c.apply_item = 0; c.apply_type = 0;
     g_cfg = c;
+    // Loaded configs stay dirty so the next autosave rewrites them in the
+    // current layout; that is also what flushes a v7 -> v8 migration to disk.
     g_cfg_ready = g_cfg_dirty = g_cfg_writable = true;
+    if (migrated) Log("config migrated from layout v7 (settings preserved)");
     return true;
 }
 
@@ -892,9 +1012,9 @@ const char* ConfigurationStatus() {
 
 static void ApplyMenuPreferences() {
     const bool valid = g_cfg.pad[0] == CFG_UI_TAG && g_cfg.pad[1] <= 4;
-    CiyEUi::SetTheme(valid ? g_cfg.pad[1] : 2);
-    CiyEUi::ReducedMotion = valid && g_cfg.pad[2] != 0;
-    CiyEUi::ApplyStyle();
+    CometUi::SetTheme(valid ? g_cfg.pad[1] : 2);
+    CometUi::ReducedMotion = valid && g_cfg.pad[2] != 0;
+    CometUi::ApplyStyle();
 }
 
 static void ResetCfg() {
@@ -944,6 +1064,41 @@ static void SetOptAimToggle(bool on) {
 
 
 
+// Ground loot trailer: [u32 count][LootEnt * count] immediately after the
+// player array. A record that does not fit is dropped rather than read past the
+// mapped buffer, so a stale/shorter packet can never produce a phantom marker.
+static void ParseLoot(const uint8_t* base, size_t avail, uint32_t ents) {
+    g_loot.clear();
+    const size_t offset = sizeof(State) + (size_t)ents * sizeof(Ent);
+    if (!base || avail < offset + sizeof(uint32_t)) return;
+    uint32_t count = 0;
+    memcpy(&count, base + offset, sizeof(count));
+    const size_t room = (avail - offset - sizeof(uint32_t)) / sizeof(LootEnt);
+    if (count > room) count = (uint32_t)room;
+    if (count > 128) count = 128;
+    if (!count) return;
+    g_loot.resize(count);
+    memcpy(g_loot.data(), base + offset + sizeof(uint32_t), (size_t)count * sizeof(LootEnt));
+}
+
+// Keeps SetWindowDisplayAffinity(WDA_EXCLUDEFROMCAPTURE) in force while the
+// Settings toggle is on. The guard re-asserts the affinity if the game clears
+// it and backs off after an API failure instead of retrying every frame.
+static void ApplyObsProtection() {
+    if (!g_hwnd) {
+        comet_capture::Apply(nullptr, false, g_obs, GetTickCount64());
+        return;
+    }
+    const comet_capture::Status before = g_obs.status;
+    comet_capture::Apply(g_hwnd, HasOpt2(OPT2_OBS_PROTECT), g_obs, GetTickCount64());
+    if (g_obs.status != before) {
+        if (g_obs.status == comet_capture::Status::Denied)
+            Log("obs protection denied (win32 error %lu)", g_obs.error);
+        else
+            Log("obs protection %s", comet_capture::Describe(g_obs));
+    }
+}
+
 static bool LoadState() {
 
     // 1. Try shared memory first (sub-microsecond memory copy, zero disk lag)
@@ -971,6 +1126,7 @@ static bool LoadState() {
                     memcpy(g_ents.data(), src, count * sizeof(Ent));
 
                 }
+                ParseLoot(reinterpret_cast<const uint8_t*>(g_shm_state_p), 65536, count);
 
             }
 
@@ -1011,6 +1167,8 @@ static bool LoadState() {
         memcpy(g_ents.data(), g_buffer.data() + sizeof(State), count * sizeof(Ent));
 
     }
+
+    ParseLoot(g_buffer.data(), g_buffer.size(), count);
 
     return true;
 
@@ -1125,6 +1283,34 @@ static std::string HeroLabel(uint32_t id, const CatEntry* e) {
     snprintf(buf, sizeof(buf), "Hero %u", id);
 
     return std::string(buf);
+
+}
+
+
+// Hero name for an ESP chip. Unknown/missing replicated ids print nothing rather
+// than "Hero 0": a target without hero data must not gain a fake label.
+static std::string EnemyHeroLabel(uint32_t hero_id) {
+
+    if (!hero_id) return std::string();
+
+    const char* known = HeroNameById(hero_id);
+
+    if (known) return std::string(known);
+
+    char buf[24];
+
+    snprintf(buf, sizeof(buf), "Hero %u", hero_id);
+
+    return std::string(buf);
+
+}
+
+
+// Palette colour for a raw team id (box or snapline slot). The fallback keeps
+// entities whose team is still streaming looking neutral instead of Team 1.
+static ImU32 TeamTint(int team, const uint32_t (&palette)[4]) {
+
+    return teamtint::ColourFor(team, palette);
 
 }
 
@@ -1422,7 +1608,7 @@ static bool CheckU8(const char* label, uint8_t& v) {
 
     bool b = v != 0;
 
-    if (CiyEUi::Toggle(label, &b, ImGui::GetContentRegionAvail().x)) {
+    if (CometUi::Toggle(label, &b, ImGui::GetContentRegionAvail().x)) {
 
         v = b ? 1 : 0;
 
@@ -1442,7 +1628,7 @@ static bool FlagCheck(const char* label, uint32_t flag) {
 
     bool b = Has(flag);
 
-    if (CiyEUi::Toggle(label, &b, ImGui::GetContentRegionAvail().x)) {
+    if (CometUi::Toggle(label, &b, ImGui::GetContentRegionAvail().x)) {
 
         SetF(flag, b);
 
@@ -1460,7 +1646,7 @@ static bool SliderI32(const char* label, int32_t& v, int32_t lo, int32_t hi) {
 
     int tmp = v;
 
-    if (CiyEUi::Slider(label, &tmp, lo, hi, "%d")) {
+    if (CometUi::Slider(label, &tmp, lo, hi, "%d")) {
 
         v = tmp;
 
@@ -1480,7 +1666,7 @@ static bool SliderF32(const char* label, float& v, float lo, float hi, const cha
 
     float tmp = v;
 
-    if (CiyEUi::Slider(label, &tmp, lo, hi, fmt)) {
+    if (CometUi::Slider(label, &tmp, lo, hi, fmt)) {
 
         v = tmp;
 
@@ -1511,7 +1697,7 @@ static const std::wstring& SkinInventoryPath() {
         wchar_t local[32768]{};
         DWORD count = GetEnvironmentVariableW(L"LOCALAPPDATA", local, 32768);
         if (!count || count >= 32768) return IpcDir() + L"\\skin_inventory.bin";
-        std::wstring folder = std::wstring(local) + L"\\CiyE";
+        std::wstring folder = std::wstring(local) + L"\\Comet";
         CreateDirectoryW(folder.c_str(), nullptr);
         folder += L"\\BloodStrike";
         CreateDirectoryW(folder.c_str(), nullptr);
@@ -1673,7 +1859,7 @@ static bool BeginCard(const char* id, const ImVec2& size) {
 
     ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(.082f,.106f,.145f,1));
 
-    ImGui::PushStyleColor(ImGuiCol_Border, ImGui::ColorConvertU32ToFloat4(CiyEUi::Border));
+    ImGui::PushStyleColor(ImGuiCol_Border, ImGui::ColorConvertU32ToFloat4(CometUi::Border));
 
     ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 8.0f);
 
@@ -1704,12 +1890,12 @@ static void EndCard() {
 static bool TabButton(const char* label, bool active, float width) {
     const ImVec2 p=ImGui::GetCursorScreenPos();
     ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0,0,0,0));
-    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImGui::ColorConvertU32ToFloat4(CiyEUi::Elevated));
-    ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImGui::ColorConvertU32ToFloat4(CiyEUi::Elevated));
-    ImGui::PushStyleColor(ImGuiCol_Text, ImGui::ColorConvertU32ToFloat4(active?CiyEUi::Text:CiyEUi::Muted));
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImGui::ColorConvertU32ToFloat4(CometUi::Elevated));
+    ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImGui::ColorConvertU32ToFloat4(CometUi::Elevated));
+    ImGui::PushStyleColor(ImGuiCol_Text, ImGui::ColorConvertU32ToFloat4(active?CometUi::Text:CometUi::Muted));
     const bool pressed=ImGui::Button(label,ImVec2(width,30));
     ImGui::PopStyleColor(4);
-    if(active) ImGui::GetWindowDrawList()->AddRectFilled(ImVec2(p.x,p.y+32),ImVec2(p.x+width,p.y+34),CiyEUi::Accent);
+    if(active) ImGui::GetWindowDrawList()->AddRectFilled(ImVec2(p.x,p.y+32),ImVec2(p.x+width,p.y+34),CometUi::Accent);
     return pressed;
 }
 
@@ -1777,6 +1963,34 @@ static bool ColorRow(const char* label, uint32_t& v) {
 }
 
 
+
+// Ground-loot ESP. The runtime already resolved and projected each captured
+// CombatItemEntity/Supply; this only draws what the reader published, so a
+// layout change upstream shows nothing instead of guessing at a position.
+static void DrawLootESP() {
+    if (!g_state.in_match || !HasOpt2(OPT2_ESP_LOOT) || g_loot.empty()) return;
+    ImVec2 ds = ImGui::GetIO().DisplaySize;
+    if (ds.x <= 1.0f || ds.y <= 1.0f) return;
+    ImDrawList* dl = ImGui::GetForegroundDrawList();
+    const float limit = g_cfg.loot_max_dist > 0.0f ? g_cfg.loot_max_dist : 120.0f;
+    for (const auto& item : g_loot) {
+        if (!std::isfinite(item.distance) || item.distance <= 0.0f || item.distance > limit) continue;
+        if (!std::isfinite(item.screen[0]) || !std::isfinite(item.screen[1])) continue;
+        if (item.screen[0] < 0.0f || item.screen[0] > 1.0f ||
+            item.screen[1] < 0.0f || item.screen[1] > 1.0f) continue;
+        const ImVec2 p(item.screen[0] * ds.x, item.screen[1] * ds.y);
+        const ImU32 colour = g_cfg.col_loot;
+        const float r = item.kind ? 5.5f : 4.0f;
+        // Diamond plus a dark outline: readable over bright ground textures.
+        const ImVec2 top(p.x, p.y - r), right(p.x + r, p.y), bottom(p.x, p.y + r), left(p.x - r, p.y);
+        dl->AddQuad(top, right, bottom, left, IM_COL32(0, 0, 0, 200), 2.0f);
+        dl->AddQuadFilled(top, right, bottom, left, colour);
+        char label[32];
+        snprintf(label, sizeof(label), "%s %.0f m", item.kind ? "Supply" : "Loot", item.distance);
+        dl->AddText(ImVec2(p.x + r + 3.0f, p.y - 7.0f), IM_COL32(0, 0, 0, 220), label);
+        dl->AddText(ImVec2(p.x + r + 2.0f, p.y - 8.0f), colour, label);
+    }
+}
 
 static void DrawESP() {
     if (!Has(F_ESP) || !g_state.in_match) return;
@@ -1911,6 +2125,16 @@ static void DrawESP() {
             scol = g_cfg.col_monster;
         }
 
+        // Per-team tints (Comet port). Knocked, teammate and monster colours
+        // keep priority, and a hidden-by-visibility entity keeps the hidden
+        // colour, so the tint only ever presents a living, visible enemy.
+        const bool team_tint = HasOpt2(OPT2_TEAM_COLORS) && !is_knocked && !e.is_team &&
+                               !e.is_monster && !hidden && e.team > 0;
+        if (team_tint) {
+            col = TeamTint(e.team, g_cfg.col_team_box);
+            scol = col;
+        }
+
         float th = g_cfg.box_thickness;
         bool shadow = Has(F_ESP_SHADOW);
         ImVec2 tl(cx - w * 0.5f, hy);
@@ -1965,8 +2189,10 @@ static void DrawESP() {
             auto target = esp::LineTarget(cx,tl.y,br.y,mode);
             ImVec2 pa(origin.x,origin.y), pb(target.x,target.y);
             auto* front = ImGui::GetForegroundDrawList();
+            const ImU32 line_col = team_tint ? TeamTint(e.team, g_cfg.col_team_line)
+                                            : g_cfg.col_line;
             front->AddLine(pa,pb,IM_COL32(0,0,0,200),3.0f);
-            front->AddLine(pa,pb,g_cfg.col_line,1.5f);
+            front->AddLine(pa,pb,line_col,1.5f);
         }
 
         if (Has(F_ESP_BOX)) {
@@ -2061,6 +2287,19 @@ static void DrawESP() {
         if (is_knocked) {
             y -= chip(cx, y, "[KNOCKED]", IM_COL32(255, 175, 45, 255));
         }
+        if (HasOpt2(OPT2_TEAM_LABEL) && !e.is_team && !e.is_monster) {
+            const int number = g_team_labels.NumberFor(e.team);
+            if (number > 0) {
+                char tbuf[24];
+                snprintf(tbuf, sizeof(tbuf), "Team %d", number);
+                y -= chip(cx, y, tbuf, team_tint ? TeamTint(e.team, g_cfg.col_team_box)
+                                                 : g_cfg.col_team);
+            }
+        }
+        if (HasOpt2(OPT2_ESP_HERO) && !e.is_team) {
+            const std::string hero = EnemyHeroLabel(e.hero_id);
+            if (!hero.empty()) y -= chip(cx, y, hero.c_str(), g_cfg.col_name);
+        }
         if (Has(F_ESP_NAME) && e.name[0]) {
             y -= chip(cx, y, e.name, g_cfg.col_name);
         }
@@ -2131,6 +2370,23 @@ static void DrawESP() {
             ImU32 arm_color = is_knocked ? IM_COL32(120, 140, 180, 240) : g_cfg.col_armor;
             float bx = has_hp ? (first_x + bar_w + bar_gap) : first_x;
             draw_bar(bx, ratio, arm_color, true);
+            // Max-armor tier label: the replicated maximum, coloured by tier so
+            // 50/75/100/125 armour reads at a glance on the armor bar.
+            if (HasOpt2(OPT2_ESP_ARMOR_MAX) && !is_knocked && h >= 26.0f) {
+                char abuf[16];
+                snprintf(abuf, sizeof(abuf), "%.0f", e.max_armor);
+                const float small = esp_font_sz * 0.78f;
+                const ImU32 tier = armortier::Pack(armortier::Tier(
+                    e.max_armor,
+                    armortier::Unpack(g_cfg.col_armor_tier[0]),
+                    armortier::Unpack(g_cfg.col_armor_tier[1]),
+                    armortier::Unpack(g_cfg.col_armor_tier[2]),
+                    armortier::Unpack(g_cfg.col_armor_tier[3])));
+                const ImVec2 tp(bx + bar_w + 3.0f, hy);
+                dl->AddText(esp_font, small, ImVec2(tp.x + 1.0f, tp.y + 1.0f),
+                            IM_COL32(0, 0, 0, 210), abuf);
+                dl->AddText(esp_font, small, tp, tier, abuf);
+            }
         }
     }
 }
@@ -2201,7 +2457,7 @@ static void DrawESPTab() {
     Section("Player overlay");
     FlagCheck("Enable ESP",F_ESP);
     bool radar_on = (g_cfg.reserved & OPT_ESP_RADAR) != 0;
-    if (CiyEUi::Toggle("2D radar (100 m)",&radar_on,ImGui::GetContentRegionAvail().x)) {
+    if (CometUi::Toggle("2D radar (100 m)",&radar_on,ImGui::GetContentRegionAvail().x)) {
         g_cfg.reserved = radar_on ? g_cfg.reserved | OPT_ESP_RADAR : g_cfg.reserved & ~OPT_ESP_RADAR;
         g_cfg_dirty = true;
     }
@@ -2218,7 +2474,7 @@ static void DrawESPTab() {
         g_cfg_dirty = true;
     }
     bool arrows = (g_cfg.esp_style & ESP_OFFSCREEN_ARROW) != 0;
-    if (CiyEUi::Toggle("Offscreen arrows",&arrows,ImGui::GetContentRegionAvail().x)) {
+    if (CometUi::Toggle("Offscreen arrows",&arrows,ImGui::GetContentRegionAvail().x)) {
         g_cfg.esp_style = arrows ? g_cfg.esp_style | ESP_OFFSCREEN_ARROW : g_cfg.esp_style & ~ESP_OFFSCREEN_ARROW;
         g_cfg_dirty = true;
     }
@@ -2229,6 +2485,40 @@ static void DrawESPTab() {
     FlagCheck("Armor bar",F_ESP_ARMOR);
     FlagCheck("Head marker",F_ESP_HEADDOT);
     FlagCheck("Enemy counter",F_ESP_COUNT);
+    EndCard();
+    ImGui::Dummy(ImVec2(0,12));
+    BeginCard("visuals_extras",ImVec2(0,0));
+    Section("ESP extras");
+    bool hero = HasOpt2(OPT2_ESP_HERO);
+    if (CometUi::Toggle("Enemy hero name",&hero,ImGui::GetContentRegionAvail().x)) SetOpt2(OPT2_ESP_HERO,hero);
+    bool team_label = HasOpt2(OPT2_TEAM_LABEL);
+    if (CometUi::Toggle("Team label",&team_label,ImGui::GetContentRegionAvail().x)) SetOpt2(OPT2_TEAM_LABEL,team_label);
+    bool team_colors = HasOpt2(OPT2_TEAM_COLORS);
+    if (CometUi::Toggle("Team box + line colors",&team_colors,ImGui::GetContentRegionAvail().x)) SetOpt2(OPT2_TEAM_COLORS,team_colors);
+    bool loot = HasOpt2(OPT2_ESP_LOOT);
+    if (CometUi::Toggle("Loot ESP",&loot,ImGui::GetContentRegionAvail().x)) SetOpt2(OPT2_ESP_LOOT,loot);
+    ImGui::BeginDisabled(!HasOpt2(OPT2_ESP_LOOT));
+    SliderF32("Loot distance",g_cfg.loot_max_dist,10.f,500.f,"%.0f m");
+    ImGui::EndDisabled();
+    bool armor_max = HasOpt2(OPT2_ESP_ARMOR_MAX);
+    if (CometUi::Toggle("Max armor tier",&armor_max,ImGui::GetContentRegionAvail().x)) SetOpt2(OPT2_ESP_ARMOR_MAX,armor_max);
+    if (ImGui::CollapsingHeader("Team colors")) {
+        char label[32];
+        for (int i = 0; i < 4; ++i) {
+            snprintf(label,sizeof(label),"Team slot %d box",i+1); ColorRow(label,g_cfg.col_team_box[i]);
+            snprintf(label,sizeof(label),"Team slot %d line",i+1); ColorRow(label,g_cfg.col_team_line[i]);
+        }
+    }
+    if (ImGui::CollapsingHeader("Armor tiers")) {
+        // Slot 0 is the 50-armour tier; each following slot is the next 25
+        // armour step, which is the same order esp_armor_tier.hpp blends in.
+        for (int i = 0; i < 4; ++i) {
+            char label[32];
+            snprintf(label, sizeof(label), "Armor %d", 50 + i * 25);
+            ColorRow(label, g_cfg.col_armor_tier[i]);
+        }
+    }
+    ColorRow("Loot",g_cfg.col_loot);
     EndCard();
     ImGui::TableNextColumn();
     BeginCard("visuals_filters",ImVec2(0,0));
@@ -2337,7 +2627,7 @@ static void DrawAimTab() {
     FlagCheck("Visible targets only",F_AIM_VISIBLE);
     FlagCheck("Allow teammates",F_AIM_TEAM);
     bool skip=(g_cfg.reserved&OPT_AIM_IGNORE_KNOCKED)!=0;
-    if(CiyEUi::Toggle("Ignore knocked targets",&skip,ImGui::GetContentRegionAvail().x)) {
+    if(CometUi::Toggle("Ignore knocked targets",&skip,ImGui::GetContentRegionAvail().x)) {
         if(skip) g_cfg.reserved|=OPT_AIM_IGNORE_KNOCKED; else g_cfg.reserved&=~OPT_AIM_IGNORE_KNOCKED;
         g_cfg_dirty=true;
     }
@@ -2349,7 +2639,7 @@ static void DrawAimTab() {
     Section("Activation");
     BindRow("Aim key",g_cfg.aim_key,1);
     bool toggle=OptAimToggle();
-    if(CiyEUi::Toggle("Toggle activation",&toggle,ImGui::GetContentRegionAvail().x)) SetOptAimToggle(toggle);
+    if(CometUi::Toggle("Toggle activation",&toggle,ImGui::GetContentRegionAvail().x)) SetOptAimToggle(toggle);
     if(g_bind_slot==1) ImGui::TextDisabled("Press a key to assign...");
     EndCard();
     ImGui::TableNextColumn();
@@ -2367,13 +2657,26 @@ static void DrawAimTab() {
     FlagCheck("Movement prediction",F_AIM_PREDICT);
     EndCard();
     ImGui::Dummy(ImVec2(0,12));
+    BeginCard("aim_input",ImVec2(0,0));
+    Section("Input");
+    // Input noise is applied inside the aimbot's mouse path only. It never
+    // reaches the trigger, the menu, or any other input the user sends.
+    bool noise = HasOpt2(OPT2_AIM_NOISE);
+    if (CometUi::Toggle("Input noise (aim only)",&noise,ImGui::GetContentRegionAvail().x)) SetOpt2(OPT2_AIM_NOISE,noise);
+    ImGui::BeginDisabled(!HasOpt2(OPT2_AIM_NOISE));
+    SliderF32("Noise amount",g_cfg.noise_strength,0.0002f,0.008f,"%.4f");
+    ImGui::EndDisabled();
+    ImGui::TextDisabled("Input method: SendInput");
+    ImGui::TextWrapped("Mouse corrections are sent with SendInput only. The noise offset is bounded per correction and fades out at the aim point.");
+    EndCard();
+    ImGui::Dummy(ImVec2(0,12));
     BeginCard("aim_recoil",ImVec2(0,0));
     Section("NO RECOIL");
     FlagCheck("Enable",F_RECOIL);
     Section("RCS");
     {
         bool rcs = g_cfg.humanize > 0.0f;
-        if (CiyEUi::Toggle("Enable##rcs", &rcs, ImGui::GetContentRegionAvail().x)) {
+        if (CometUi::Toggle("Enable##rcs", &rcs, ImGui::GetContentRegionAvail().x)) {
             g_cfg.humanize = rcs ? 1.0f : 0.0f;
             g_cfg_dirty = true;
         }
@@ -2626,10 +2929,10 @@ static void DrawSkinTab() {
     ImGui::SameLine();
     if (ImGui::Button("Reload catalog", ImVec2(122, 0))) LoadCatalog();
     bool only = Has(F_SKIN_CURRENT);
-    if (CiyEUi::Toggle("Current hero only", &only)) SetF(F_SKIN_CURRENT, only);
+    if (CometUi::Toggle("Current hero only", &only)) SetF(F_SKIN_CURRENT, only);
     ImGui::SameLine();
     bool auto_apply = g_cfg.auto_skin != 0;
-    if (CiyEUi::Toggle("Auto apply saved skins", &auto_apply)) { g_cfg.auto_skin = auto_apply ? 1u : 0u; g_cfg_dirty = true; SaveCfg(); }
+    if (CometUi::Toggle("Auto apply saved skins", &auto_apply)) { g_cfg.auto_skin = auto_apply ? 1u : 0u; g_cfg_dirty = true; SaveCfg(); }
     if (!g_inventory_error.empty()) {
         ImGui::TextWrapped("%s", g_inventory_error.c_str());
         if (ImGui::Button("Retry Inventory load")) LoadSkinInventory(true);
@@ -2927,6 +3230,8 @@ static DWORD WINAPI UnloadWorker(LPVOID) {
 
     Sleep(100);
 
+    comet_capture::Restore(g_hwnd, g_obs);
+
     if (g_hwnd && g_wndproc) {
 
         SetWindowLongPtrW(g_hwnd, GWLP_WNDPROC, (LONG_PTR)g_wndproc);
@@ -2987,6 +3292,7 @@ static DWORD WINAPI UnloadWorker(LPVOID) {
 
 static void SafeExitCheatAndGame() {
     g_unloading=true;
+    comet_capture::Restore(g_hwnd, g_obs);
     if (g_hwnd && g_wndproc) {
         SetWindowLongPtrW(g_hwnd, GWLP_WNDPROC, (LONG_PTR)g_wndproc);
         g_wndproc = nullptr;
@@ -3060,7 +3366,7 @@ static void DrawSettingsTab() {
         g_cfg.pad[0]=CFG_UI_TAG;g_cfg.pad[1]=theme;g_cfg_dirty=true;ApplyMenuPreferences();
     }
     bool reduced=g_cfg.pad[0]==CFG_UI_TAG&&g_cfg.pad[2]!=0;
-    if(CiyEUi::Toggle("Reduced motion",&reduced,ImGui::GetContentRegionAvail().x)) {
+    if(CometUi::Toggle("Reduced motion",&reduced,ImGui::GetContentRegionAvail().x)) {
         g_cfg.pad[0]=CFG_UI_TAG;g_cfg.pad[1]=theme;g_cfg.pad[2]=reduced?1u:0u;
         g_cfg_dirty=true;ApplyMenuPreferences();
     }
@@ -3068,6 +3374,17 @@ static void DrawSettingsTab() {
     ImGui::TableNextColumn();
     BeginCard("settings_protection",ImVec2(0,0));
     Section("Protection");
+    bool obs = HasOpt2(OPT2_OBS_PROTECT);
+    if (CometUi::Toggle("OBS / screenshot blackout",&obs,ImGui::GetContentRegionAvail().x)) {
+        SetOpt2(OPT2_OBS_PROTECT,obs);
+        // Re-apply immediately so the toggle is honest in the same frame.
+        g_obs = comet_capture::Blackout{};
+        ApplyObsProtection();
+    }
+    ImGui::TextDisabled("%s",comet_capture::Describe(g_obs));
+    if (g_obs.status==comet_capture::Status::Denied)
+        ImGui::TextDisabled("SetWindowDisplayAffinity failed (%lu); the last affinity is unchanged.",g_obs.error);
+    ImGui::TextWrapped("Game window excludes itself from Windows capture paths. Best effort: hardware capture or recorders that ignore display affinity still see the screen.");
     FlagCheck("Block reports",F_BLOCK_REPORT);
     FlagCheck("Unlock effects",F_UNLOCK_EFFECTS);
     FlagCheck("Force killfx",F_FORCE_KILLFX);
@@ -3077,7 +3394,7 @@ static void DrawSettingsTab() {
     Section("Session controls");
     if(ImGui::Button("Unload overlay",ImVec2(-1,34))) UnloadOverlay();
     ImGui::Dummy(ImVec2(0,8));
-    ImGui::PushStyleColor(ImGuiCol_Text,ImGui::ColorConvertU32ToFloat4(CiyEUi::Danger));
+    ImGui::PushStyleColor(ImGuiCol_Text,ImGui::ColorConvertU32ToFloat4(CometUi::Danger));
     if(ImGui::Button("Safe exit",ImVec2(-1,34))) SafeExitCheatAndGame();
     ImGui::PopStyleColor();
     EndCard();
@@ -3110,25 +3427,25 @@ static void DrawMenu() {
         g_reset_menu_pos = false;
     } else ImGui::SetNextWindowPos(ImVec2(60, 30), ImGuiCond_FirstUseEver);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
-    ImGui::Begin("##ciye_main", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse |
+    ImGui::Begin("##comet_main", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse |
                  ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoSavedSettings);
     auto* dl = ImGui::GetWindowDrawList();
     const ImVec2 wp = ImGui::GetWindowPos(), ws = ImGui::GetWindowSize();
-    CiyEUi::Shadow(ImGui::GetBackgroundDrawList(),wp,ws);
+    CometUi::Shadow(ImGui::GetBackgroundDrawList(),wp,ws);
     constexpr float rail = 188;
-    dl->AddRectFilled(wp, ImVec2(wp.x + rail, wp.y + ws.y), CiyEUi::Ground, 12, ImDrawFlags_RoundCornersLeft);
-    dl->AddLine(ImVec2(wp.x + rail, wp.y), ImVec2(wp.x + rail, wp.y + ws.y), CiyEUi::Border);
-    CiyEUi::Logo(dl,ImVec2(wp.x+22,wp.y+26),30);
-    if(g_font_big) dl->AddText(g_font_big,20,ImVec2(wp.x+64,wp.y+24),CiyEUi::Text,"CiyE");
-    else dl->AddText(ImVec2(wp.x+64,wp.y+24),CiyEUi::Text,"CiyE");
+    dl->AddRectFilled(wp, ImVec2(wp.x + rail, wp.y + ws.y), CometUi::Ground, 12, ImDrawFlags_RoundCornersLeft);
+    dl->AddLine(ImVec2(wp.x + rail, wp.y), ImVec2(wp.x + rail, wp.y + ws.y), CometUi::Border);
+    CometUi::Logo(dl,ImVec2(wp.x+22,wp.y+26),30);
+    if(g_font_big) dl->AddText(g_font_big,20,ImVec2(wp.x+64,wp.y+24),CometUi::Text,"Comet");
+    else dl->AddText(ImVec2(wp.x+64,wp.y+24),CometUi::Text,"Comet");
     ImGui::SetCursorPos(ImVec2(12,100));
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 6));
     ImGui::BeginChild("navigation", ImVec2(rail - 24, ws.y - 120), ImGuiChildFlags_None);
     const char* labels[] = {"Visuals", "Aim", "Skins", "Settings"};
-    const CiyEUi::Icon icons[] = {CiyEUi::Icon::Eye, CiyEUi::Icon::Target, CiyEUi::Icon::Skins, CiyEUi::Icon::Settings};
-    CiyEUi::NavIndicator(g_tab, rail - 24);
+    const CometUi::Icon icons[] = {CometUi::Icon::Eye, CometUi::Icon::Target, CometUi::Icon::Skins, CometUi::Icon::Settings};
+    CometUi::NavIndicator(g_tab, rail - 24);
     for (int i = 0; i < 4; ++i) {
-        if (CiyEUi::NavItem(labels[i], icons[i], g_tab == i, rail - 24)) g_tab = i;
+        if (CometUi::NavItem(labels[i], icons[i], g_tab == i, rail - 24)) g_tab = i;
     }
     ImGui::EndChild();
     ImGui::PopStyleVar();
@@ -3139,8 +3456,8 @@ static void DrawMenu() {
     ImGui::SetCursorPos(ImVec2(ws.x-178,26));
     if(ImGui::Button("Save config",ImVec2(112,32))) SaveConfiguration();
     ImGui::SetCursorPos(ImVec2(ws.x-46,28));
-    if(CiyEUi::CloseButton("##close",ImVec2(28,28))) SetF(F_MENU_OPEN,false);
-    dl->AddLine(ImVec2(wp.x+rail+26,wp.y+70),ImVec2(wp.x+ws.x-26,wp.y+70),CiyEUi::Border);
+    if(CometUi::CloseButton("##close",ImVec2(28,28))) SetF(F_MENU_OPEN,false);
+    dl->AddLine(ImVec2(wp.x+rail+26,wp.y+70),ImVec2(wp.x+ws.x-26,wp.y+70),CometUi::Border);
     ImGui::SetCursorPos(ImVec2(rail+26,86));
     ImGui::PushID(g_tab);
     ImGui::BeginChild("content", ImVec2(ws.x - rail - 52, ws.y - 104), ImGuiChildFlags_None);
@@ -3575,7 +3892,9 @@ static bool InitOverlay(IDXGISwapChain* sc) {
     g_swapchain = sc;
 
     g_hwnd = desc.OutputWindow;
-    SetWindowDisplayAffinity(g_hwnd,WDA_NONE);
+    // Display affinity belongs to capture_guard now: it applies the saved
+    // OBS-protection setting instead of unconditionally clearing it, and
+    // re-asserts it if the game drops it (see ApplyObsProtection).
 
     if (FAILED(sc->GetDevice(__uuidof(ID3D11Device), (void**)&g_device)) || !g_device) {
 
@@ -3623,7 +3942,7 @@ static bool InitOverlay(IDXGISwapChain* sc) {
 
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
 
-    CiyEUi::ApplyStyle();
+    CometUi::ApplyStyle();
 
     InitFonts();
 
@@ -3695,8 +4014,17 @@ static void RenderFrame(IDXGISwapChain* sc) {
     }
 
     EnsureWndProc();
+    ApplyObsProtection();
 
-    bool need = menu || (g_state.in_match && (Has(F_ESP) || Has(F_AIM_FOV_CIRCLE)));
+    // Leaving the match is the reliable boundary for a new "Team 1": the label
+    // cache is per-match, so it is cleared here as well as after a long empty
+    // stretch (Frame() below), which covers wiping back to spectate.
+    if (!g_state.in_match) g_team_labels.Reset();
+
+    // Loot ESP has its own switch, so it must be able to ask for a frame on its
+    // own; otherwise turning the player ESP off silently hides loot too.
+    bool need = menu || (g_state.in_match &&
+                         (Has(F_ESP) || Has(F_AIM_FOV_CIRCLE) || HasOpt2(OPT2_ESP_LOOT)));
 
     if (!need) return;
 
@@ -3772,7 +4100,12 @@ static void RenderFrame(IDXGISwapChain* sc) {
     DrawMenu();
     EnsureWndProc();
     background->ChannelsSetCurrent(0);
+    // Team numbering advances on every frame (not just when the ESP draws) so a
+    // finished match clears the cache even if the ESP was off the whole time.
+    g_team_labels.Frame(g_state.in_match && !g_ents.empty());
     DrawESP();DrawFOV();DrawRadar();
+    // Loot is its own feature: it keeps working with the player ESP switched off.
+    DrawLootESP();
     background->ChannelsMerge();
     if(g_unloading) {ImGui::EndFrame();return;}
 

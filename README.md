@@ -1,10 +1,15 @@
-# bs34
+# Comet
 
 Windows x64 C++/Python client source and game-logic research.
 
+The build is named **Comet** everywhere it is user visible: the packed loader is
+`dist/Comet.exe`, the window title and brand mark read Comet, and its support
+files live under `%TEMP%\Comet_BSLoader`. The build still produces the same
+outputs as before, in the same single artifact (see *Build outputs*).
+
 This snapshot includes runtime performance fixes, appearance/effect bindings and UI changes recorded on **2026-11-05**. Reported in-game confirmation is separate from the isolated regression checks documented with each feature.
 
-This checkpoint includes the revised CiyE menu and loader presentation, permanent high-tier cosmetic selection, and the Inventory tab. Inventory shows equipped selections only. Clicking a skin name or Apply in Characters, Knives or Guns immediately replaces and saves its slot. Compatible saved skins are scheduled again when combat equipment or sessions change; inactive history from older files is removed.
+This checkpoint includes the revised Comet menu and loader presentation, permanent high-tier cosmetic selection, and the Inventory tab. Inventory shows equipped selections only. Clicking a skin name or Apply in Characters, Knives or Guns immediately replaces and saves its slot. Compatible saved skins are scheduled again when combat equipment or sessions change; inactive history from older files is removed.
 
 Validation details and measured limits are recorded with each logic report. Unit tests extract runtime functions with mocked game objects; they do not establish compatibility for every game mode or skin.
 
@@ -13,6 +18,11 @@ Git tracks source, tests, vendored source dependencies, and reports/evidence abo
 The separately cloned driver/kdmapper_src repository is excluded rather than recorded as an unresolved Git link. This checkpoint does not package external mapper/driver tools.
 
 Details: [Inventory](docs/skin-inventory.md), [release notes](CHANGELOG.md), [design](DESIGN.md).
+
+Comet port additions (enemy hero name, OBS capture protection and its re-apply
+bypass, loot ESP, max-armor tier colours, team label + team colours, aimbot-only
+input noise, SendInput-only mouse output) are documented in
+[docs/comet-port.md](docs/comet-port.md).
 
 Run the isolated regression suite with `python -m unittest discover -s tests`.
 
@@ -28,6 +38,23 @@ The C++ targets require Windows, CMake and the MSVC C++20 toolchain. Python tool
 cmake -S . -B build -A x64
 cmake --build build --config Release --target bs_loader bs_pyexec bs_overlay
 ```
+
+### Build outputs
+
+GitHub Actions still uploads one artifact zip from the same two directories, so
+its contents are unchanged apart from the loader's name:
+
+```
+dist/Comet.exe                        packed single-file loader (was the CiyE loader)
+build/Release/injector.exe            fallback injector
+build/Release/bsmap.exe               driver-mode mapper
+build/Release/bs_pyexec.dll           Python bridge payload
+build/Release/bs_overlay.dll          overlay payload
+```
+
+The DLL names and the IPC shared-memory names (`Local\BS_IPC_STATE`,
+`Local\BS_IPC_CFG`) are deliberately unchanged: the loader, the payload and the
+overlay copy must agree on them, and renaming them buys nothing user visible.
 
 - `src`: loader, overlay, configuration and native geometry.
 - `pyexec`: embedded-Python runtime and its entry point.

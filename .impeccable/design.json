@@ -1,7 +1,7 @@
 {
   "schemaVersion": 2,
   "generatedAt": "2026-11-04T23:50:41.082875+00:00",
-  "title": "Design System: CiyE native interface",
+  "title": "Design System: Comet native interface",
   "extensions": {
     "colorMeta": {
       "accent": {
@@ -321,8 +321,8 @@
     }
   ],
   "narrative": {
-    "northStar": "The CiyE control surface",
-    "overview": "A compact native Windows control surface adapted from the user-supplied 34Cheat UI source. Charcoal surfaces, a lavender accent, a cube mark and restrained line icons connect the menu and loader while retaining CiyE branding and Blood Strike feature content.",
+    "northStar": "The Comet control surface",
+    "overview": "A compact native Windows control surface adapted from the user-supplied 34Cheat UI source. Charcoal surfaces, a lavender accent, a cube mark and restrained line icons connect the menu and loader while retaining Comet branding and Blood Strike feature content.",
     "keyCharacteristics": [
       "Compact charcoal surfaces and lavender state accents.",
       "A fixed navigation rail with animated selection.",
@@ -331,7 +331,7 @@
     ],
     "rules": [],
     "dos": [
-      "Do retain CiyE naming and the existing feature content.",
+      "Do retain Comet naming and the existing feature content.",
       "Do use native ImGui interaction for keyboard focus, activation and clamped slider values.",
       "Do keep catalog and Inventory errors visible and content reachable through scrolling."
     ],

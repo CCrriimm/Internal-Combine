@@ -74,6 +74,11 @@ class AimModeTests(unittest.TestCase):
             '_pick_eid': lambda *a: None,
             '_filter_view_direction': lambda *a: self.humanized.append(a) or a[2],
             '_apply_view_transform': lambda *a: self.turns.append(a),
+            # Comet port: input noise is opt-in through the secondary options
+            # word; this harness leaves it off so the turn calls stay identical.
+            'OPT2_AIM_NOISE': 1 << 6, 'IDX_OPTS': 50, 'IDX_NOISE_STRENGTH': 52,
+            '_opt2': lambda cfg, bit: bool((cfg[50] if len(cfg) > 50 else 0) & bit),
+            '_noise_strength': lambda cfg: 0.0,
             '_sys_log': lambda *a: None,
             '_key_diag': lambda key: '',
         })

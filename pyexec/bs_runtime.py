@@ -38,28 +38,43 @@ ERR_PATH = os.path.join(IPC_DIR, 'runtime_err.txt')
 CFG_MAGIC = 0x42534346
 STATE_MAGIC = 0x42535331
 CATALOG_MAGIC = 0x42534354
-VERSION = 7
+VERSION = 8
 MAX_ENTITIES = 128
 
-CFG_FMT = '<IIIIIiIiIifffffiiI' + 'I' * 13 + 'f' + 'I' * 8
+# Cfg grew at the tail with the Comet port (team colours, armor tiers, loot,
+# options word, noise). Everything before field 37 keeps its original offset, so
+# only the parser had to learn the new tail - the on-disk file is written by the
+# overlay, this is only ever read.
+CFG_FMT = '<IIIIIiIiIifffffiiI' + 'I' * 13 + 'f' + 'I' * 19 + 'ff' + 'I' * 3
 STATE_FMT = '<IIIIQ14fBBH'
-ENT_FMT = '<Q40s32s3f3f2f2f5fi4BI32f'
+# Ent grew by hero_id + is_dying (56 -> 58 packed fields, 280 -> 288 bytes).
+ENT_FMT = '<Q40s32s3f3f2f2f5fi4BI32fII'
 CAT_HEAD_FMT = '<IIII'
 CAT_ENTRY_FMT = '<IIII48s'
+# Ground-loot trailer appended after the player array:
+#   [u32 count][count * (u64 id, 2f screen, f distance, I kind)]
+LOOT_MAX = 64
+LOOT_FMT = '<Q2ffI'
+LOOT_SIZE = struct.calcsize(LOOT_FMT)
+LOOT_HEAD = 4
+# Exact owner types established by the captured graph (see the reference
+# playerdata::IsCapturedGroundLootOwnerType). Nothing else is promoted to loot.
+GROUND_LOOT_TYPES = ('CombatItemEntity', 'Supply')
 
 CFG_SIZE = struct.calcsize(CFG_FMT)
 STATE_HEAD_SIZE = struct.calcsize(STATE_FMT)
 ENT_SIZE = struct.calcsize(ENT_FMT)
 CAT_HEAD_SIZE = struct.calcsize(CAT_HEAD_FMT)
 CAT_ENTRY_SIZE = struct.calcsize(CAT_ENTRY_FMT)
-STATE_SIZE = STATE_HEAD_SIZE + ENT_SIZE * MAX_ENTITIES
+STATE_SIZE = STATE_HEAD_SIZE + ENT_SIZE * MAX_ENTITIES + LOOT_HEAD + LOOT_SIZE * LOOT_MAX
 MAX_HERO = 4096
 MAX_GUN = 65536
 
-assert CFG_SIZE == 160
+assert CFG_SIZE == 224
 assert STATE_HEAD_SIZE == 84
-assert ENT_SIZE == 280
+assert ENT_SIZE == 288
 assert CAT_ENTRY_SIZE == 64
+assert LOOT_SIZE == 24
 
 IDX_MAGIC = 0
 IDX_VERSION = 1
@@ -98,6 +113,20 @@ IDX_THEME_GUN = 33
 IDX_THEME_KNIFE = 34
 IDX_AUTO_THEME = 35
 IDX_COL_ARMOR = 36
+# Comet port tail (see Cfg in src/bs_cfg.hpp). Only the fields the runtime
+# reads are named; 37-49 are the twelve colour slots (col_team_box[4],
+# col_team_line[4], col_armor_tier[4], col_loot) and 53-55 are Cfg::pad.
+IDX_OPTS = 50
+IDX_LOOT_MAX_DIST = 51
+IDX_NOISE_STRENGTH = 52
+
+# Secondary option word (`Cfg::opts`). Only the bits the runtime acts on are
+# defined here; OPT2_ESP_HERO / TEAM_LABEL / TEAM_COLORS / ESP_ARMOR_MAX are
+# The overlay owns the capture guard; the runtime only has to publish the
+# default so a fresh config starts protected.
+OPT2_ESP_LOOT = 1 << 1
+OPT2_OBS_PROTECT = 1 << 5
+OPT2_AIM_NOISE = 1 << 6
 
 OPT_TRACK_TOGGLE = 1 << 0
 OPT_TRACK_IGNORE_DOWNED = 1 << 1
@@ -151,7 +180,16 @@ DEFAULT_CFG = (
     4040674760, 4036750176, 3959422975, 4288408416,
     0, 1.5,
     0, 0, 0, 1,
-    4043289680, 0, 0, 0,
+    4043289680,
+    # col_team_box[4] - identical values to DefaultCfg() in src/overlay.cpp
+    3959401050, 3946815231, 3950244467, 3959390169,
+    # col_team_line[4]
+    3372198490, 3359612671, 3363041907, 3372187609,
+    # col_armor_tier[4] (grey / blue / purple / gold)
+    4120810636, 4127165491, 4127150765, 4112499455,
+    # col_loot, opts, loot_max_dist, noise_strength, pad[3] (= Cfg.pad)
+    4127188531, OPT2_OBS_PROTECT, 120.0, 0.0016,
+    0, 0, 0,
 )
 
 _runtime = None
@@ -229,6 +267,7 @@ _class_hooks_at = 0.0
 _log_last_msg = None
 _log_last_t = 0.0
 _path = None
+_loot_cache = None
 
 HERO_NAMES = {
     101: 'Ethan', 102: 'Jet', 103: 'Nova', 104: 'Val', 105: 'Hank',
@@ -296,6 +335,24 @@ def _options(cfg):
         return int(cfg[IDX_OPTIONS])
     except Exception:
         return 0
+
+
+def _opt2(cfg, bit):
+    """Secondary option word. Older/partial config tuples simply read as off."""
+    try:
+        return bool(int(cfg[IDX_OPTS]) & bit)
+    except Exception:
+        return False
+
+
+def _noise_strength(cfg):
+    try:
+        value = float(cfg[IDX_NOISE_STRENGTH])
+    except Exception:
+        return 0.0
+    if not math.isfinite(value) or value <= 0.0:
+        return 0.0
+    return min(0.008, max(0.0, value))
 
 
 def _get_track_mode_toggle(cfg):
@@ -2356,6 +2413,128 @@ def _query_visible_entities(max_dist, want_gun=True, want_bone=True):
     return cam, origin, out[:MAX_ENTITIES]
 
 
+def _owner_type_name(obj):
+    """Class name of a synchronized entity object, as exposed by the game."""
+    if obj is None:
+        return ''
+    try:
+        for attr in ('__class__',):
+            cls = getattr(obj, attr, None)
+            name = getattr(cls, '__name__', '') if cls is not None else ''
+            if name:
+                return str(name)
+    except Exception:
+        pass
+    try:
+        return str(type(obj).__name__)
+    except Exception:
+        return ''
+
+
+def _ground_loot_kind(e):
+    """Returns (kind, open_known, is_open) when `e` is captured ground loot.
+
+    `CombatItemEntity` and `Supply` are the only owner types the captured graph
+    establishes. A Supply container is hidden once its replicated is_open flag
+    reads true; an unknown flag is keep-shown, matching the reference.
+    """
+    name = _owner_type_name(e)
+    if name not in GROUND_LOOT_TYPES:
+        return None
+    open_known, is_open = False, False
+    if name == 'Supply':
+        for attr in ('is_open', 'IsOpen', 'opened', 'IsOpened'):
+            try:
+                value = getattr(e, attr, None)
+            except Exception:
+                continue
+            if value is None:
+                continue
+            try:
+                is_open = bool(value() if callable(value) else value)
+                open_known = True
+            except Exception:
+                continue
+            break
+    return (0 if name == 'CombatItemEntity' else 1, open_known, is_open)
+
+
+def _loot_position(e):
+    pos = _call_attr(e, ('position', 'pos', 'GetPosition'))
+    if pos is None:
+        model = getattr(e, 'model', None)
+        if model is not None:
+            pos = _call_attr(model, ('Position', 'position', 'GetPosition'))
+    return _vec(pos)
+
+
+def _collect_ground_loot(cam, origin, max_dist):
+    """Read-only ground-loot scan for the Comet loot ESP.
+
+    Every failure path returns nothing: a build whose item entities do not
+    expose `position` simply shows no markers instead of inventing a location.
+    The scan is throttled and reuses the same entity cache as the player walk,
+    so it adds no enumeration cost of its own.
+    """
+    global _loot_cache
+    now = time.time()
+    if cam is None or origin is None:
+        return []
+    cached = _loot_cache
+    # Compare the limit by value: callers pass a freshly computed float, so an
+    # identity check would never hit and the scan would run every frame.
+    if cached is not None and now - cached[0] < 0.25 and cached[1] == float(max_dist):
+        return cached[2]
+    out = []
+    seen = set()
+    try:
+        space = getattr(genv, 'space', None)
+        ents = _collect_space_entities(space) if space is not None else []
+    except Exception:
+        ents = []
+    try:
+        cam_fwd = _vec(_cam_dir(cam))
+    except Exception:
+        cam_fwd = None
+    for e in ents:
+        try:
+            kind_info = _ground_loot_kind(e)
+            if kind_info is None:
+                continue
+            key = getattr(e, 'id', None)
+            key = id(e) if key is None else key
+            if key in seen:
+                continue
+            seen.add(key)
+            kind, open_known, is_open = kind_info
+            if open_known and is_open:
+                continue
+            pos = _loot_position(e)
+            if pos is None or not all(math.isfinite(v) for v in pos):
+                continue
+            delta = _sub(pos, origin)
+            dist = _len(delta)
+            if not math.isfinite(dist) or dist <= 0.1 or dist > max_dist:
+                continue
+            if cam_fwd is not None and _dot(delta, cam_fwd) <= -0.10:
+                continue
+            screen = _matrix_world_to_screen(pos)
+            if screen is None:
+                continue
+            sx, sy = float(screen[0]), float(screen[1])
+            if not (math.isfinite(sx) and math.isfinite(sy)):
+                continue
+            # Off-screen items stay in the packet with harmless coordinates; the
+            # overlay rejects anything outside [0,1] instead of clamping it.
+            out.append((key if isinstance(key, int) else 0, sx, sy, dist, kind, pos))
+        except Exception:
+            continue
+    out.sort(key=lambda item: item[3])
+    out = out[:LOOT_MAX]
+    _loot_cache = (now, max_dist, out)
+    return out
+
+
 def _mui_keys(vk):
     if MUI is None:
         return None
@@ -2430,40 +2609,59 @@ def _key_diag(vk):
 
 
 _MOUSE_INPUT = None
+_MOUSEEVENTF_LEFTDOWN = 0x0002
+_MOUSEEVENTF_LEFTUP = 0x0004
+
+
+def _mouse_input_struct():
+    """Lazily build INPUT/MOUSEINPUT so a failed import is not cached."""
+    global _MOUSE_INPUT
+    if _MOUSE_INPUT is not None:
+        return _MOUSE_INPUT
+    import ctypes
+    from ctypes import wintypes
+
+    class MOUSEINPUT(ctypes.Structure):
+        _fields_ = [('dx', wintypes.LONG), ('dy', wintypes.LONG),
+                    ('mouseData', wintypes.DWORD), ('dwFlags', wintypes.DWORD),
+                    ('time', wintypes.DWORD), ('dwExtraInfo', ctypes.POINTER(wintypes.ULONG))]
+
+    class _INPUT_UNION(ctypes.Union):
+        _fields_ = [('mi', MOUSEINPUT)]
+
+    class INPUT(ctypes.Structure):
+        _fields_ = [('type', wintypes.DWORD), ('u', _INPUT_UNION)]
+
+    _MOUSE_INPUT = INPUT
+    return INPUT
+
+
+def _send_mouse(flags, dx=0, dy=0):
+    """The single mouse output path for the aimbot: SendInput only.
+
+    `mouse_event` is deliberately gone: SendInput is the documented,
+    inspectable path and it carries the same MOUSEEVENTF flags. This is the only
+    place the runtime injects mouse input, so there is exactly one call to
+    audit. Aim movement itself stays on the game's own view placer (see
+    _apply_view_transform); this is the click path.
+    """
+    try:
+        import ctypes
+        INPUT = _mouse_input_struct()
+        inp = INPUT()
+        inp.type = 0
+        inp.u.mi.dx = int(dx)
+        inp.u.mi.dy = int(dy)
+        inp.u.mi.dwFlags = int(flags)
+        ctypes.windll.user32.SendInput(1, ctypes.byref(inp), ctypes.sizeof(inp))
+        return True
+    except Exception:
+        return False
 
 
 def _mouse(down):
-    global _MOUSE_INPUT
-    try:
-        import ctypes
-        from ctypes import wintypes
-        code = 0x0002 if down else 0x0004
-        ctypes.windll.user32.mouse_event(code, 0, 0, 0, 0)
-    except Exception:
-        pass
-    try:
-        import ctypes
-        from ctypes import wintypes
-        if _MOUSE_INPUT is None:
-            class MOUSEINPUT(ctypes.Structure):
-                _fields_ = [('dx', wintypes.LONG), ('dy', wintypes.LONG),
-                            ('mouseData', wintypes.DWORD), ('dwFlags', wintypes.DWORD),
-                            ('time', wintypes.DWORD), ('dwExtraInfo', ctypes.POINTER(wintypes.ULONG))]
-
-            class _INPUT_UNION(ctypes.Union):
-                _fields_ = [('mi', MOUSEINPUT)]
-
-            class INPUT(ctypes.Structure):
-                _fields_ = [('type', wintypes.DWORD), ('u', _INPUT_UNION)]
-
-            _MOUSE_INPUT = INPUT
-        inp = _MOUSE_INPUT()
-        inp.type = 0
-        inp.u.mi.dwFlags = 0x0002 if down else 0x0004
-        ctypes.windll.user32.SendInput(1, ctypes.byref(inp), ctypes.sizeof(inp))
-    except Exception:
-        pass
-    return True
+    """Left button press/release through the single SendInput path."""
+    return _send_mouse(_MOUSEEVENTF_LEFTDOWN if down else _MOUSEEVENTF_LEFTUP)
 
 
 def _trigger_primary_input(down):
@@ -2621,11 +2819,23 @@ def _human_frac(scale):
     return _lerp(slow, fast, 0.20)
 
 
-def _micro_jitter(dt):
+_NOISE_OFF = (0.0, 0.0)
+
+
+def _micro_jitter(dt, amplitude=0.0016):
+    """Coherent, bounded aim-noise offset.
+
+    Only the aimbot path passes a non-zero amplitude (see OPT2_AIM_NOISE and
+    _noise_strength). Every other caller keeps the historical amplitude, so a
+    noise setting can never leak into view tracking or anything the user did
+    not enable it for.
+    """
     global _jit_t
+    amp = float(amplitude)
+    if not math.isfinite(amp) or amp <= 0.0:
+        return _NOISE_OFF
     step = dt if dt > 0.0001 else 0.0166667
     _jit_t += step
-    amp = 0.0016
     yaw = math.sin(_jit_t * 11.7) * amp + math.sin(_jit_t * 29.3 + 1.9) * amp * 0.35
     pitch = math.sin(_jit_t * 9.3 + 0.7) * amp + math.sin(_jit_t * 23.1 + 2.4) * amp * 0.30
     return yaw, pitch
@@ -2841,7 +3051,7 @@ def _calibrate_turn(placer):
     _track_sign_ready = True
 
 
-def _apply_view_transform(placer, cur_dir, target_dir, scale, dt=0.0166667):
+def _apply_view_transform(placer, cur_dir, target_dir, scale, dt=0.0166667, noise=0.0):
     global _track_fallback_n
     try:
         from MType import Vector3
@@ -2862,7 +3072,9 @@ def _apply_view_transform(placer, cur_dir, target_dir, scale, dt=0.0166667):
         if theta < 0.0015:
             return False
         frac = _calc_tracking_ratio(scale, dt, theta)
-        jy, jp = 0.0, 0.0
+        # `noise` is the aimbot's OPT2_AIM_NOISE amplitude; 0 keeps this path
+        # exactly as it was before the Comet port.
+        jy, jp = _micro_jitter(dt, noise)
         if placer is None or not hasattr(placer, 'TurnView'):
             return False
         if not _track_sign_ready:
@@ -3225,7 +3437,8 @@ def _update_cam_trajectory(cfg, items, cam, origin, menu_open, dt=0.0166667):
             _ray_target = (e, tt, now, getattr(genv, 'space', None))
             return
         direction = _filter_view_direction(e, cur, td, cfg, dt)
-        _apply_view_transform(placer, cur, direction, float(cfg[IDX_TRACK_SMOOTH]), dt)
+        noise = _noise_strength(cfg) if _opt2(cfg, OPT2_AIM_NOISE) else 0.0
+        _apply_view_transform(placer, cur, direction, float(cfg[IDX_TRACK_SMOOTH]), dt, noise)
 
 
 def _current_case(entity):
@@ -3765,7 +3978,7 @@ def _cached_manifest_path():
     import os
     local = os.environ.get('LOCALAPPDATA')
     if local:
-        return os.path.join(local, 'CiyE', 'BloodStrike', 'skin_inventory.bin')
+        return os.path.join(local, 'Comet', 'BloodStrike', 'skin_inventory.bin')
     return os.path.join(IPC_DIR, 'skin_inventory.bin')
 
 
@@ -4222,7 +4435,7 @@ def _force_killfx_on_equipped():
         _sys_log('force_killfx live changes=%d cases=%d families=%d' % (changed, len(cases), len(best)))
 
 
-def _serialize_frame_data(cfg, cam, in_match, origin, lpos, items):
+def _serialize_frame_data(cfg, cam, in_match, origin, lpos, items, loot=None):
     global _state_seq
     fwd = (0.0, 0.0, -1.0)
     yaw = 0.0
@@ -4298,6 +4511,10 @@ def _serialize_frame_data(cfg, cam, in_match, origin, lpos, items):
             except Exception:
                 team_i = 0
             try:
+                hero_i = int(_hero_of(e) or 0) & 0xFFFF
+            except Exception:
+                hero_i = 0
+            try:
                 bones_data = ps if (ps and len(ps) == 32) else ([-1.0] * 32)
                 struct.pack_into(ENT_FMT, buf, off,
                                  eid_i, _bytes(_ename(e), 40), _bytes(gun, 32),
@@ -4306,7 +4523,8 @@ def _serialize_frame_data(cfg, cam, in_match, origin, lpos, items):
                                  float(dist), _hp(e), _max_hp(e), _armor(e), _max_armor(e), team_i,
                                  vis, 1 if is_team else 0, 1 if getattr(e, 'IsMonster', False) else 0, 1,
                                  1 if is_dying else 0,
-                                 *bones_data)
+                                 *bones_data,
+                                 hero_i, 1 if is_dying else 0)
             except Exception:
                 continue
             off += ENT_SIZE
@@ -4314,7 +4532,22 @@ def _serialize_frame_data(cfg, cam, in_match, origin, lpos, items):
             if n >= MAX_ENTITIES:
                 break
     struct.pack_into('<I', buf, 12, n)
-    return buf[:STATE_HEAD_SIZE + n * ENT_SIZE]
+    # Ground-loot trailer. Always present (count 0 when the feature is off) so a
+    # reader can rely on the header instead of guessing the packet length.
+    off = STATE_HEAD_SIZE + n * ENT_SIZE
+    loot_count = 0
+    if in_match and loot and _opt2(cfg, OPT2_ESP_LOOT):
+        for entry in loot[:LOOT_MAX]:
+            try:
+                lid, sx, sy, dist, kind, _pos = entry
+                struct.pack_into(LOOT_FMT, buf, off + LOOT_HEAD + loot_count * LOOT_SIZE,
+                                 int(lid) & 0xFFFFFFFFFFFFFFFF, float(sx), float(sy),
+                                 float(dist), int(kind) & 0xFFFFFFFF)
+            except Exception:
+                continue
+            loot_count += 1
+    struct.pack_into('<I', buf, off, loot_count)
+    return buf[:off + LOOT_HEAD + loot_count * LOOT_SIZE]
 
 
 def _on_story_tick(dt):
@@ -4413,7 +4646,16 @@ def _on_story_tick(dt):
         _sync_weapon_case_damping(cfg, in_match)
         _last_state = now
         av, lid, team, lpos = _local()
-        buf = _serialize_frame_data(cfg, cam, in_match, origin, lpos, items)
+        loot = None
+        if in_match and _opt2(cfg, OPT2_ESP_LOOT):
+            try:
+                limit = float(cfg[IDX_LOOT_MAX_DIST])
+            except Exception:
+                limit = 120.0
+            if not math.isfinite(limit) or limit <= 0.0:
+                limit = 120.0
+            loot = _collect_ground_loot(cam, origin, min(500.0, limit))
+        buf = _serialize_frame_data(cfg, cam, in_match, origin, lpos, items, loot)
         if buf is not None:
             _write(STATE_PATH, buf)
         t1 = time.time()

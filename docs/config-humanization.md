@@ -1,6 +1,6 @@
 # Config and humanized aim
 
-Persistent preferences use `%LOCALAPPDATA%/CiyE/BloodStrike/config.bin`. Session IPC remains `ipc/cfg.bin` plus shared memory. If LOCALAPPDATA is unavailable, persistent preferences fall back to `ipc/settings.bin`. On first use, a valid old IPC config is migrated; an existing invalid/unreadable persistent file is preserved until the user explicitly presses Save. Changes auto-save, manual Save writes immediately and Settings displays pending/saved/error status. Failed writes leave the dirty state set for retry.
+Persistent preferences use `%LOCALAPPDATA%/Comet/BloodStrike/config.bin`. Session IPC remains `ipc/cfg.bin` plus shared memory. If LOCALAPPDATA is unavailable, persistent preferences fall back to `ipc/settings.bin`. On first use, a valid old IPC config is migrated; an existing invalid/unreadable persistent file is preserved until the user explicitly presses Save. Changes auto-save, manual Save writes immediately and Settings displays pending/saved/error status. Failed writes leave the dirty state set for retry.
 
 Saved preferences omit menu-open/exit flags and one-shot apply commands. Loading clears those commands and opens the menu for the new session. Theme and Reduced Motion use tagged reserved padding. Bone=Random is retained; non-finite/range-invalid floats are normalized. The former unused FOV float now stores Human smoothing at the same serialized offset; invalid legacy values migrate to 0.5. The binary config remains 160 bytes with the existing version. Skin Inventory remains in its separate file.
 
