@@ -23,44 +23,45 @@ SOURCE = r'''
 static int failures = 0;
 #define CHECK(cond) do { if (!(cond)) { std::printf("FAIL %s:%d %s\n", __FILE__, __LINE__, #cond); ++failures; } } while (0)
 
-static bool near(float a, float b) { return std::fabs(a - b) < 0.002f; }
+// Named close_enough: `near` is an empty macro in the Windows SDK windef.h.
+static bool close_enough(float a, float b) { return std::fabs(a - b) < 0.002f; }
 
 int main() {
     using namespace armortier;
 
     // Exact tier anchors.
-    CHECK(near(Tier(50).r, Grey50.r) && near(Tier(50).g, Grey50.g));
-    CHECK(near(Tier(75).b, Blue75.b));
-    CHECK(near(Tier(100).g, Purple100.g));
-    CHECK(near(Tier(125).r, Gold125.r));
-    CHECK(near(Tier(200).r, Gold125.r));   // above the top tier stays gold
+    CHECK(close_enough(Tier(50).r, Grey50.r) && close_enough(Tier(50).g, Grey50.g));
+    CHECK(close_enough(Tier(75).b, Blue75.b));
+    CHECK(close_enough(Tier(100).g, Purple100.g));
+    CHECK(close_enough(Tier(125).r, Gold125.r));
+    CHECK(close_enough(Tier(200).r, Gold125.r));   // above the top tier stays gold
 
     // Blends between adjacent tiers rather than snapping.
     const Rgba mid = Tier(62.5f);
-    CHECK(near(mid.r, (Grey50.r + Blue75.r) * 0.5f));
-    CHECK(near(mid.b, (Grey50.b + Blue75.b) * 0.5f));
-    CHECK(near(Tier(87.5f).r, (Blue75.r + Purple100.r) * 0.5f));
-    CHECK(near(Tier(112.5f).b, (Purple100.b + Gold125.b) * 0.5f));
+    CHECK(close_enough(mid.r, (Grey50.r + Blue75.r) * 0.5f));
+    CHECK(close_enough(mid.b, (Grey50.b + Blue75.b) * 0.5f));
+    CHECK(close_enough(Tier(87.5f).r, (Blue75.r + Purple100.r) * 0.5f));
+    CHECK(close_enough(Tier(112.5f).b, (Purple100.b + Gold125.b) * 0.5f));
 
     // Unknown / degenerate inputs fall back to the grey tier, never NaN.
-    CHECK(near(Tier(0).r, Grey50.r));
-    CHECK(near(Tier(-10).r, Grey50.r));
-    CHECK(near(Tier(std::numeric_limits<float>::quiet_NaN()).r, Grey50.r));
-    CHECK(near(Tier(std::numeric_limits<float>::infinity()).r, Gold125.r));
+    CHECK(close_enough(Tier(0).r, Grey50.r));
+    CHECK(close_enough(Tier(-10).r, Grey50.r));
+    CHECK(close_enough(Tier(std::numeric_limits<float>::quiet_NaN()).r, Grey50.r));
+    CHECK(close_enough(Tier(std::numeric_limits<float>::infinity()).r, Gold125.r));
 
     // Caller palette: the menu's colours are what the label actually uses, and
     // the same blend rules apply to them.
     const Rgba g{0.1f, 0.1f, 0.1f, 1.0f}, b{0.2f, 0.4f, 0.6f, 1.0f};
     const Rgba p{0.4f, 0.2f, 0.8f, 1.0f}, o{0.9f, 0.7f, 0.1f, 1.0f};
-    CHECK(near(Tier(10, g, b, p, o).r, g.r));
-    CHECK(near(Tier(75, g, b, p, o).r, b.r));
-    CHECK(near(Tier(200, g, b, p, o).r, o.r));
-    CHECK(near(Tier(62.5f, g, b, p, o).r, (g.r + b.r) * 0.5f));
+    CHECK(close_enough(Tier(10, g, b, p, o).r, g.r));
+    CHECK(close_enough(Tier(75, g, b, p, o).r, b.r));
+    CHECK(close_enough(Tier(200, g, b, p, o).r, o.r));
+    CHECK(close_enough(Tier(62.5f, g, b, p, o).r, (g.r + b.r) * 0.5f));
     // Round-trip through the config's packed IM_COL32 so Unpack feeds Pack back.
     const uint32_t cfg_colour = 0xF5FF8C33u; // A=245 B=255 G=140 R=51
     const Rgba back = Unpack(cfg_colour);
-    CHECK(near(back.r, 51.0f / 255.0f) && near(back.g, 140.0f / 255.0f));
-    CHECK(near(back.b, 1.0f) && near(back.a, 245.0f / 255.0f));
+    CHECK(close_enough(back.r, 51.0f / 255.0f) && close_enough(back.g, 140.0f / 255.0f));
+    CHECK(close_enough(back.b, 1.0f) && close_enough(back.a, 245.0f / 255.0f));
     CHECK(Pack(back) == cfg_colour);
 
     // Packed colour is IM_COL32 order (AABBGGRR) and fully opaque.
