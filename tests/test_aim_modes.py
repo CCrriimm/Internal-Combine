@@ -70,6 +70,7 @@ class AimModeTests(unittest.TestCase):
             '_track_hold_until': 0, '_track_diag_t': 10., '_track_fallback_n': 0,
             '_track_eid': None, '_track_eid_t': 0.,
             '_get_track_mode_toggle': lambda cfg: False, '_poll_input_keystate': lambda key: True,
+            '_poll_aim_keys': lambda cfg, key: True,
             '_pick': lambda *a: (self.target, (10, 0, 100), (10, 0, 100), 100, 1),
             '_pick_eid': lambda *a: None,
             '_filter_view_direction': lambda *a: self.humanized.append(a) or a[2],

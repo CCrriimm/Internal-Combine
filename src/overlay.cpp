@@ -38,6 +38,8 @@
 
 #include <unordered_map>
 
+#include <unordered_set>
+
 #include <algorithm>
 
 #include "imgui.h"
@@ -197,12 +199,13 @@ struct CatEntry {
 
 
 
-static_assert(sizeof(Cfg) == 224, "Cfg size");
+static_assert(sizeof(Cfg) == 228, "Cfg size");
 
-// The v7 -> v8 migration in LoadCfg() hard-codes the boundary between the
-// legacy fields and the new Comet tail. Pin it so a future layout edit cannot
-// silently corrupt an old config instead of failing the build.
+// The migrations in LoadCfg() hard-code these boundaries. Pin them so a future
+// layout edit cannot silently corrupt an old config instead of failing the
+// build.
 static_assert(offsetof(Cfg, col_team_box) == 148, "v7 legacy prefix changed");
+static_assert(offsetof(Cfg, aim_key2) == 224, "v8 layout changed");
 
 static_assert(sizeof(Ent) == 288, "Ent size");
 
@@ -222,7 +225,7 @@ static const uint32_t STATE_MAGIC = 0x42535331;
 
 static const uint32_t CATALOG_MAGIC = 0x42534354;
 
-static const uint32_t VERSION = 8;
+static const uint32_t VERSION = 9;
 
 
 
@@ -719,20 +722,6 @@ static bool WriteAll(const wchar_t* path, const void* data, size_t size) {
 
 
 
-// Single source of truth for the Comet tail defaults: DefaultCfg() and the
-// v7 -> v8 migration both read these, so they cannot drift apart.
-static const uint32_t kDefaultTeamBox[4] = {
-    (235u << 24) | (255u << 16) | (170u << 8) | 90u,
-    (235u << 24) | (63u << 16) | (158u << 8) | 255u,
-    (235u << 24) | (115u << 16) | (242u << 8) | 115u,
-    (235u << 24) | (255u << 16) | (127u << 8) | 217u,
-};
-static const uint32_t kDefaultTeamLine[4] = {
-    (200u << 24) | (255u << 16) | (170u << 8) | 90u,
-    (200u << 24) | (63u << 16) | (158u << 8) | 255u,
-    (200u << 24) | (115u << 16) | (242u << 8) | 115u,
-    (200u << 24) | (255u << 16) | (127u << 8) | 217u,
-};
 // Derived from the tier palette in esp_armor_tier.hpp (the anchors 50/75/100/125
 // with 245 alpha), so the defaults and the tier maths share one definition.
 static constexpr uint32_t kDefaultArmorTier[4] = {
@@ -760,6 +749,8 @@ static void DefaultCfg() {
                  F_RECOIL | F_ESP_COUNT | F_ESP_OUTLINE | F_ESP_GRADIENT | F_ESP_SHADOW;
 
     g_cfg.aim_key = VK_RBUTTON;
+
+    g_cfg.aim_key2 = 0; // unbound by default
 
     g_cfg.col_fov = IM_COL32(89,162,255,180);
 
@@ -823,8 +814,6 @@ static void DefaultCfg() {
     // Team box / line (slots 1-4), armor tiers (50 grey, 75 blue, 100 purple,
     // 125 gold) and the loot marker. Shared with the v7 -> v8 migration above.
     for (int i = 0; i < 4; ++i) {
-        g_cfg.col_team_box[i] = kDefaultTeamBox[i];
-        g_cfg.col_team_line[i] = kDefaultTeamLine[i];
         g_cfg.col_armor_tier[i] = kDefaultArmorTier[i];
     }
 
@@ -853,6 +842,20 @@ static bool LoadCfg() {
     // away every saved preference once - including the user's keybinds and
     // colours - which is not an acceptable cost for adding features.
     bool migrated = false;
+    if (read && buf.size() == 224) {
+        // v8 -> v9: only aim_key2 was appended. Everything else is identical.
+        uint32_t old_magic = 0, old_version = 0;
+        memcpy(&old_magic, buf.data(), sizeof(old_magic));
+        memcpy(&old_version, buf.data() + sizeof(old_magic), sizeof(old_version));
+        if (old_magic == CFG_MAGIC && old_version == 8) {
+            Cfg m{};
+            memcpy(&m, buf.data(), 224);
+            m.version = VERSION;
+            buf.assign(reinterpret_cast<const uint8_t*>(&m),
+                       reinterpret_cast<const uint8_t*>(&m) + sizeof(m));
+            migrated = true;
+        }
+    }
     if (read && buf.size() == 160) {
         uint32_t old_magic = 0, old_version = 0;
         memcpy(&old_magic, buf.data(), sizeof(old_magic));
@@ -866,8 +869,6 @@ static bool LoadCfg() {
             // The new tail keeps the same defaults a fresh install would get, so
             // a migrated config cannot end up with colours switched off.
             for (int i = 0; i < 4; ++i) {
-                m.col_team_box[i] = kDefaultTeamBox[i];
-                m.col_team_line[i] = kDefaultTeamLine[i];
                 m.col_armor_tier[i] = kDefaultArmorTier[i];
             }
             m.col_loot = kDefaultLoot;
@@ -934,14 +935,11 @@ static bool LoadCfg() {
 
     if (c.col_count == 0) c.col_count = IM_COL32(96, 235, 155, 255);
 
+    // Only the armor tier palette is user data now; team tint colours are
+    // generated per team at runtime (src/esp_team.hpp).
     for (int i = 0; i < 4; ++i) {
-        if (c.col_team_box[i] == 0) c.col_team_box[i] = IM_COL32(90, 170, 255, 235);
-        if (c.col_team_line[i] == 0) c.col_team_line[i] = IM_COL32(90, 170, 255, 200);
+        if (c.col_armor_tier[i] == 0) c.col_armor_tier[i] = kDefaultArmorTier[i];
     }
-    if (c.col_armor_tier[0] == 0) c.col_armor_tier[0] = IM_COL32(140, 148, 158, 245);
-    if (c.col_armor_tier[1] == 0) c.col_armor_tier[1] = IM_COL32(51, 140, 255, 245);
-    if (c.col_armor_tier[2] == 0) c.col_armor_tier[2] = IM_COL32(173, 82, 255, 245);
-    if (c.col_armor_tier[3] == 0) c.col_armor_tier[3] = IM_COL32(255, 194, 31, 245);
     if (c.col_loot == 0) c.col_loot = IM_COL32(51, 230, 255, 245);
     if (!std::isfinite(c.loot_max_dist) || c.loot_max_dist < 10.0f || c.loot_max_dist > 500.0f) c.loot_max_dist = 120.0f;
     if (!std::isfinite(c.noise_strength) || c.noise_strength < 0.0f || c.noise_strength > 0.02f) c.noise_strength = 0.0016f;
@@ -949,6 +947,9 @@ static bool LoadCfg() {
     if (c.aim_bone < 0 || c.aim_bone > 4) c.aim_bone = 0;
 
     if (c.aim_key < 0 || c.aim_key > 255) c.aim_key = VK_RBUTTON;
+
+    // 0 means "no second key", which is a valid state (unlike aim_key).
+    if (c.aim_key2 < 0 || c.aim_key2 > 255) c.aim_key2 = 0;
 
     if (c.menu_key < 0 || c.menu_key > 255) c.menu_key = VK_INSERT;
 
@@ -1308,11 +1309,48 @@ static std::string EnemyHeroLabel(uint32_t hero_id) {
 }
 
 
-// Palette colour for a raw team id (box or snapline slot). The fallback keeps
-// entities whose team is still streaming looking neutral instead of Team 1.
-static ImU32 TeamTint(int team, const uint32_t (&palette)[4]) {
+// Per-team tint for a raw team id. The colour is generated once per match and
+// held (see teamtint::Labels), so boxes and snaplines never flicker while you
+// look around. `reserved` holds the user's own enemy/teammate colours, which the
+// generated palette must not reuse, so a tinted team never looks untinted.
+// Returns 0 when the team is unknown; callers keep their base colour.
+// The set of colours the user already uses for enemies / teammates / monsters.
+// Built once per frame: TeamTint is called per target, and a fresh hash set per
+// call was a heap allocation inside the present hook.
+using ReservedColours = std::unordered_set<uint32_t>;
 
-    return teamtint::ColourFor(team, palette);
+static ReservedColours BuildReservedColours() {
+
+    ReservedColours reserved;
+
+    reserved.reserve(3);
+
+    reserved.insert(g_cfg.col_box & 0x00FFFFFFu);
+
+    reserved.insert(g_cfg.col_team & 0x00FFFFFFu);
+
+    reserved.insert(g_cfg.col_monster & 0x00FFFFFFu);
+
+    return reserved;
+
+}
+
+static ImU32 TeamTint(int team, const ReservedColours& reserved) {
+
+    if (team <= 0) return 0;
+
+    // Alpha comes from the user's own enemy colour so a team tint reads at the
+    // same weight as every other box.
+
+    const uint32_t alpha = g_cfg.col_box & 0xFF000000u;
+
+    return (g_team_labels.ColourFor(team, reserved) & 0x00FFFFFFu) | alpha;
+
+}
+
+static ImU32 TeamTint(int team) {
+
+    return TeamTint(team, BuildReservedColours());
 
 }
 
@@ -1559,6 +1597,8 @@ static void CaptureBind(int vk) {
     if (vk <= 0 || vk > 255) return;
 
     if (g_bind_slot == 1) g_cfg.aim_key = vk;
+
+    else if (g_bind_slot == 2) g_cfg.aim_key2 = vk;
 
     else if (g_bind_slot == 3) g_cfg.menu_key = vk;
 
@@ -1969,28 +2009,35 @@ static bool ColorRow(const char* label, uint32_t& v) {
 // Ground-loot ESP. The runtime already resolved and projected each captured
 // CombatItemEntity/Supply; this only draws what the reader published, so a
 // layout change upstream shows nothing instead of guessing at a position.
+//
+// Kept deliberately plain so it belongs to the same visual language as the rest
+// of the overlay: a small tinted dot with a dark rim, no text, no icons. Text
+// here was both the loudest thing on screen and the flicker source - a label
+// anchored to a projected point jitters by a pixel every frame the camera moves,
+// which makes glyphs shimmer. A dot cannot shimmer.
 static void DrawLootESP() {
     if (!g_state.in_match || !HasOpt2(OPT2_ESP_LOOT) || g_loot.empty()) return;
     ImVec2 ds = ImGui::GetIO().DisplaySize;
     if (ds.x <= 1.0f || ds.y <= 1.0f) return;
     ImDrawList* dl = ImGui::GetForegroundDrawList();
     const float limit = g_cfg.loot_max_dist > 0.0f ? g_cfg.loot_max_dist : 120.0f;
+    const ImU32 colour = g_cfg.col_loot & 0x00FFFFFFu;
+    const ImU32 fill = colour | 0xF5000000u;
+    const ImU32 rim = IM_COL32(0, 0, 0, 190);
+    int drawn = 0;
     for (const auto& item : g_loot) {
+        if (drawn >= 96) break; // hard cap: 64 is what the reader sends
         if (!std::isfinite(item.distance) || item.distance <= 0.0f || item.distance > limit) continue;
         if (!std::isfinite(item.screen[0]) || !std::isfinite(item.screen[1])) continue;
         if (item.screen[0] < 0.0f || item.screen[0] > 1.0f ||
             item.screen[1] < 0.0f || item.screen[1] > 1.0f) continue;
         const ImVec2 p(item.screen[0] * ds.x, item.screen[1] * ds.y);
-        const ImU32 colour = g_cfg.col_loot;
-        const float r = item.kind ? 5.5f : 4.0f;
-        // Diamond plus a dark outline: readable over bright ground textures.
-        const ImVec2 top(p.x, p.y - r), right(p.x + r, p.y), bottom(p.x, p.y + r), left(p.x - r, p.y);
-        dl->AddQuad(top, right, bottom, left, IM_COL32(0, 0, 0, 200), 2.0f);
-        dl->AddQuadFilled(top, right, bottom, left, colour);
-        char label[32];
-        snprintf(label, sizeof(label), "%s %.0f m", item.kind ? "Supply" : "Loot", item.distance);
-        dl->AddText(ImVec2(p.x + r + 3.0f, p.y - 7.0f), IM_COL32(0, 0, 0, 220), label);
-        dl->AddText(ImVec2(p.x + r + 2.0f, p.y - 8.0f), colour, label);
+        // Containers read slightly larger than loose drops. 12-gon rather than
+        // 24: half the vertices, indistinguishable at this size.
+        const float r = item.kind ? 3.2f : 2.2f;
+        dl->AddCircleFilled(p, r + 1.0f, rim, 12);
+        dl->AddCircleFilled(p, r, fill, 12);
+        ++drawn;
     }
 }
 
@@ -2001,6 +2048,22 @@ static void DrawESP() {
     if (ds.x <= 1.0f || ds.y <= 1.0f) return;
     float W = ds.x;
     float H = ds.y;
+
+    // Read the per-frame settings once. Has() is cheap, but it is called per
+    // target per element, and the branch-heavy reads were measurably worse than
+    // a handful of locals.
+    const uint32_t flags = g_cfg.flags;
+    const uint32_t opts = g_cfg.opts;
+    const bool esp_show_visible = (flags & F_ESP_VISIBLE) != 0;
+    const bool shadow = (flags & F_ESP_SHADOW) != 0;
+    const bool team_colors_on = (opts & OPT2_TEAM_COLORS) != 0;
+    const bool team_label_on = (opts & OPT2_TEAM_LABEL) != 0;
+    const bool hero_label_on = (opts & OPT2_ESP_HERO) != 0;
+    const float max_dist = (float)g_cfg.esp_max_dist;
+
+    // Team tints are generated per team, but the "do not reuse these" set only
+    // changes when the user edits a colour, so build it once per frame.
+    ReservedColours reserved_cols = BuildReservedColours();
 
     if (Has(F_ESP_COUNT)) {
         int enemies = 0, knocked = 0, bots = 0, mates = 0;
@@ -2041,8 +2104,8 @@ static void DrawESP() {
 
     for (auto it = g_ents.rbegin(); it != g_ents.rend(); ++it) {
         const auto& e = *it;
-        if (e.distance > (float)g_cfg.esp_max_dist) continue;
-        if (e.is_team && !Has(F_ESP_TEAM)) continue;
+        if (e.distance > max_dist) continue;
+        if (e.is_team && !(flags & F_ESP_TEAM)) continue;
 
         auto ok = [](const float* s) {
             return std::isfinite(s[0]) && std::isfinite(s[1]) && !(s[0] == -1.f && s[1] == -1.f);
@@ -2099,6 +2162,10 @@ static void DrawESP() {
 
         if ((hx < 0 && fx < 0) || (hx > W && fx > W)) continue;
         if (fy < hy) std::swap(hy, fy);
+        // Fully above or below the viewport: nothing of this target can be seen,
+        // so skip all of its chip/bar/box work. This is the common case with a
+        // wide ESP distance and a camera looking at the sky.
+        if (fy < 0.0f || hy > H) continue;
         float h = fy - hy;
 
         // Dynamic minimum box height to guarantee visibility at 150m-200m+
@@ -2112,7 +2179,7 @@ static void DrawESP() {
         float cx = (hx + fx) * 0.5f;
         float w = std::max(6.0f, std::min(300.0f, h * (is_knocked ? 0.70f : 0.42f)));
 
-        bool hidden = Has(F_ESP_VISIBLE) && !e.visible;
+        bool hidden = esp_show_visible && !e.visible;
         ImU32 col = hidden ? g_cfg.col_box_hidden : g_cfg.col_box;
         ImU32 scol = hidden ? g_cfg.col_box_hidden : g_cfg.col_skel;
 
@@ -2130,15 +2197,14 @@ static void DrawESP() {
         // Per-team tints (Comet port). Knocked, teammate and monster colours
         // keep priority, and a hidden-by-visibility entity keeps the hidden
         // colour, so the tint only ever presents a living, visible enemy.
-        const bool team_tint = HasOpt2(OPT2_TEAM_COLORS) && !is_knocked && !e.is_team &&
+        const bool team_tint = team_colors_on && !is_knocked && !e.is_team &&
                                !e.is_monster && !hidden && e.team > 0;
         if (team_tint) {
-            col = TeamTint(e.team, g_cfg.col_team_box);
+            col = TeamTint(e.team, reserved_cols);
             scol = col;
         }
 
         float th = g_cfg.box_thickness;
-        bool shadow = Has(F_ESP_SHADOW);
         ImVec2 tl(cx - w * 0.5f, hy);
         ImVec2 br(cx + w * 0.5f, fy);
 
@@ -2155,18 +2221,14 @@ static void DrawESP() {
             return esp_font->CalcTextSizeA(esp_font_sz, FLT_MAX, 0.0f, s);
         };
 
+        // Two draws, not nine. The old version stamped the glyph eight times for
+        // an outline; at 10 targets x 4 chips that is ~320 extra text draw calls
+        // per frame for a difference nobody can see at 18 px.
         auto txt = [&](ImVec2 p, ImU32 c, const char* s) {
             if (!s || !*s) return;
             if (shadow) {
-                const ImU32 out_col = IM_COL32(0, 0, 0, 240);
-                dl->AddText(esp_font, esp_font_sz, ImVec2(p.x - 1.0f, p.y), out_col, s);
-                dl->AddText(esp_font, esp_font_sz, ImVec2(p.x + 1.0f, p.y), out_col, s);
-                dl->AddText(esp_font, esp_font_sz, ImVec2(p.x, p.y - 1.0f), out_col, s);
-                dl->AddText(esp_font, esp_font_sz, ImVec2(p.x, p.y + 1.0f), out_col, s);
-                dl->AddText(esp_font, esp_font_sz, ImVec2(p.x - 1.0f, p.y - 1.0f), out_col, s);
-                dl->AddText(esp_font, esp_font_sz, ImVec2(p.x + 1.0f, p.y - 1.0f), out_col, s);
-                dl->AddText(esp_font, esp_font_sz, ImVec2(p.x - 1.0f, p.y + 1.0f), out_col, s);
-                dl->AddText(esp_font, esp_font_sz, ImVec2(p.x + 1.0f, p.y + 1.0f), out_col, s);
+                dl->AddText(esp_font, esp_font_sz, ImVec2(p.x + 1.0f, p.y + 1.0f),
+                            IM_COL32(0, 0, 0, 235), s);
             }
             dl->AddText(esp_font, esp_font_sz, p, c, s);
         };
@@ -2191,8 +2253,11 @@ static void DrawESP() {
             auto target = esp::LineTarget(cx,tl.y,br.y,mode);
             ImVec2 pa(origin.x,origin.y), pb(target.x,target.y);
             auto* front = ImGui::GetForegroundDrawList();
-            const ImU32 line_col = team_tint ? TeamTint(e.team, g_cfg.col_team_line)
-                                            : g_cfg.col_line;
+            // Snapline alpha is its own (usually softer) setting.
+            const ImU32 team_line_alpha = g_cfg.col_line & 0xFF000000u;
+            const ImU32 line_col = team_tint
+                ? (TeamTint(e.team, reserved_cols) & 0x00FFFFFFu) | team_line_alpha
+                : g_cfg.col_line;
             front->AddLine(pa,pb,IM_COL32(0,0,0,200),3.0f);
             front->AddLine(pa,pb,line_col,1.5f);
         }
@@ -2289,29 +2354,32 @@ static void DrawESP() {
         if (is_knocked) {
             y -= chip(cx, y, "[KNOCKED]", IM_COL32(255, 175, 45, 255));
         }
-        if (HasOpt2(OPT2_TEAM_LABEL) && !e.is_team && !e.is_monster) {
+        if (team_label_on && !e.is_team && !e.is_monster) {
             const int number = g_team_labels.NumberFor(e.team);
             if (number > 0) {
                 char tbuf[24];
                 snprintf(tbuf, sizeof(tbuf), "Team %d", number);
-                y -= chip(cx, y, tbuf, team_tint ? TeamTint(e.team, g_cfg.col_team_box)
-                                                 : g_cfg.col_team);
+                y -= chip(cx, y, tbuf, team_tint ? col : g_cfg.col_team);
             }
         }
-        if (HasOpt2(OPT2_ESP_HERO) && !e.is_team) {
-            const std::string hero = EnemyHeroLabel(e.hero_id);
-            if (!hero.empty()) y -= chip(cx, y, hero.c_str(), g_cfg.col_name);
-        }
+        // The header above the box carries at most the knock state, the team and
+        // the player name: stacking weapon + hero + name there buried the target.
         if (Has(F_ESP_NAME) && e.name[0]) {
             y -= chip(cx, y, e.name, g_cfg.col_name);
         }
         if (Has(F_ESP_GUN) && e.gun[0]) {
             y -= chip(cx, y, e.gun, g_cfg.col_gun);
         }
+        // Feet row, top to bottom: distance, then hero name.
+        float foot_y = fy + 6.0f;
         if (Has(F_ESP_DISTANCE)) {
             char dbuf[24];
             snprintf(dbuf, sizeof(dbuf), "%.0f m", e.distance);
-            chip(cx, fy + 6.0f, dbuf, g_cfg.col_dist);
+            foot_y += chip(cx, foot_y, dbuf, g_cfg.col_dist);
+        }
+        if (hero_label_on && !e.is_team) {
+            const std::string hero = EnemyHeroLabel(e.hero_id);
+            if (!hero.empty()) foot_y += chip(cx, foot_y, hero.c_str(), g_cfg.col_name);
         }
 
         bool has_hp = Has(F_ESP_HEALTH) && e.max_hp > 0.0f;
@@ -2369,28 +2437,15 @@ static void DrawESP() {
         }
         if (has_armor) {
             float ratio = e.armor / e.max_armor;
-            ImU32 arm_color = is_knocked ? IM_COL32(120, 140, 180, 240) : g_cfg.col_armor;
+            // The bar is coloured by the target's maximum armor tier, not by a
+            // number next to it: 50 grey, 75 blue, 100 purple, 125 gold. This is
+            // automatic whenever the armor bar is on - there is nothing to turn
+            // on and nothing to type.
+            const ImU32 arm_color = is_knocked
+                ? IM_COL32(120, 140, 180, 240)
+                : armortier::Packed(e.max_armor);
             float bx = has_hp ? (first_x + bar_w + bar_gap) : first_x;
             draw_bar(bx, ratio, arm_color, true);
-            // Max-armor tier label: the replicated maximum, coloured by tier so
-            // 50/75/100/125 armour reads at a glance on the armor bar.
-            if (HasOpt2(OPT2_ESP_ARMOR_MAX) && !is_knocked && h >= 26.0f) {
-                char abuf[16];
-                snprintf(abuf, sizeof(abuf), "%.0f", e.max_armor);
-                // NB: `small` is a macro in rpcndr.h (#define small char), so it
-                // cannot be used as an identifier here - MSVC only.
-                const float tier_sz = esp_font_sz * 0.78f;
-                const ImU32 tier = armortier::Pack(armortier::Tier(
-                    e.max_armor,
-                    armortier::Unpack(g_cfg.col_armor_tier[0]),
-                    armortier::Unpack(g_cfg.col_armor_tier[1]),
-                    armortier::Unpack(g_cfg.col_armor_tier[2]),
-                    armortier::Unpack(g_cfg.col_armor_tier[3])));
-                const ImVec2 tp(bx + bar_w + 3.0f, hy);
-                dl->AddText(esp_font, tier_sz, ImVec2(tp.x + 1.0f, tp.y + 1.0f),
-                            IM_COL32(0, 0, 0, 210), abuf);
-                dl->AddText(esp_font, tier_sz, tp, tier, abuf);
-            }
         }
     }
 }
@@ -2504,25 +2559,9 @@ static void DrawESPTab() {
     ImGui::BeginDisabled(!HasOpt2(OPT2_ESP_LOOT));
     SliderF32("Loot distance",g_cfg.loot_max_dist,10.f,500.f,"%.0f m");
     ImGui::EndDisabled();
-    bool armor_max = HasOpt2(OPT2_ESP_ARMOR_MAX);
-    if (CometUi::Toggle("Max armor tier",&armor_max,ImGui::GetContentRegionAvail().x)) SetOpt2(OPT2_ESP_ARMOR_MAX,armor_max);
-    if (ImGui::CollapsingHeader("Team colors")) {
-        char label[32];
-        for (int i = 0; i < 4; ++i) {
-            snprintf(label,sizeof(label),"Team slot %d box",i+1); ColorRow(label,g_cfg.col_team_box[i]);
-            snprintf(label,sizeof(label),"Team slot %d line",i+1); ColorRow(label,g_cfg.col_team_line[i]);
-        }
-    }
-    if (ImGui::CollapsingHeader("Armor tiers")) {
-        // Slot 0 is the 50-armour tier; each following slot is the next 25
-        // armour step, which is the same order esp_armor_tier.hpp blends in.
-        for (int i = 0; i < 4; ++i) {
-            char label[32];
-            snprintf(label, sizeof(label), "Armor %d", 50 + i * 25);
-            ColorRow(label, g_cfg.col_armor_tier[i]);
-        }
-    }
-    ColorRow("Loot",g_cfg.col_loot);
+    ImGui::TextDisabled("Team colours are assigned per team, automatically.");
+    ImGui::TextDisabled("Armor bar colour follows max armor: 50 / 75 / 100 / 125.");
+    ImGui::TextDisabled("Armour colour is automatic; there is no colour picker.");
     EndCard();
     ImGui::TableNextColumn();
     BeginCard("visuals_filters",ImVec2(0,0));
@@ -2548,7 +2587,7 @@ static void DrawESPTab() {
         ColorRow("Skeleton",g_cfg.col_skel); ColorRow("Snapline",g_cfg.col_line);
         ColorRow("Player name",g_cfg.col_name); ColorRow("Weapon name",g_cfg.col_gun);
         ColorRow("Distance",g_cfg.col_dist); ColorRow("Health",g_cfg.col_health);
-        ColorRow("Armor",g_cfg.col_armor); ColorRow("Head marker",g_cfg.col_headdot);
+        ColorRow("Head marker",g_cfg.col_headdot);
         ColorRow("Teammates",g_cfg.col_team); ColorRow("Bots",g_cfg.col_monster);
         ColorRow("Counter",g_cfg.col_count);
     if (ImGui::Button("Reset colors", ImVec2(150, 26))) {
@@ -2572,8 +2611,6 @@ static void DrawESPTab() {
         g_cfg.col_dist = IM_COL32(200, 205, 215, 240);
 
         g_cfg.col_health = IM_COL32(96, 235, 155, 240);
-
-        g_cfg.col_armor = IM_COL32(80, 180, 255, 240);
 
         g_cfg.col_headdot = IM_COL32(255, 255, 255, 235);
 
@@ -2642,9 +2679,18 @@ static void DrawAimTab() {
     BeginCard("aim_activation",ImVec2(0,0));
     Section("Activation");
     BindRow("Aim key",g_cfg.aim_key,1);
+    // Optional second key: either one activates the aimbot, so a user can keep
+    // the mouse bind and add a keyboard bind (or the other way round).
+    BindRow("Aim key 2",g_cfg.aim_key2,2);
+    if (g_cfg.aim_key2 != 0) {
+        ImGui::SameLine();
+        if (ImGui::SmallButton("Clear##aim2")) { g_cfg.aim_key2 = 0; g_cfg_dirty = true; }
+    } else {
+        ImGui::TextDisabled("Unbound - either key activates the aimbot.");
+    }
     bool toggle=OptAimToggle();
     if(CometUi::Toggle("Toggle activation",&toggle,ImGui::GetContentRegionAvail().x)) SetOptAimToggle(toggle);
-    if(g_bind_slot==1) ImGui::TextDisabled("Press a key to assign...");
+    if(g_bind_slot==1||g_bind_slot==2) ImGui::TextDisabled("Press a key to assign...");
     EndCard();
     ImGui::TableNextColumn();
     BeginCard("aim_tracking",ImVec2(0,0));
@@ -3407,14 +3453,19 @@ static void DrawSettingsTab() {
 
 static void DrawMenu() {
     if (!Has(F_MENU_OPEN)) return;
-    static double next_catalog_check = 0;
+    // Catalog hot-reload. This is a synchronous file read plus a rebuild of the
+    // skin index, so it runs on a 2 s timer and only when the file really
+    // changed - not once per frame while the menu is open.
+    static ULONGLONG next_catalog_check = 0;
     static FILETIME last_catalog_write{};
-    if (ImGui::GetTime() >= next_catalog_check) {
-        next_catalog_check = ImGui::GetTime() + 1;
+    const ULONGLONG now_tick = GetTickCount64();
+    if (now_tick >= next_catalog_check) {
+        next_catalog_check = now_tick + 2000;
         WIN32_FILE_ATTRIBUTE_DATA attr{};
         if (GetFileAttributesExW(CatalogPath().c_str(), GetFileExInfoStandard, &attr) &&
             (!g_catalog_ready || CompareFileTime(&last_catalog_write, &attr.ftLastWriteTime) != 0)) {
-            LoadCatalog(); last_catalog_write = attr.ftLastWriteTime;
+            LoadCatalog();
+            last_catalog_write = attr.ftLastWriteTime;
         }
     }
     ProcessBind();
@@ -3538,15 +3589,36 @@ static bool BindSwapchain(IDXGISwapChain* sc) {
 
     if (sc == g_swapchain) return true;
 
+    // Rejection cache. Present runs at the refresh rate; a swapchain we already
+    // refused (another window, another device) must not be re-interrogated, and
+    // above all must not log: Log() opens, writes and closes the log file, which
+    // is a synchronous disk write inside Present. Re-logging every present of a
+    // non-selected swapchain was a direct source of frame drops.
+    static IDXGISwapChain* rejected[8]{};
+    static int rejected_count = 0;
+    for (int i = 0; i < rejected_count; ++i) {
+
+        if (rejected[i] == sc) return false;
+
+    }
+
+    auto reject = [&]() {
+
+        if (rejected_count < (int)(sizeof(rejected) / sizeof(rejected[0]))) rejected[rejected_count++] = sc;
+
+        return false;
+
+    };
+
     DXGI_SWAP_CHAIN_DESC desc{};
 
-    if (FAILED(sc->GetDesc(&desc))) return false;
+    if (FAILED(sc->GetDesc(&desc))) return reject();
 
     if (g_hwnd && desc.OutputWindow && desc.OutputWindow != g_hwnd) {
 
         Log("swapchain skip other hwnd=%p", desc.OutputWindow);
 
-        return false;
+        return reject();
 
     }
 
@@ -3556,7 +3628,7 @@ static bool BindSwapchain(IDXGISwapChain* sc) {
 
         Log("swapchain skip no device %p", sc);
 
-        return false;
+        return reject();
 
     }
 
@@ -3568,7 +3640,7 @@ static bool BindSwapchain(IDXGISwapChain* sc) {
 
         Log("swapchain skip other device %p", sc);
 
-        return false;
+        return reject();
 
     }
 
@@ -4009,7 +4081,10 @@ static void RenderFrame(IDXGISwapChain* sc) {
 
     }
 
-    if (g_cfg_dirty && tick - g_last_cfg_save >= (menu ? 60 : 250)) {
+    // One save path, one cadence. A slider drag used to rewrite both config files
+    // (IPC + LOCALAPPDATA) on the render thread while the menu was open, which is
+    // a synchronous disk write inside Present - visible as a periodic hitch.
+    if (g_cfg_dirty && tick - g_last_cfg_save >= 250) {
 
         g_last_cfg_save = tick;
 
@@ -4115,17 +4190,24 @@ static void RenderFrame(IDXGISwapChain* sc) {
 
     ImGui::Render();
 
+    // Save the game's pipeline state and put it back afterwards. Binding our RTV
+    // without restoring the previous render target leaves the game drawing into
+    // the wrong target with the wrong viewport on the next frame, which presents
+    // as a frozen picture while the window still processes input.
+    ID3D11RenderTargetView* prev_rtv = nullptr;
+    ID3D11DepthStencilView* prev_dsv = nullptr;
+    g_context->OMGetRenderTargets(1, &prev_rtv, &prev_dsv);
+    D3D11_VIEWPORT prev_vp[D3D11_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE]{};
+    UINT vp_count = (UINT)(sizeof(prev_vp) / sizeof(prev_vp[0]));
+    g_context->RSGetViewports(&vp_count, prev_vp);
+
     g_context->OMSetRenderTargets(1, &g_rtv, nullptr);
     ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 
-    if (g_cfg_dirty && tick - g_last_cfg_save >= 60) {
-
-        g_last_cfg_save = tick;
-
-        SaveCfg();
-
-    }
-
+    if (vp_count) g_context->RSSetViewports(vp_count, prev_vp);
+    g_context->OMSetRenderTargets(1, prev_rtv ? &prev_rtv : nullptr, prev_dsv);
+    if (prev_rtv) prev_rtv->Release();
+    if (prev_dsv) prev_dsv->Release();
 }
 
 
@@ -4184,7 +4266,22 @@ static HRESULT STDMETHODCALLTYPE HookResizeBuffers(IDXGISwapChain* sc, UINT coun
 
     if (g_imgui_ready) ImGui_ImplDX11_InvalidateDeviceObjects();
 
+    // We hold a reference to buffer 0 through g_rtv. ResizeBuffers fails with
+    // DXGI_ERROR_INVALID_CALL while that reference exists, which leaves the game
+    // on a stale back buffer - the classic "picture is frozen but the UI still
+    // responds" symptom. It is released above and re-created below; assert that
+    // ordering so a future edit cannot reintroduce the bug.
+    if (g_rtv) {
+
+        g_rtv->Release();
+
+        g_rtv = nullptr;
+
+    }
+
     HRESULT hr = g_resize(sc, count, w, h, fmt, flags);
+
+    if (FAILED(hr)) Log("resize buffers failed %ux%u hr=%08x", w, h, (unsigned)hr);
 
     if (g_imgui_ready) {
 
@@ -4192,11 +4289,11 @@ static HRESULT STDMETHODCALLTYPE HookResizeBuffers(IDXGISwapChain* sc, UINT coun
 
         ImGui_ImplDX11_CreateDeviceObjects();
 
-        g_display_dirty = true;
-
-        g_reset_menu_pos = true;
-
     }
+
+    g_display_dirty = true;
+
+    g_reset_menu_pos = true;
 
     Log("resize buffers %ux%u hr=%08x", w, h, (unsigned)hr);
 

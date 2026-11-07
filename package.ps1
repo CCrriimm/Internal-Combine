@@ -6,7 +6,7 @@ param(
 $ErrorActionPreference = 'Stop'
 $root = $PSScriptRoot
 $rel = Join-Path $root 'build\Release'
-$needed = @('injector.exe', 'bsmap.exe', 'bs_pyexec.dll', 'bs_overlay.dll')
+$needed = @('injector.exe', 'cometmap.exe', 'comet_pyexec.dll', 'comet_overlay.dll')
 
 foreach ($f in $needed) {
     if (-not (Test-Path -LiteralPath (Join-Path $rel $f))) {
@@ -71,16 +71,16 @@ Press INSERT in game to toggle the menu.
 Layout:
   Comet.exe                    packed single-file loader
   build\Release\injector.exe   fallback injector
-  build\Release\bsmap.exe      driver-mode mapper
-  build\Release\bs_pyexec.dll  python bridge
-  build\Release\bs_overlay.dll ImGui overlay
+  build\Release\cometmap.exe      driver-mode mapper
+  build\Release\comet_pyexec.dll  python bridge
+  build\Release\comet_overlay.dll ImGui overlay
   pyexec\                      runtime scripts
   ipc\                         cfg/state/catalog (auto-created)
   driver\                      optional kernel driver files
   overlay_log.txt              created on first run
 
 Driver mode is used automatically only when driver\bskdrv.sys,
-driver\kdmapper.exe and build\Release\bsmap.exe all exist.
+driver\kdmapper.exe and build\Release\cometmap.exe all exist.
 Otherwise the run_cheat.bat injector path is used.
 
 Do not rename or move the folders; paths are resolved relative

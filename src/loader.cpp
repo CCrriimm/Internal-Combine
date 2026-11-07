@@ -283,8 +283,8 @@ bool ExtractPayload(const std::vector<PayloadEntry>& entries, const std::wstring
 
     // If a previously injected copy still holds the DLLs, use a fresh sibling dir.
     std::wstring target = dir;
-    if (GetFileAttributesW((dir + L"\\bs_pyexec.dll").c_str()) != INVALID_FILE_ATTRIBUTES) {
-        HANDLE probe = CreateFileW((dir + L"\\bs_pyexec.dll").c_str(), GENERIC_WRITE, 0, nullptr,
+    if (GetFileAttributesW((dir + L"\\comet_pyexec.dll").c_str()) != INVALID_FILE_ATTRIBUTES) {
+        HANDLE probe = CreateFileW((dir + L"\\comet_pyexec.dll").c_str(), GENERIC_WRITE, 0, nullptr,
                                    OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
         if (probe == INVALID_HANDLE_VALUE) {
             char suffix[32];
@@ -713,17 +713,17 @@ bool LoadKernelDriver(const std::wstring& dir) {
 bool MapViaDriver(const std::wstring& dir, DWORD pid, const std::wstring& pyexec,
                   const std::wstring& overlay) {
     (void)pid;
-    std::wstring bsmap = dir + L"\\bsmap.exe";
-    if (GetFileAttributesW(bsmap.c_str()) == INVALID_FILE_ATTRIBUTES) {
-        Log("bsmap.exe not embedded");
+    std::wstring mapper = dir + L"\\cometmap.exe";
+    if (GetFileAttributesW(mapper.c_str()) == INVALID_FILE_ATTRIBUTES) {
+        Log("cometmap.exe not embedded");
         return false;
     }
     std::wstring args = L"\"" + std::wstring(kGame) + L"\" \"" + pyexec + L"\" \"" + overlay + L"\"";
     Log("mapping modules through kernel driver...");
     DWORD code = 1;
-    RunAndWait(bsmap, args, dir, 30000, code);
+    RunAndWait(mapper, args, dir, 30000, code);
     char buf[64];
-    sprintf_s(buf, "bsmap exit=%lu", (unsigned long)code);
+    sprintf_s(buf, "cometmap exit=%lu", (unsigned long)code);
     Log(buf);
     return code == 0;
 }
@@ -767,8 +767,8 @@ void InjectWorker(bool driver_mode) {
     WriteRootHint(base, dir);
     Log("payload ready (" + std::to_string(payload.size()) + " files)");
 
-    std::wstring pyexec = dir + L"\\bs_pyexec.dll";
-    std::wstring overlay = dir + L"\\bs_overlay.dll";
+    std::wstring pyexec = dir + L"\\comet_pyexec.dll";
+    std::wstring overlay = dir + L"\\comet_overlay.dll";
 
     Log("waiting for BloodStrike.exe (up to 90s)...");
     DWORD pid = WaitForProcess(kGame, 90);

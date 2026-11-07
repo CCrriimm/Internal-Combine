@@ -51,6 +51,8 @@ struct Cfg {
     float    loot_max_dist;     // Ground-loot draw range in metres.
     float    noise_strength;    // Input-noise amplitude (aimbot only).
     uint32_t pad[3];            // pad[0]=UI tag, pad[1]=theme, pad[2]=reduced motion.
+    int32_t  aim_key2;          // Second aim key (either key activates the aimbot).
+                                // 0 = unbound. Appended in v9; tail-only growth.
 };
 #pragma pack(pop)
 
@@ -96,7 +98,9 @@ enum : uint32_t {
     OPT2_ESP_LOOT     = 1u << 1, // Ground loot markers + distance
     OPT2_TEAM_LABEL   = 1u << 2, // "Team N" chip
     OPT2_TEAM_COLORS  = 1u << 3, // Per-team box + snapline tint
-    OPT2_ESP_ARMOR_MAX= 1u << 4, // Max-armor tier label on the armor bar
+    OPT2_ESP_ARMOR_MAX= 1u << 4, // Retired: armor tier colour is now automatic
+                                 // whenever the armor bar is on. Bit kept so an
+                                 // old config stays layout-compatible.
     OPT2_OBS_PROTECT  = 1u << 5, // OBS capture exclusion for the game window
     OPT2_AIM_NOISE    = 1u << 6, // Input noise (aimbot only)
 };

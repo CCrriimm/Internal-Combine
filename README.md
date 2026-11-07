@@ -36,7 +36,7 @@ The C++ targets require Windows, CMake and the MSVC C++20 toolchain. Python tool
 
 ```powershell
 cmake -S . -B build -A x64
-cmake --build build --config Release --target bs_loader bs_pyexec bs_overlay
+cmake --build build --config Release --target comet_loader comet_pyexec comet_overlay
 ```
 
 ### Build outputs
@@ -45,16 +45,19 @@ GitHub Actions still uploads one artifact zip from the same two directories, so
 its contents are unchanged apart from the loader's name:
 
 ```
-dist/Comet.exe                        packed single-file loader (was the CiyE loader)
+dist/Comet.exe                        packed single-file loader
 build/Release/injector.exe            fallback injector
-build/Release/bsmap.exe               driver-mode mapper
-build/Release/bs_pyexec.dll           Python bridge payload
-build/Release/bs_overlay.dll          overlay payload
+build/Release/cometmap.exe            driver-mode mapper
+build/Release/comet_pyexec.dll        Python bridge payload
+build/Release/comet_overlay.dll       overlay payload
 ```
 
-The DLL names and the IPC shared-memory names (`Local\BS_IPC_STATE`,
-`Local\BS_IPC_CFG`) are deliberately unchanged: the loader, the payload and the
-overlay copy must agree on them, and renaming them buys nothing user visible.
+No shipped file starts with `bs` any more. The loader extracts its embedded
+payload by the same names the packer embeds (`tools/pack_loader.py --file`), so
+the CMake targets pin those names with `OUTPUT_NAME` rather than relying on the
+target name. The IPC shared-memory names (`Local\BS_IPC_STATE`,
+`Local\BS_IPC_CFG`) are internal to the payload trio and are unchanged: all
+three must agree on them, and they are not user visible.
 
 - `src`: loader, overlay, configuration and native geometry.
 - `pyexec`: embedded-Python runtime and its entry point.

@@ -30,9 +30,10 @@ class ConfigStoreTests(unittest.TestCase):
                 candidates.extend(glob.glob(str(Path(directory) / 'Microsoft Visual Studio/*/*/VC/Auxiliary/Build/vcvars64.bat')))
         if not candidates:
             self.skipTest('MSVC is required for the native config regression harness')
-        # The Comet tail defaults are shared by DefaultCfg() and the migration,
-        # so the table declarations have to come along with the functions.
-        tables = source[source.index('static const uint32_t kDefaultTeamBox'):
+        # The armor tier defaults are shared by DefaultCfg() and the migration,
+        # so the table declarations have to come along with the functions. The
+        # team box/line tables are gone: team tints are generated per team.
+        tables = source[source.index('static constexpr uint32_t kDefaultArmorTier'):
                         source.index('static void DefaultCfg()')]
         functions = tables + '\n'.join(cpp_function(source, signature) for signature in (
             'static void DefaultCfg()', 'static bool LoadCfg()', 'static bool SaveCfg()',
@@ -50,6 +51,7 @@ class ConfigStoreTests(unittest.TestCase):
 #include <unordered_map>
 #include <limits>
 #include "HEADER_PATH"
+#include "ARMOR_PATH"
 #include "IMGUI_PATH"
 static constexpr uint32_t CFG_MAGIC=0x42534346, VERSION=VERSION_VALUE;
 Cfg g_cfg{};
@@ -73,10 +75,11 @@ bool WriteAll(const wchar_t* p,const void* data,size_t count){
 void put(const wchar_t* p,const Cfg& c){auto ptr=reinterpret_cast<const uint8_t*>(&c);files[p]={ptr,ptr+sizeof(c)};}
 Cfg get(const wchar_t* p){Cfg c{};assert(files[p].size()==sizeof(c));memcpy(&c,files[p].data(),sizeof(c));return c;}
 static void Log(const char*, ...) {}
-'''.replace('HEADER_PATH', header).replace('IMGUI_PATH', (project / 'third_party/imgui-master/imgui.h').as_posix()).replace('VERSION_VALUE', version)
+'''.replace('HEADER_PATH', header).replace('ARMOR_PATH', (project / 'src/esp_armor_tier.hpp').as_posix()).replace('IMGUI_PATH', (project / 'third_party/imgui-master/imgui.h').as_posix()).replace('VERSION_VALUE', version)
         checks = r'''
 int main(){
- static_assert(sizeof(Cfg)==224);
+ static_assert(sizeof(Cfg)==228);
+ static_assert(offsetof(Cfg,aim_key2)==224);
  DefaultCfg();g_cfg_ready=g_cfg_dirty=true;
  assert(!(g_cfg.reserved&OPT_AIM_SILENT));
  assert(g_cfg.col_fov==IM_COL32(89,162,255,180));
@@ -84,6 +87,7 @@ int main(){
  g_cfg.flags|=F_EXIT_CHEAT|F_MENU_OPEN|F_AIM_HUMANIZE;
  g_cfg.apply_seq=17;g_cfg.apply_type=2;g_cfg.apply_item=42;
  g_cfg.aim_bone=4;g_cfg.human_smooth=.8f;g_cfg.pad[1]=3;g_cfg.pad[2]=1;
+ g_cfg.aim_key2=0x10;
  g_cfg.esp_style=ESP_OFFSCREEN_ARROW|2u;
  g_cfg.reserved|=OPT_AIM_SILENT;
  assert(SaveCfg());assert(!g_cfg_dirty);assert(shared.apply_seq==17);
@@ -142,12 +146,36 @@ int main(){
  assert(g_cfg.col_box==IM_COL32(11,22,33,244));   // user colours survive
  assert(g_cfg.aim_smooth==.42f);                  // and settings
  assert(g_cfg.pad[0]==CFG_UI_TAG&&g_cfg.pad[1]==3&&g_cfg.pad[2]==1);
- assert(g_cfg.col_team_box[0]==IM_COL32(90,170,255,235));  // new tail defaults
+ assert(g_cfg.aim_key2==0);                       // v9 field starts unbound
  assert(g_cfg.col_armor_tier[3]==IM_COL32(255,194,31,245));
  assert(g_cfg.col_loot==IM_COL32(51,230,255,245));
  assert(g_cfg.opts==OPT2_OBS_PROTECT&&g_cfg.loot_max_dist==120.f);
  assert(g_cfg_dirty);                             // rewritten on next autosave
  assert(SaveCfg());assert(files[L"saved"].size()==sizeof(Cfg));
+ // ---- v8 -> v9 layout migration -------------------------------------------
+ // A v8 file is the first 224 bytes of the current struct: everything up to and
+ // including pad[3], without the new tail field. The user's second aim key is
+ // absent from it, so it must come back unbound; nothing else may shift.
+ DefaultCfg();g_cfg.col_box=IM_COL32(11,22,33,244);g_cfg.aim_smooth=.42f;
+ g_cfg.aim_key=0x02;g_cfg.pad[0]=CFG_UI_TAG;g_cfg.pad[1]=3;g_cfg.pad[2]=1;
+ g_cfg_dirty=true;assert(SaveCfg());
+ Cfg modern_v9=get(L"saved");
+ std::vector<uint8_t> legacy_v8(224,0);
+ memcpy(legacy_v8.data(),&modern_v9,224);
+ uint32_t v8_magic=CFG_MAGIC,v8_version=8;
+ memcpy(legacy_v8.data(),&v8_magic,4);memcpy(legacy_v8.data()+4,&v8_version,4);
+ files[L"saved"]=legacy_v8;
+ assert(LoadCfg());
+ assert(g_cfg.col_box==IM_COL32(11,22,33,244));
+ assert(g_cfg.aim_smooth==.42f&&g_cfg.aim_key==0x02);
+ assert(g_cfg.pad[0]==CFG_UI_TAG&&g_cfg.pad[1]==3&&g_cfg.pad[2]==1);
+ assert(g_cfg.aim_key2==0);                       // new field, unbound
+ assert(g_cfg_dirty);                             // rewritten as v9 next save
+ assert(SaveCfg());assert(files[L"saved"].size()==sizeof(Cfg));
+ // Round-tripping v9 keeps the second key.
+ g_cfg.aim_key2=0x11;g_cfg_dirty=true;assert(SaveCfg());
+ assert(g_cfg.aim_key2==0x11);
+ assert(LoadCfg());assert(g_cfg.aim_key2==0x11);
  // A v7 file with a corrupt header is still rejected, not guessed at.
  files[L"saved"]=legacy_v7;files[L"saved"][0]=0;
  assert(!LoadCfg());

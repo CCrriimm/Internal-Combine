@@ -2,18 +2,18 @@
 setlocal EnableExtensions
 cd /d "%~dp0"
 
-set BSMAP=..\build\Release\bsmap.exe
+set COMETMAP=..\build\Release\cometmap.exe
 set SYS=bskdrv.sys
 set KDMAPPER=kdmapper.exe
 set VULN=iqvw64e.sys
 
-if not exist "%BSMAP%" (
-  if exist "bsmap.exe" set BSMAP=bsmap.exe
-  if exist "%~dp0..\build\Release\bsmap.exe" set BSMAP=%~dp0..\build\Release\bsmap.exe
-  if exist "%~dp0..\bsmap.exe" set BSMAP=%~dp0..\bsmap.exe
+if not exist "%COMETMAP%" (
+  if exist "cometmap.exe" set COMETMAP=cometmap.exe
+  if exist "%~dp0..\build\Release\cometmap.exe" set COMETMAP=%~dp0..\build\Release\cometmap.exe
+  if exist "%~dp0..\cometmap.exe" set COMETMAP=%~dp0..\cometmap.exe
 )
 
-"%BSMAP%" --probe >nul 2>&1
+"%COMETMAP%" --probe >nul 2>&1
 if not errorlevel 1 (
   echo [i] driver already loaded.
   exit /b 0
@@ -35,13 +35,13 @@ if not exist "%VULN%" (
 echo [i] loading %SYS% with kdmapper...
 "%KDMAPPER%" "%SYS%"
 timeout /t 2 /nobreak >nul
-"%BSMAP%" --probe >nul 2>&1
+"%COMETMAP%" --probe >nul 2>&1
 if not errorlevel 1 (
   echo [OK] driver loaded.
   exit /b 0
 )
 timeout /t 2 /nobreak >nul
-"%BSMAP%" --probe >nul 2>&1
+"%COMETMAP%" --probe >nul 2>&1
 if not errorlevel 1 (
   echo [OK] driver loaded.
   exit /b 0

@@ -168,9 +168,9 @@ class PacketTrailerTests(unittest.TestCase):
     def test_entity_record_size_matches_overlay(self):
         ent_fmt = module_constant('ENT_FMT')
         self.assertEqual(struct.calcsize(ent_fmt), 288)
-        self.assertEqual(struct.calcsize(module_constant('CFG_FMT')), 224)
+        self.assertEqual(struct.calcsize(module_constant('CFG_FMT')), 228)
         self.assertEqual(struct.calcsize(module_constant('STATE_FMT')), 84)
-        self.assertEqual(module_constant('VERSION'), 8)
+        self.assertEqual(module_constant('VERSION'), 9)
 
     def test_serializer_appends_counted_trailer(self):
         state_head = struct.calcsize(module_constant('STATE_FMT'))
@@ -196,7 +196,7 @@ class PacketTrailerTests(unittest.TestCase):
             'ENT_FMT': module_constant('ENT_FMT'),
             '_hero_of': lambda e: 4023,
         }
-        cfg = [0] * 58
+        cfg = [0] * 57
         cfg[16] = 400.0
         cfg[50] = 1 << 1
         functions({'_serialize_frame_data'}, ns)
@@ -251,7 +251,7 @@ class PacketTrailerTests(unittest.TestCase):
             '_hero_of': lambda e: 4023,
         }
         functions({'_serialize_frame_data'}, ns)
-        cfg = [0] * 58
+        cfg = [0] * 57
         cfg[16] = 400.0
         item = (12.0, object(), 99, v(1, 2, 300), v(1, 2, 100), v(0.5, 0.2),
                 v(0.5, 0.8), [-1.0] * 32, None, 'M4', 2001, False, False)

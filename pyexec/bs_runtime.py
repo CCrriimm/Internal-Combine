@@ -38,14 +38,14 @@ ERR_PATH = os.path.join(IPC_DIR, 'runtime_err.txt')
 CFG_MAGIC = 0x42534346
 STATE_MAGIC = 0x42535331
 CATALOG_MAGIC = 0x42534354
-VERSION = 8
+VERSION = 9
 MAX_ENTITIES = 128
 
 # Cfg grew at the tail with the Comet port (team colours, armor tiers, loot,
 # options word, noise). Everything before field 37 keeps its original offset, so
 # only the parser had to learn the new tail - the on-disk file is written by the
 # overlay, this is only ever read.
-CFG_FMT = '<IIIIIiIiIifffffiiI' + 'I' * 13 + 'f' + 'I' * 19 + 'ff' + 'I' * 3
+CFG_FMT = '<IIIIIiIiIifffffiiI' + 'I' * 13 + 'f' + 'I' * 19 + 'ff' + 'I' * 3 + 'i'
 STATE_FMT = '<IIIIQ14fBBH'
 # Ent grew by hero_id + is_dying (56 -> 58 packed fields, 280 -> 288 bytes).
 ENT_FMT = '<Q40s32s3f3f2f2f5fi4BI32fII'
@@ -70,7 +70,7 @@ STATE_SIZE = STATE_HEAD_SIZE + ENT_SIZE * MAX_ENTITIES + LOOT_HEAD + LOOT_SIZE *
 MAX_HERO = 4096
 MAX_GUN = 65536
 
-assert CFG_SIZE == 224
+assert CFG_SIZE == 228
 assert STATE_HEAD_SIZE == 84
 assert ENT_SIZE == 288
 assert CAT_ENTRY_SIZE == 64
@@ -119,6 +119,7 @@ IDX_COL_ARMOR = 36
 IDX_OPTS = 50
 IDX_LOOT_MAX_DIST = 51
 IDX_NOISE_STRENGTH = 52
+IDX_AIM_KEY2 = 56
 
 # Secondary option word (`Cfg::opts`). Only the bits the runtime acts on are
 # defined here; OPT2_ESP_HERO / TEAM_LABEL / TEAM_COLORS / ESP_ARMOR_MAX are
@@ -190,6 +191,7 @@ DEFAULT_CFG = (
     # col_loot, opts, loot_max_dist, noise_strength, pad[3] (= Cfg.pad)
     4127188531, OPT2_OBS_PROTECT, 120.0, 0.0016,
     0, 0, 0,
+    0,   # aim_key2: second aim key, 0 = unbound
 )
 
 _runtime = None
@@ -1467,7 +1469,8 @@ def _install_excepthook_guard():
     def safe_excepthook(exctype, value, tb):
         try:
             tb_str = ''.join(traceback.format_exception(exctype, value, tb))
-            cheat_keywords = ('bs_runtime', 'bs_cheat', 'pyexec', 'cmd.py', 'bs_overlay')
+            cheat_keywords = ('bs_runtime', 'bs_cheat', 'pyexec', 'cmd.py',
+                              'comet_overlay', 'comet_pyexec')
             if any(k in tb_str for k in cheat_keywords):
                 _sys_log('[sys:sec] suppressed cheat exception from NetEase crash reporter')
                 return
@@ -2483,7 +2486,10 @@ def _collect_ground_loot(cam, origin, max_dist):
     cached = _loot_cache
     # Compare the limit by value: callers pass a freshly computed float, so an
     # identity check would never hit and the scan would run every frame.
-    if cached is not None and now - cached[0] < 0.25 and cached[1] == float(max_dist):
+    # 0.5 s instead of 0.25 s: loot does not move, and this scan projects every
+    # candidate item with a matrix multiply, which is the expensive part of the
+    # tick when the feature is on.
+    if cached is not None and now - cached[0] < 0.5 and cached[1] == float(max_dist):
         return cached[2]
     out = []
     seen = set()
@@ -2576,6 +2582,27 @@ def _mui_keys(vk):
     except Exception:
         pass
     return None
+
+
+def _aim_key2(cfg):
+    """Second aim key (0 = unbound). Absent on older configs -> unbound."""
+    try:
+        vk = int(cfg[IDX_AIM_KEY2]) & 0xFF
+    except Exception:
+        return 0
+    return vk if 0 < vk < 256 else 0
+
+
+def _poll_aim_keys(cfg, primary):
+    """True while either the primary or the optional second aim key is held.
+
+    Both keys behave identically; the second one exists so a user can keep the
+    default mouse bind and add a keyboard bind without losing either.
+    """
+    if _poll_input_keystate(primary):
+        return True
+    second = _aim_key2(cfg)
+    return bool(second) and _poll_input_keystate(second)
 
 
 def _poll_input_keystate(vk):
@@ -3360,7 +3387,7 @@ def _update_cam_trajectory(cfg, items, cam, origin, menu_open, dt=0.0166667):
     now = time.time()
     track_key = int(cfg[IDX_TRACK_KEY])
     track_enabled = _flag(cfg, F_TRACK_VIEW)
-    track_down = track_enabled and _poll_input_keystate(track_key)
+    track_down = track_enabled and _poll_aim_keys(cfg, track_key)
     if track_down:
         _track_hold_until = now + 0.30
     held = track_down or now < _track_hold_until
