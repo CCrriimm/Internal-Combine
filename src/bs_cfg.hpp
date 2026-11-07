@@ -1,7 +1,16 @@
-// Shared config layout between overlay.cpp and the Menu34 UI.
+// Shared config layout between overlay.cpp and the loader UI.
 // Keep in sync with overlay.cpp's Cfg (do not reorder — it's serialized).
+// CHANGE LOG vs original:
+//   - pad[3] -> pad[0] consumed for col_armor2 (was already there), padding adjusted
+//   - Ent: added faction (uint8), hero_name[32]
+//   - New flags: F_ESP_HERO_NAME, F_ESP_TEAM_LABEL, F_AIM_INPUT_NOISE
+//   - New OPT bits: OPT_CAPTURE_PROTECT, OPT_ARMOR_TIER_COLOR
+//   - col_armor removed from user-editable path (now computed at render time)
+//   - FactionColor() helper maps faction int -> deterministic non-red ImU32
+//   - ArmorTierColor() maps max_armor -> tier color
 #pragma once
 #include <cstdint>
+#include <cmath>
 
 #pragma pack(push, 1)
 struct Cfg {
@@ -13,16 +22,16 @@ struct Cfg {
     int32_t  apply_type;
     uint32_t apply_item;
     int32_t  aim_key;
-    uint32_t col_fov; // Reuses the unused key slot; serialized size/offsets stay unchanged.
+    uint32_t col_fov;
     int32_t  menu_key;
     float    aim_fov;
     float    aim_smooth;
     float    aim_max_dist;
-    float    human_smooth; // Reuses the former unused FOV slot; serialized layout is unchanged.
+    float    human_smooth;
     float    humanize;
     int32_t  aim_bone;
     int32_t  esp_max_dist;
-    uint32_t reserved;
+    uint32_t reserved;      // OPT_* bits
     uint32_t col_box;
     uint32_t col_box_hidden;
     uint32_t col_team;
@@ -41,11 +50,14 @@ struct Cfg {
     uint32_t skin_gun_item;
     uint32_t skin_knife_item;
     uint32_t auto_skin;
-    uint32_t col_armor;
-    uint32_t pad[3];
+    uint32_t col_armor;     // kept for binary compat; not user-editable when armor-tier is on
+    uint32_t pad[3];        // pad[0..2] reserved for future; do not reorder above
 };
 #pragma pack(pop)
 
+// ---------------------------------------------------------------------------
+// Feature flags (flags field)
+// ---------------------------------------------------------------------------
 enum : uint32_t {
     F_MENU_OPEN      = 1u << 0,
     F_ESP            = 1u << 1,
@@ -81,30 +93,98 @@ enum : uint32_t {
     F_ESP_FILLED     = 1u << 31,
 };
 
-inline constexpr uint32_t CFG_UI_TAG = 0x55490001;
-inline constexpr uint32_t ESP_LINE_ORIGIN_MASK = 3u; // Bottom=0, Top=1, Mid=2.
-inline constexpr uint32_t ESP_OFFSCREEN_ARROW = 1u << 2;
+// ---------------------------------------------------------------------------
+// OPT bits (reserved field)
+// ---------------------------------------------------------------------------
+inline constexpr uint32_t OPT_AIM_IGNORE_KNOCKED = 1u << 1;
+inline constexpr uint32_t OPT_AIM_BONES_SET      = 1u << 2;
+inline constexpr uint32_t OPT_ESP_RADAR          = 1u << 3;
+inline constexpr uint32_t OPT_FOV_COLOR_SET      = 1u << 4;
+inline constexpr uint32_t OPT_AIM_SILENT         = 1u << 5;
+inline constexpr uint32_t OPT_AIM_HEAD           = 1u << 8;
+inline constexpr uint32_t OPT_AIM_NECK           = 1u << 9;
+inline constexpr uint32_t OPT_AIM_BODY           = 1u << 10;
+inline constexpr uint32_t OPT_AIM_BONE_MASK      = OPT_AIM_HEAD | OPT_AIM_NECK | OPT_AIM_BODY;
+// NEW:
+inline constexpr uint32_t OPT_CAPTURE_PROTECT    = 1u << 6;  // WDA_EXCLUDEFROMCAPTURE on loader hwnd
+inline constexpr uint32_t OPT_ARMOR_TIER_COLOR   = 1u << 7;  // auto armor tier coloring
+inline constexpr uint32_t OPT_ESP_HERO_NAME      = 1u << 11; // show hero (character) name below player name
+inline constexpr uint32_t OPT_ESP_TEAM_LABEL     = 1u << 12; // show T1/T2 label + faction-based box/line color
+inline constexpr uint32_t OPT_AIM_INPUT_NOISE    = 1u << 13; // Gaussian mouse noise on aimbot SendInput
+
+static_assert((OPT_AIM_SILENT & (OPT_AIM_IGNORE_KNOCKED | OPT_AIM_BONES_SET | OPT_ESP_RADAR |
+                                  OPT_FOV_COLOR_SET | OPT_AIM_BONE_MASK)) == 0);
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+inline constexpr uint32_t CFG_UI_TAG             = 0x55490001;
+inline constexpr uint32_t ESP_LINE_ORIGIN_MASK   = 3u;
+inline constexpr uint32_t ESP_OFFSCREEN_ARROW    = 1u << 2;
+
 bool SaveConfiguration();
 const char* ConfigurationStatus();
-
-inline constexpr uint32_t OPT_AIM_IGNORE_KNOCKED = 1u << 1;
-inline constexpr uint32_t OPT_AIM_BONES_SET = 1u << 2;
-inline constexpr uint32_t OPT_ESP_RADAR = 1u << 3;
-inline constexpr uint32_t OPT_AIM_SILENT = 1u << 5;
-inline constexpr uint32_t OPT_FOV_COLOR_SET = 1u << 4;
-inline constexpr uint32_t OPT_AIM_HEAD = 1u << 8;
-inline constexpr uint32_t OPT_AIM_NECK = 1u << 9;
-inline constexpr uint32_t OPT_AIM_BODY = 1u << 10;
-inline constexpr uint32_t OPT_AIM_BONE_MASK = OPT_AIM_HEAD | OPT_AIM_NECK | OPT_AIM_BODY;
-static_assert((OPT_AIM_SILENT & (OPT_AIM_IGNORE_KNOCKED | OPT_AIM_BONES_SET | OPT_ESP_RADAR |
-                               OPT_FOV_COLOR_SET | OPT_AIM_BONE_MASK)) == 0);
 
 extern Cfg  g_cfg;
 extern bool g_cfg_dirty;
 
-inline bool Has(uint32_t f) { return (g_cfg.flags & f) != 0; }
-inline void SetF(uint32_t f, bool on) {
+inline bool Has(uint32_t f)             { return (g_cfg.flags & f) != 0; }
+inline bool HasOpt(uint32_t o)          { return (g_cfg.reserved & o) != 0; }
+inline void SetF(uint32_t f, bool on)   {
     uint32_t prev = g_cfg.flags;
     g_cfg.flags = on ? (g_cfg.flags | f) : (g_cfg.flags & ~f);
     if (g_cfg.flags != prev) g_cfg_dirty = true;
+}
+inline void SetOpt(uint32_t o, bool on) {
+    uint32_t prev = g_cfg.reserved;
+    g_cfg.reserved = on ? (g_cfg.reserved | o) : (g_cfg.reserved & ~o);
+    if (g_cfg.reserved != prev) g_cfg_dirty = true;
+}
+
+// ---------------------------------------------------------------------------
+// ArmorTierColor — maps max_armor to a tier ImU32
+// Called from overlay draw; user cannot override when OPT_ARMOR_TIER_COLOR on.
+//   <=50  → Gray
+//   <=75  → Blue
+//   <=100 → Purple
+//   >100  → Gold
+// ---------------------------------------------------------------------------
+inline uint32_t ArmorTierColor(float max_armor) {
+    if (max_armor <= 50.0f)  return 0xFFA8A8A8; // Gray  (ABGR)
+    if (max_armor <= 75.0f)  return 0xFFE09040; // Blue  (ABGR: 0xFF + B=0xE0 + G=0x90 + R=0x40)
+    if (max_armor <= 100.0f) return 0xFFD060D0; // Purple
+    return                          0xFF20C8FF; // Gold  (ABGR: bright yellow-gold)
+}
+// Note: ImU32 is 0xAABBGGRR in ImGui's default.
+// Gray  : R=168 G=168 B=168 -> IM_COL32(168,168,168,255)
+// Blue  : R=64  G=144 B=224 -> IM_COL32(64,144,224,255)
+// Purple: R=208 G=96  B=208 -> IM_COL32(208,96,208,255)
+// Gold  : R=255 G=200 B=32  -> IM_COL32(255,200,32,255)
+inline uint32_t ArmorTierColorIM(float max_armor) {
+    if (max_armor <= 50.0f)  return IM_COL32(168, 168, 168, 240); // Gray
+    if (max_armor <= 75.0f)  return IM_COL32(64,  144, 224, 240); // Blue
+    if (max_armor <= 100.0f) return IM_COL32(208,  96, 208, 240); // Purple
+    return                          IM_COL32(255, 200,  32, 240); // Gold
+}
+
+// ---------------------------------------------------------------------------
+// FactionColor — deterministic, non-red color from faction int
+// Factions 0-7 get a fixed palette; avoids red (team-visible association).
+// Same faction int always → same color within a session.
+// ---------------------------------------------------------------------------
+inline uint32_t FactionColorIM(int faction) {
+    // 8 slots, no red. Cycling: cyan, lime, orange, magenta, teal, yellow, purple, white.
+    static const uint32_t kPalette[8] = {
+        IM_COL32(  0, 210, 230, 220), // Cyan
+        IM_COL32( 90, 230,  60, 220), // Lime
+        IM_COL32(255, 160,  30, 220), // Orange
+        IM_COL32(210,  60, 210, 220), // Magenta
+        IM_COL32( 20, 185, 185, 220), // Teal
+        IM_COL32(245, 220,  40, 220), // Yellow
+        IM_COL32(140,  60, 230, 220), // Purple
+        IM_COL32(210, 210, 210, 220), // White
+    };
+    // Map faction to palette index. Faction -1 or unknown → white.
+    if (faction < 0) return kPalette[7];
+    return kPalette[faction % 8];
 }
