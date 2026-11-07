@@ -41,7 +41,7 @@ CATALOG_MAGIC = 0x42534354
 VERSION = 9
 MAX_ENTITIES = 128
 
-# Cfg grew at the tail with the Comet port (team colours, armor tiers, loot,
+# Cfg grew at the tail with the Comet port (team colours, armor tiers,
 # options word, noise). Everything before field 37 keeps its original offset, so
 # only the parser had to learn the new tail - the on-disk file is written by the
 # overlay, this is only ever read.
@@ -51,15 +51,13 @@ STATE_FMT = '<IIIIQ14fBBH'
 ENT_FMT = '<Q40s32s3f3f2f2f5fi4BI32fII'
 CAT_HEAD_FMT = '<IIII'
 CAT_ENTRY_FMT = '<IIII48s'
-# Ground-loot trailer appended after the player array:
-#   [u32 count][count * (u64 id, 2f screen, f distance, I kind)]
+# Ground-loot publishing was removed at the user's request: the marker read as
+# flicker and the scan was measurable work inside the game's tick. The packet
+# still carries an empty trailer so the overlay's reader stays in step.
 LOOT_MAX = 64
 LOOT_FMT = '<Q2ffI'
 LOOT_SIZE = struct.calcsize(LOOT_FMT)
 LOOT_HEAD = 4
-# Exact owner types established by the captured graph (see the reference
-# playerdata::IsCapturedGroundLootOwnerType). Nothing else is promoted to loot.
-GROUND_LOOT_TYPES = ('CombatItemEntity', 'Supply')
 
 CFG_SIZE = struct.calcsize(CFG_FMT)
 STATE_HEAD_SIZE = struct.calcsize(STATE_FMT)
@@ -125,7 +123,7 @@ IDX_AIM_KEY2 = 56
 # defined here; OPT2_ESP_HERO / TEAM_LABEL / TEAM_COLORS / ESP_ARMOR_MAX are
 # The overlay owns the capture guard; the runtime only has to publish the
 # default so a fresh config starts protected.
-OPT2_ESP_LOOT = 1 << 1
+# OPT2_ESP_LOOT (1 << 1) is retired: no ground-loot ESP any more.
 OPT2_OBS_PROTECT = 1 << 5
 OPT2_AIM_NOISE = 1 << 6
 
@@ -269,7 +267,6 @@ _class_hooks_at = 0.0
 _log_last_msg = None
 _log_last_t = 0.0
 _path = None
-_loot_cache = None
 
 HERO_NAMES = {
     101: 'Ethan', 102: 'Jet', 103: 'Nova', 104: 'Val', 105: 'Hank',
@@ -2148,6 +2145,15 @@ def _check_faction_relation(e, local_av, local_team, team, is_bot, is_monster):
 
 
 def _collect_space_entities(space):
+    """All entities in the space, cached for 30 ms.
+
+    Do NOT call this from the aim/tracking path or anything else that runs while
+    the player holds fire: it rebuilds the whole list (list() over every
+    category, a set of ids) and walks entity_category keys with str().lower()
+    per key. During a match that list is large and changes constantly, so the
+    cache almost never hits. It is fine for the ESP gather (already 30 ms
+    amortised) and for read-only scans, which is what it was written for.
+    """
     global _ent_list_cache
     now = time.time()
     c = _ent_list_cache
@@ -2432,113 +2438,6 @@ def _owner_type_name(obj):
         return str(type(obj).__name__)
     except Exception:
         return ''
-
-
-def _ground_loot_kind(e):
-    """Returns (kind, open_known, is_open) when `e` is captured ground loot.
-
-    `CombatItemEntity` and `Supply` are the only owner types the captured graph
-    establishes. A Supply container is hidden once its replicated is_open flag
-    reads true; an unknown flag is keep-shown, matching the reference.
-    """
-    name = _owner_type_name(e)
-    if name not in GROUND_LOOT_TYPES:
-        return None
-    open_known, is_open = False, False
-    if name == 'Supply':
-        for attr in ('is_open', 'IsOpen', 'opened', 'IsOpened'):
-            try:
-                value = getattr(e, attr, None)
-            except Exception:
-                continue
-            if value is None:
-                continue
-            try:
-                is_open = bool(value() if callable(value) else value)
-                open_known = True
-            except Exception:
-                continue
-            break
-    return (0 if name == 'CombatItemEntity' else 1, open_known, is_open)
-
-
-def _loot_position(e):
-    pos = _call_attr(e, ('position', 'pos', 'GetPosition'))
-    if pos is None:
-        model = getattr(e, 'model', None)
-        if model is not None:
-            pos = _call_attr(model, ('Position', 'position', 'GetPosition'))
-    return _vec(pos)
-
-
-def _collect_ground_loot(cam, origin, max_dist):
-    """Read-only ground-loot scan for the Comet loot ESP.
-
-    Every failure path returns nothing: a build whose item entities do not
-    expose `position` simply shows no markers instead of inventing a location.
-    The scan is throttled and reuses the same entity cache as the player walk,
-    so it adds no enumeration cost of its own.
-    """
-    global _loot_cache
-    now = time.time()
-    if cam is None or origin is None:
-        return []
-    cached = _loot_cache
-    # Compare the limit by value: callers pass a freshly computed float, so an
-    # identity check would never hit and the scan would run every frame.
-    # 0.5 s instead of 0.25 s: loot does not move, and this scan projects every
-    # candidate item with a matrix multiply, which is the expensive part of the
-    # tick when the feature is on.
-    if cached is not None and now - cached[0] < 0.5 and cached[1] == float(max_dist):
-        return cached[2]
-    out = []
-    seen = set()
-    try:
-        space = getattr(genv, 'space', None)
-        ents = _collect_space_entities(space) if space is not None else []
-    except Exception:
-        ents = []
-    try:
-        cam_fwd = _vec(_cam_dir(cam))
-    except Exception:
-        cam_fwd = None
-    for e in ents:
-        try:
-            kind_info = _ground_loot_kind(e)
-            if kind_info is None:
-                continue
-            key = getattr(e, 'id', None)
-            key = id(e) if key is None else key
-            if key in seen:
-                continue
-            seen.add(key)
-            kind, open_known, is_open = kind_info
-            if open_known and is_open:
-                continue
-            pos = _loot_position(e)
-            if pos is None or not all(math.isfinite(v) for v in pos):
-                continue
-            delta = _sub(pos, origin)
-            dist = _len(delta)
-            if not math.isfinite(dist) or dist <= 0.1 or dist > max_dist:
-                continue
-            if cam_fwd is not None and _dot(delta, cam_fwd) <= -0.10:
-                continue
-            screen = _matrix_world_to_screen(pos)
-            if screen is None:
-                continue
-            sx, sy = float(screen[0]), float(screen[1])
-            if not (math.isfinite(sx) and math.isfinite(sy)):
-                continue
-            # Off-screen items stay in the packet with harmless coordinates; the
-            # overlay rejects anything outside [0,1] instead of clamping it.
-            out.append((key if isinstance(key, int) else 0, sx, sy, dist, kind, pos))
-        except Exception:
-            continue
-    out.sort(key=lambda item: item[3])
-    out = out[:LOOT_MAX]
-    _loot_cache = (now, max_dist, out)
-    return out
 
 
 def _mui_keys(vk):
@@ -4462,7 +4361,7 @@ def _force_killfx_on_equipped():
         _sys_log('force_killfx live changes=%d cases=%d families=%d' % (changed, len(cases), len(best)))
 
 
-def _serialize_frame_data(cfg, cam, in_match, origin, lpos, items, loot=None):
+def _serialize_frame_data(cfg, cam, in_match, origin, lpos, items):
     global _state_seq
     fwd = (0.0, 0.0, -1.0)
     yaw = 0.0
@@ -4559,22 +4458,15 @@ def _serialize_frame_data(cfg, cam, in_match, origin, lpos, items, loot=None):
             if n >= MAX_ENTITIES:
                 break
     struct.pack_into('<I', buf, 12, n)
-    # Ground-loot trailer. Always present (count 0 when the feature is off) so a
-    # reader can rely on the header instead of guessing the packet length.
+    # Trailer header. Ground-loot publishing was removed, so the count is always
+    # zero; it stays in the packet so a reader can rely on the header instead of
+    # guessing the packet length.
     off = STATE_HEAD_SIZE + n * ENT_SIZE
+    # No ground-loot publishing any more (removed at the user's request). The
+    # count field stays so the overlay's reader keeps its expected layout.
     loot_count = 0
-    if in_match and loot and _opt2(cfg, OPT2_ESP_LOOT):
-        for entry in loot[:LOOT_MAX]:
-            try:
-                lid, sx, sy, dist, kind, _pos = entry
-                struct.pack_into(LOOT_FMT, buf, off + LOOT_HEAD + loot_count * LOOT_SIZE,
-                                 int(lid) & 0xFFFFFFFFFFFFFFFF, float(sx), float(sy),
-                                 float(dist), int(kind) & 0xFFFFFFFF)
-            except Exception:
-                continue
-            loot_count += 1
     struct.pack_into('<I', buf, off, loot_count)
-    return buf[:off + LOOT_HEAD + loot_count * LOOT_SIZE]
+    return buf[:off + LOOT_HEAD]
 
 
 def _on_story_tick(dt):
@@ -4673,16 +4565,9 @@ def _on_story_tick(dt):
         _sync_weapon_case_damping(cfg, in_match)
         _last_state = now
         av, lid, team, lpos = _local()
-        loot = None
-        if in_match and _opt2(cfg, OPT2_ESP_LOOT):
-            try:
-                limit = float(cfg[IDX_LOOT_MAX_DIST])
-            except Exception:
-                limit = 120.0
-            if not math.isfinite(limit) or limit <= 0.0:
-                limit = 120.0
-            loot = _collect_ground_loot(cam, origin, min(500.0, limit))
-        buf = _serialize_frame_data(cfg, cam, in_match, origin, lpos, items, loot)
+        # The per-tick ground-loot scan is gone (it walked the whole space and
+        # projected every candidate); nothing calls it any more.
+        buf = _serialize_frame_data(cfg, cam, in_match, origin, lpos, items)
         if buf is not None:
             _write(STATE_PATH, buf)
         t1 = time.time()

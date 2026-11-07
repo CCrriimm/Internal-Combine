@@ -25,7 +25,7 @@ class RuntimeTickTests(unittest.TestCase):
             '_serialize_frame_data': lambda *args: b'frame', 'STATE_PATH': 'unused',
             '_write': lambda *args: None,
             # Comet port knobs: loot/noise stay off in this fast-path harness.
-            'OPT2_ESP_LOOT': 1 << 1, 'OPT2_AIM_NOISE': 1 << 6,
+            'OPT2_AIM_NOISE': 1 << 6,
             'IDX_OPTS': 50, 'IDX_LOOT_MAX_DIST': 51, 'IDX_NOISE_STRENGTH': 52,
             '_opt2': lambda cfg, bit: False, '_noise_strength': lambda cfg: 0.0,
             'math': __import__('math'),

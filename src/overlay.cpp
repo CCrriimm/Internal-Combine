@@ -117,18 +117,6 @@ struct Ent {
 
 };
 
-// Ground loot published after the player array. Owner type is an exact
-// allowlist in the runtime (CombatItemEntity / Supply); no item name is
-// invented, so `kind` only distinguishes the two captured container types.
-struct LootEnt {
-    uint64_t id;
-    float    screen[2];   // normalized [0..1]
-    float    distance;
-    uint32_t kind;        // 0 = dropped item, 1 = supply container
-};
-
-
-
 struct State {
 
     uint32_t magic;
@@ -209,7 +197,6 @@ static_assert(offsetof(Cfg, aim_key2) == 224, "v8 layout changed");
 
 static_assert(sizeof(Ent) == 288, "Ent size");
 
-static_assert(sizeof(LootEnt) == 24, "LootEnt size");
 
 static_assert(sizeof(State) == 84, "State size");
 
@@ -511,8 +498,6 @@ static State g_state{};
 
 static std::vector<Ent> g_ents;
 
-static std::vector<LootEnt> g_loot;
-
 static teamtint::Labels g_team_labels;
 
 static comet_capture::Blackout g_obs{};
@@ -788,7 +773,6 @@ static constexpr uint32_t kDefaultArmorTier[4] = {
     (armortier::Packed(100.0f) & 0x00FFFFFFu) | (245u << 24),
     (armortier::Packed(125.0f) & 0x00FFFFFFu) | (245u << 24),
 };
-static const uint32_t kDefaultLoot = (245u << 24) | (255u << 16) | (230u << 8) | 51u;
 
 static void DefaultCfg() {
 
@@ -869,17 +853,15 @@ static void DefaultCfg() {
 
     g_cfg.auto_skin = 1;
 
-    // Team box / line (slots 1-4), armor tiers (50 grey, 75 blue, 100 purple,
-    // 125 gold) and the loot marker. Shared with the v7 -> v8 migration above.
+    // Armor tiers (50 grey, 75 blue, 100 purple, 125 gold). Shared with the
+    // v7 -> v8 migration above. col_loot / loot_max_dist stay in the struct only
+    // so the byte layout - and every migration anchor - stays put; nothing reads
+    // or writes them any more.
     for (int i = 0; i < 4; ++i) {
         g_cfg.col_armor_tier[i] = kDefaultArmorTier[i];
     }
 
-    g_cfg.col_loot = kDefaultLoot;
-
     g_cfg.opts = OPT2_OBS_PROTECT;
-
-    g_cfg.loot_max_dist = 120.0f;
 
     g_cfg.noise_strength = 0.0016f;
 
@@ -929,9 +911,7 @@ static bool LoadCfg() {
             for (int i = 0; i < 4; ++i) {
                 m.col_armor_tier[i] = kDefaultArmorTier[i];
             }
-            m.col_loot = kDefaultLoot;
             m.opts = OPT2_OBS_PROTECT;
-            m.loot_max_dist = 120.0f;
             m.noise_strength = 0.0016f;
             m.version = VERSION;
             buf.assign(reinterpret_cast<const uint8_t*>(&m),
@@ -998,8 +978,6 @@ static bool LoadCfg() {
     for (int i = 0; i < 4; ++i) {
         if (c.col_armor_tier[i] == 0) c.col_armor_tier[i] = kDefaultArmorTier[i];
     }
-    if (c.col_loot == 0) c.col_loot = IM_COL32(51, 230, 255, 245);
-    if (!std::isfinite(c.loot_max_dist) || c.loot_max_dist < 10.0f || c.loot_max_dist > 500.0f) c.loot_max_dist = 120.0f;
     if (!std::isfinite(c.noise_strength) || c.noise_strength < 0.0f || c.noise_strength > 0.02f) c.noise_strength = 0.0016f;
 
     if (c.aim_bone < 0 || c.aim_bone > 4) c.aim_bone = 0;
@@ -1125,22 +1103,7 @@ static void SetOptAimToggle(bool on) {
 
 
 
-// Ground loot trailer: [u32 count][LootEnt * count] immediately after the
-// player array. A record that does not fit is dropped rather than read past the
-// mapped buffer, so a stale/shorter packet can never produce a phantom marker.
-static void ParseLoot(const uint8_t* base, size_t avail, uint32_t ents) {
-    g_loot.clear();
-    const size_t offset = sizeof(State) + (size_t)ents * sizeof(Ent);
-    if (!base || avail < offset + sizeof(uint32_t)) return;
-    uint32_t count = 0;
-    memcpy(&count, base + offset, sizeof(count));
-    const size_t room = (avail - offset - sizeof(uint32_t)) / sizeof(LootEnt);
-    if (count > room) count = (uint32_t)room;
-    if (count > 128) count = 128;
-    if (!count) return;
-    g_loot.resize(count);
-    memcpy(g_loot.data(), base + offset + sizeof(uint32_t), (size_t)count * sizeof(LootEnt));
-}
+
 
 // Keeps SetWindowDisplayAffinity(WDA_EXCLUDEFROMCAPTURE) in force while the
 // Settings toggle is on. The guard re-asserts the affinity if the game clears
@@ -1187,8 +1150,6 @@ static bool LoadState() {
                     memcpy(g_ents.data(), src, count * sizeof(Ent));
 
                 }
-                ParseLoot(reinterpret_cast<const uint8_t*>(g_shm_state_p), 65536, count);
-
             }
 
             return true;
@@ -1228,8 +1189,6 @@ static bool LoadState() {
         memcpy(g_ents.data(), g_buffer.data() + sizeof(State), count * sizeof(Ent));
 
     }
-
-    ParseLoot(g_buffer.data(), g_buffer.size(), count);
 
     return true;
 
@@ -2064,40 +2023,7 @@ static bool ColorRow(const char* label, uint32_t& v) {
 
 
 
-// Ground-loot ESP. The runtime already resolved and projected each captured
-// CombatItemEntity/Supply; this only draws what the reader published, so a
-// layout change upstream shows nothing instead of guessing at a position.
-//
-// Kept deliberately plain so it belongs to the same visual language as the rest
-// of the overlay: a small tinted dot with a dark rim, no text, no icons. Text
-// here was both the loudest thing on screen and the flicker source - a label
-// anchored to a projected point jitters by a pixel every frame the camera moves,
-// which makes glyphs shimmer. A dot cannot shimmer.
-static void DrawLootESP() {
-    if (!g_state.in_match || !HasOpt2(OPT2_ESP_LOOT) || g_loot.empty()) return;
-    ImVec2 ds = ImGui::GetIO().DisplaySize;
-    if (ds.x <= 1.0f || ds.y <= 1.0f) return;
-    ImDrawList* dl = ImGui::GetForegroundDrawList();
-    const float limit = g_cfg.loot_max_dist > 0.0f ? g_cfg.loot_max_dist : 120.0f;
-    const ImU32 colour = g_cfg.col_loot & 0x00FFFFFFu;
-    const ImU32 fill = colour | 0xF5000000u;
-    const ImU32 rim = IM_COL32(0, 0, 0, 190);
-    int drawn = 0;
-    for (const auto& item : g_loot) {
-        if (drawn >= 96) break; // hard cap: 64 is what the reader sends
-        if (!std::isfinite(item.distance) || item.distance <= 0.0f || item.distance > limit) continue;
-        if (!std::isfinite(item.screen[0]) || !std::isfinite(item.screen[1])) continue;
-        if (item.screen[0] < 0.0f || item.screen[0] > 1.0f ||
-            item.screen[1] < 0.0f || item.screen[1] > 1.0f) continue;
-        const ImVec2 p(item.screen[0] * ds.x, item.screen[1] * ds.y);
-        // Containers read slightly larger than loose drops. 12-gon rather than
-        // 24: half the vertices, indistinguishable at this size.
-        const float r = item.kind ? 3.2f : 2.2f;
-        dl->AddCircleFilled(p, r + 1.0f, rim, 12);
-        dl->AddCircleFilled(p, r, fill, 12);
-        ++drawn;
-    }
-}
+
 
 static void DrawESP() {
     if (!Has(F_ESP) || !g_state.in_match) return;
@@ -2612,11 +2538,6 @@ static void DrawESPTab() {
     if (CometUi::Toggle("Team label",&team_label,ImGui::GetContentRegionAvail().x)) SetOpt2(OPT2_TEAM_LABEL,team_label);
     bool team_colors = HasOpt2(OPT2_TEAM_COLORS);
     if (CometUi::Toggle("Team box + line colors",&team_colors,ImGui::GetContentRegionAvail().x)) SetOpt2(OPT2_TEAM_COLORS,team_colors);
-    bool loot = HasOpt2(OPT2_ESP_LOOT);
-    if (CometUi::Toggle("Loot ESP",&loot,ImGui::GetContentRegionAvail().x)) SetOpt2(OPT2_ESP_LOOT,loot);
-    ImGui::BeginDisabled(!HasOpt2(OPT2_ESP_LOOT));
-    SliderF32("Loot distance",g_cfg.loot_max_dist,10.f,500.f,"%.0f m");
-    ImGui::EndDisabled();
     ImGui::TextDisabled("Team colours are assigned per team, automatically.");
     ImGui::TextDisabled("Armor bar colour follows max armor: 50 / 75 / 100 / 125.");
     ImGui::TextDisabled("Armour colour is automatic; there is no colour picker.");
@@ -4158,10 +4079,8 @@ static void RenderFrame(IDXGISwapChain* sc) {
     // stretch (Frame() below), which covers wiping back to spectate.
     if (!g_state.in_match) g_team_labels.Reset();
 
-    // Loot ESP has its own switch, so it must be able to ask for a frame on its
-    // own; otherwise turning the player ESP off silently hides loot too.
     bool need = menu || (g_state.in_match &&
-                         (Has(F_ESP) || Has(F_AIM_FOV_CIRCLE) || HasOpt2(OPT2_ESP_LOOT)));
+                         (Has(F_ESP) || Has(F_AIM_FOV_CIRCLE)));
 
     if (!need) return;
 
@@ -4239,8 +4158,6 @@ static void RenderFrame(IDXGISwapChain* sc) {
     // finished match clears the cache even if the ESP was off the whole time.
     g_team_labels.Frame(g_state.in_match && !g_ents.empty());
     DrawESP();DrawFOV();DrawRadar();
-    // Loot is its own feature: it keeps working with the player ESP switched off.
-    DrawLootESP();
     background->ChannelsMerge();
     if(g_unloading) {ImGui::EndFrame();return;}
 

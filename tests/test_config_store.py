@@ -149,7 +149,7 @@ int main(){
  assert(g_cfg.aim_key2==0);                       // v9 field starts unbound
  assert(g_cfg.col_armor_tier[3]==IM_COL32(255,194,31,245));
  assert(g_cfg.col_loot==IM_COL32(51,230,255,245));
- assert(g_cfg.opts==OPT2_OBS_PROTECT&&g_cfg.loot_max_dist==120.f);
+ assert(g_cfg.opts==OPT2_OBS_PROTECT);
  assert(g_cfg_dirty);                             // rewritten on next autosave
  assert(SaveCfg());assert(files[L"saved"].size()==sizeof(Cfg));
  // ---- v8 -> v9 layout migration -------------------------------------------
