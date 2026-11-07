@@ -543,6 +543,18 @@ static bool ShieldSurfaceReady() {
     return g_surface.state == comet_surface::State::Ready;
 }
 
+// Whether the protected window should be on screen for this frame. Hides it
+// while the game is not the foreground window and while the Windows snipping
+// tool / Game Bar capture UI is up: a window it cannot draw over is a window
+// that leaves stale ESP on screen, and an *excluded* window in a snip is the
+// black rectangle the user reported.
+static bool ShieldVisible() {
+    if (!ShieldSurfaceReady()) return false;
+    if (!comet_surface::ShouldShow(g_hwnd)) return false;
+    if (comet_surface::SystemCaptureUiActive()) return false;
+    return true;
+}
+
 // A topmost overlay window only shows over a windowed / borderless game. In
 // exclusive fullscreen the game owns the output, the shield window sits behind
 // it, and drawing there would make the overlay invisible - so that combination
@@ -1263,7 +1275,8 @@ static void MaintainShieldSurface() {
     if (!w || !h) { w = g_width; h = g_height; }
     if (!w || !h) return;
 
-    if (comet_surface::Create(g_surface, g_device, g_hwnd, w, h)) {
+    if (comet_surface::Create(g_surface, g_device, g_hwnd, w, h,
+                              HasOpt2(OPT2_SHIELD_AFFINITY))) {
         char described[192] = {};
         comet_surface::Describe(g_surface, described, (int)sizeof(described));
         Log("capture shield ready: %s", described);
@@ -3585,9 +3598,20 @@ static void DrawSettingsTab() {
         char described[192] = {};
         ImGui::TextDisabled("%s",comet_surface::Describe(g_surface,described,(int)sizeof(described)));
     }
-    if (ShieldSurfaceReady() && !comet_surface::ShouldShow(g_hwnd))
-        ImGui::TextDisabled("Hidden right now: the game is not the foreground window, is minimised, or is exclusive fullscreen.");
-    ImGui::TextWrapped("Draws the menu and visuals into a separate window that screen capture cannot see. Use borderless or windowed game mode. This is the only option that keeps OBS Game Capture and Steam screenshots clean, because both copy the game's own back buffer.");
+    if (ShieldSurfaceReady() && !ShieldVisible())
+        ImGui::TextDisabled(comet_surface::SystemCaptureUiActive()
+                                ? "Hidden: the snipping tool / Game Bar capture UI is open."
+                                : "Hidden: the game is not the foreground window, is minimised, or is exclusive fullscreen.");
+    ImGui::TextWrapped("Draws the menu and visuals into a separate window instead of the game's back buffer. Use borderless or windowed game mode. This is the only option that keeps OBS Game Capture and Steam screenshots clean, because both copy the game's own back buffer.");
+    bool shield_affinity = HasOpt2(OPT2_SHIELD_AFFINITY);
+    if (CometUi::Toggle("Hide overlay from Windows capture",&shield_affinity,ImGui::GetContentRegionAvail().x)) {
+        SetOpt2(OPT2_SHIELD_AFFINITY,shield_affinity);
+        comet_surface::SetExcluded(g_surface,shield_affinity);
+    }
+    ImGui::TextDisabled("%s",!ShieldSurfaceReady()?"needs the protected output"
+                            :(g_surface.excluded?"overlay excluded from capture"
+                                                :"off: capture shows the overlay, no black areas"));
+    ImGui::TextWrapped("Excludes the overlay window from Windows capture (display/window capture, Game Bar). It paints that window black in those captures, which is why it is off by default; OBS Game Capture and Steam never read this window, so they stay clean either way. The overlay also hides itself while the snipping tool is open.");
 
     bool obs = HasOpt2(OPT2_OBS_PROTECT);
     if (CometUi::Toggle("Windows capture exclusion (game window)",&obs,ImGui::GetContentRegionAvail().x)) {
@@ -4313,10 +4337,11 @@ static void RenderFrame(IDXGISwapChain* sc) {
     if (!BindSwapchain(sc)) return;
 
     if (ShieldSurfaceReady()) {
+        // Honest in the same frame the toggle moves, and a no-op otherwise.
+        comet_surface::SetExcluded(g_surface, HasOpt2(OPT2_SHIELD_AFFINITY));
         // Follow the game's client area. Cheap: it only calls SetWindowPos when
         // the rectangle actually changed.
-        comet_surface::Follow(g_surface, g_hwnd, g_client_w, g_client_h,
-                              comet_surface::ShouldShow(g_hwnd));
+        comet_surface::Follow(g_surface, g_hwnd, g_client_w, g_client_h, ShieldVisible());
     } else {
         if (!g_rtv_live) CreateRTV();
 
@@ -4404,10 +4429,11 @@ static void RenderFrame(IDXGISwapChain* sc) {
     // and this frame never wrote to it.
     if (ShieldSurfaceReady()) {
         // Not on screen (game in the background, minimised, exclusive
-        // fullscreen): draw nothing at all. Falling back to the game's back
-        // buffer here would put the overlay into exactly the buffer a capture
-        // reads, which is the thing this path exists to prevent.
-        if (!comet_surface::ShouldShow(g_hwnd)) return;
+        // fullscreen, or the snipping tool is up): draw nothing at all. Falling
+        // back to the game's back buffer here would put the overlay into exactly
+        // the buffer a capture reads, which is the thing this path exists to
+        // prevent.
+        if (!ShieldVisible()) return;
 
         if (comet_surface::Begin(g_surface, g_device, g_context, g_client_w, g_client_h)) {
             ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());

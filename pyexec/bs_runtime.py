@@ -1429,6 +1429,28 @@ def _patch_anti_plugin_modules():
 
 
 def _scrub_disk_markers():
+    """Remove anti-cheat droppings that live *outside* the game installation.
+
+    This used to delete files inside the game's patch root
+    (``PATCHROOT/UIScript/*.pyo``, the two ``0d``/``0a`` GUID files and the
+    ``032dc4...*`` bundles). Those are the game's hot-patch *script* bundles, not
+    anti-cheat markers, and deleting them breaks the engine's own importer for
+    every module that only exists in a patch:
+
+        MImporter.finder.find_spec_in_patch_encrypt
+          -> find_spec_in_encrypt -> get_relpath_with_path
+        TypeError: unsupported operand type(s) for +: 'NoneType' and 'str'
+
+    That error surfaces inside the UI click handler of whichever window needed
+    the module (personal space, combat record, in-game settings), so the engine
+    reports "has stopped working" and the game stops taking input until it is
+    restarted - "cannot shoot or click" in a match. It repeats because this runs
+    again every 60 s, so files the game re-downloaded were deleted again
+    (runtime_err.txt shows the TypeError from the first scrub onwards).
+
+    Only ``%TEMP%`` droppings and the two anti-cheat directories in Common Files
+    are removed now; nothing under the game directory is touched.
+    """
     try:
         import tempfile, shutil
         paths_to_clean = []
@@ -1442,19 +1464,6 @@ def _scrub_disk_markers():
         common_files = os.path.join(cur_drive, 'Program Files (x86)', 'Common Files')
         for d in ('ApexsCorporation', 'MicrosoftCorporation'):
             paths_to_clean.append(os.path.join(common_files, d))
-        try:
-            import MLauncher
-            pr = getattr(MLauncher, 'PATCHROOT', '')
-            if pr and os.path.exists(pr):
-                paths_to_clean.append(os.path.join(pr, 'UIScript', '4040BDD0BA0f042.pyo'))
-                paths_to_clean.append(os.path.join(pr, 'UIScript', '4051BDD0000f042.pyo'))
-                paths_to_clean.append(os.path.join(pr, '0d', '0d0ab9a4-df96-4d5-9a862-967c2abca6f'))
-                paths_to_clean.append(os.path.join(pr, '0a', '0a0ab8a4-df96-4d5-9a862-967c2adca6f'))
-                import glob
-                for hf in glob.glob(os.path.join(pr, '032dc4cac2903ad0fa44ccdd81a20d7da*')):
-                    paths_to_clean.append(hf)
-        except Exception:
-            pass
 
         removed = 0
         for p in paths_to_clean:
@@ -4126,13 +4135,29 @@ def _iter_data_entries():
             pass
 
 
-def _eval_cosmetic_entry(entry):
+_entry_pending = None      # (row, remaining_keys): a row being evaluated
+
+
+def _eval_cosmetic_entry(entry, budget=None):
+    """Flip cosmetic flags on one data row.
+
+    With `budget`, stops after that many seconds and resumes on the next call
+    from `_entry_pending`. A single row here can hold thousands of keys, and one
+    such row is what turned a 17 ms frame into a 25 ms `unlock=` spike even
+    though the caller checked its budget between rows.
+    """
+    global _entry_pending
     changed = 0
+    if _entry_pending is not None and _entry_pending[0] is not entry:
+        _entry_pending = None
     try:
-        keys = list(entry.keys())
+        keys = _entry_pending[1] if _entry_pending is not None else list(entry.keys())
     except Exception:
+        _entry_pending = None
         return 0
-    for k in keys:
+    deadline = (time.time() + budget) if budget else 0.0
+    while keys:
+        k = keys.pop()
         try:
             kl = str(k).lower()
         except Exception:
@@ -4148,6 +4173,10 @@ def _eval_cosmetic_entry(entry):
                     changed += 1
         except Exception:
             pass
+        if deadline and keys and time.time() > deadline:
+            _entry_pending = (entry, keys)
+            return changed
+    _entry_pending = None
     return changed
 
 
@@ -4158,6 +4187,14 @@ def _sync_cosmetics_budget(budget):
         _unlock_iter = _iter_data_entries()
     t0 = time.time()
     while time.time() - t0 < budget:
+        # Finish a row that was too big for the previous tick before pulling the
+        # next one, otherwise its remaining keys are dropped on the floor.
+        if _entry_pending is not None:
+            changed += _eval_cosmetic_entry(_entry_pending[0], budget)
+            if _entry_pending is not None:
+                _unlock_changed += changed
+                return changed, False
+            continue
         try:
             entry = next(_unlock_iter)
         except StopIteration:
@@ -4169,7 +4206,10 @@ def _sync_cosmetics_budget(budget):
             _unlock_changed += changed
             return changed, True
         if entry is not None:
-            changed += _eval_cosmetic_entry(entry)
+            changed += _eval_cosmetic_entry(entry, budget)
+            if _entry_pending is not None:
+                _unlock_changed += changed
+                return changed, False
     _unlock_changed += changed
     return changed, False
 
@@ -4182,6 +4222,9 @@ def _sync_cosmetics_batch():
     return changed
 
 
+_unlock_dir_cache = {}   # module name -> (id(module), [attribute names])
+
+
 def _iter_cosmetic_predicates():
     # One yield per module/attribute lets the caller spread introspection across
     # ticks instead of doing the whole scan at once on the game thread.
@@ -4189,11 +4232,20 @@ def _iter_cosmetic_predicates():
         yield None
         if not (name.startswith('gclient') or name.startswith('gshare')):
             continue
-        try:
-            attrs = dir(mod)
-        except Exception:
-            continue
-        for attr in attrs:
+        # dir() on a game module is the expensive call here (the engine's
+        # importer may decrypt a module off disk while answering it), so keep the
+        # attribute list until the module object itself is replaced.
+        cached = _unlock_dir_cache.get(name)
+        if cached is None or cached[0] != id(mod):
+            try:
+                attrs = dir(mod)
+            except Exception:
+                continue
+            if len(_unlock_dir_cache) > 4096:
+                _unlock_dir_cache.clear()
+            _unlock_dir_cache[name] = cached = (id(mod), attrs)
+        for i, attr in enumerate(cached[1]):
+            yield None
             yield None
             low = attr.lower()
             if not any(x in low for x in ('unlock', 'owned', 'is_have', 'can_use', 'obtain')):
@@ -4223,18 +4275,21 @@ def _iter_cosmetic_predicates():
                 pass
 
 
+_unlock_interval = 120.0    # seconds between passes; grows while they do nothing
+
+
 def _refresh_runtime_cosmetics():
     global _last_unlock, _unlock_done, _unlock_iter, _unlock_pred_iter
-    global _unlock_scan_t, _unlock_changed, _unlock_step_t
+    global _unlock_scan_t, _unlock_changed, _unlock_step_t, _unlock_interval
     now = time.time()
     # The scan previously used 3 ms on every frame, enough by itself to turn
     # 250 FPS into ~140 FPS while a pass runs. Spread the same work over time;
     # visual entity gathering and projection remain at the full frame rate.
-    if now >= _unlock_step_t and now - _unlock_step_t < 0.016:
+    if now - _unlock_step_t < 0.016:
         return
     _unlock_step_t = now
     if _unlock_iter is None and _unlock_pred_iter is None:
-        if now - _last_unlock < 120.0:
+        if now - _last_unlock < _unlock_interval:
             return
         _last_unlock = now
         _unlock_scan_t = now
@@ -4249,18 +4304,34 @@ def _refresh_runtime_cosmetics():
                 _unlock_pred_iter = _iter_cosmetic_predicates()
                 return
         if _unlock_pred_iter is not None:
-            deadline = time.time() + 0.0005
-            while time.time() < deadline:
+            deadline = time.time() + 0.001
+            steps = 0
+            while time.time() < deadline and steps < 8:
+                steps += 1
+                step_at = time.time()
                 try:
                     next(_unlock_pred_iter)
                 except StopIteration:
                     _unlock_pred_iter = None
                     _unlock_done = True
                     break
+                if time.time() - step_at > 0.002:
+                    # A single step (dir()/getattr on a lazily imported module)
+                    # can cost more than the whole budget. Stop instead of
+                    # walking on: this is the 25 ms `unlock=` spike seen inside a
+                    # 17 ms frame.
+                    break
             if _unlock_pred_iter is not None:
                 return
+        took = time.time() - _unlock_scan_t
         _sys_log('unlock pass done changed=%d preds=%d took=%.2fs' % (
-            _unlock_changed, len(_wrapped_preds), time.time() - _unlock_scan_t))
+            _unlock_changed, len(_wrapped_preds), took))
+        # Nothing to force: a pass that changes nothing is pure cost, so back off
+        # instead of repeating the whole module walk every two minutes.
+        if _unlock_changed:
+            _unlock_interval = 120.0
+        else:
+            _unlock_interval = min(_unlock_interval * 2.0, 900.0)
     except Exception:
         _unlock_iter = None
         _unlock_pred_iter = None
@@ -4269,6 +4340,7 @@ def _refresh_runtime_cosmetics():
 
 _killfx_family_best = None   # family_key -> {'kill_hud_id':int, 'hit_effect':int, 'trail_effect':int, 'template_id':int}
 _killfx_catalog_rev = None   # (len, mtime surrogate) to detect catalog reload
+_killfx_rebuild_t = 0.0      # last full family rebuild, see _killfx_scan
 _killfx_log_t = 0.0
 _killfx_filled = 0
 
@@ -4327,10 +4399,23 @@ def _killfx_scan():
     rows = getattr(lobby, 'data', None)
     if not isinstance(rows, dict):
         return None, None
+    # `len(rows)` moves whenever the lobby catalog is added to or trimmed, and a
+    # full family rebuild over every skin is tens of milliseconds on the game
+    # thread. Gate it to one rebuild per 5 s; while it is skipped the previous
+    # map is still used, or the caller sees None and waits a tick.
     rev = (len(rows), id(rows))
     if _killfx_family_best is None or _killfx_catalog_rev != rev:
+        now = time.time()
+        if now - _killfx_rebuild_t < 5.0:
+            return rows, _killfx_family_best
+        started = time.time()
         _killfx_family_best = _killfx_build_family_best(rows)
         _killfx_catalog_rev = rev
+        _killfx_rebuild_t = now
+        cost = time.time() - started
+        if cost > 0.01:
+            _sys_log('[sys:perf] killfx family scan %.1f ms rows=%d'
+                     % (cost * 1000.0, len(rows)))
     return rows, _killfx_family_best
 
 

@@ -1,0 +1,124 @@
+// capture_protect_patches.diff
+// Three surgical changes to overlay.cpp to wire in capture_protect.hpp.
+// Apply in order.
+// ============================================================================
+
+
+// ── PATCH CP-1: include ─────────────────────────────────────────────────────
+// FIND (near the top of overlay.cpp, after existing includes):
+//
+//     #include "bs_cfg.hpp"
+//
+// REPLACE:
+//
+//     #include "bs_cfg.hpp"
+//     #include "capture_protect.hpp"
+//
+// ── end CP-1 ────────────────────────────────────────────────────────────────
+
+
+// ── PATCH CP-2: Init call after swap chain + hwnd are ready ─────────────────
+// FIND (after `init_rtv()` succeeds, before the render loop starts):
+//
+//     if (!init_rtv()) return;
+//     if (!init_imgui()) return;
+//
+// REPLACE:
+//
+//     if (!init_rtv())    return;
+//     if (!init_imgui())  return;
+//
+//     // Block OBS game capture, Steam screenshot, desktop duplication.
+//     // g_swap  = your IDXGISwapChain*
+//     // g_hwnd  = your overlay HWND
+//     capture_protect::Init(g_swap.Get(), g_hwnd);
+//
+// ── end CP-2 ────────────────────────────────────────────────────────────────
+
+
+// ── PATCH CP-3: wrap render loop with OnBeginFrame / OnEndFrame ─────────────
+// FIND (the render loop body — the ImGui NewFrame / Render / Present block):
+//
+//     ImGui_ImplDX11_NewFrame();
+//     ImGui_ImplWin32_NewFrame();
+//     ImGui::NewFrame();
+//
+// REPLACE:
+//
+//     // Tell capture_protect we are starting a real frame.
+//     // Any Present called by OBS/Steam DURING this frame gets suppressed.
+//     capture_protect::OnBeginFrame();
+//
+//     ImGui_ImplDX11_NewFrame();
+//     ImGui_ImplWin32_NewFrame();
+//     ImGui::NewFrame();
+//
+// ─────────────────────────────────────────────────────────────────────────
+// FIND (just after your real Present call, end of the render loop):
+//
+//     g_swap->Present(0, 0);
+//
+// REPLACE:
+//
+//     g_swap->Present(0, 0);
+//     capture_protect::OnEndFrame();
+//
+// ── end CP-3 ────────────────────────────────────────────────────────────────
+
+
+// ── PATCH CP-4: Shutdown ─────────────────────────────────────────────────────
+// FIND (the shutdown block at the end of run()):
+//
+//     ImGui_ImplDX11_Shutdown();
+//     ImGui_ImplWin32_Shutdown();
+//     ImGui::DestroyContext();
+//
+// REPLACE:
+//
+//     capture_protect::Shutdown();
+//     ImGui_ImplDX11_Shutdown();
+//     ImGui_ImplWin32_Shutdown();
+//     ImGui::DestroyContext();
+//
+// ── end CP-4 ────────────────────────────────────────────────────────────────
+
+
+// ============================================================================
+// WHAT EACH PATH BLOCKS
+//
+//  WDA_EXCLUDEFROMCAPTURE (CP-2 Init):
+//    Blocks: OBS Window Capture, OBS Display Capture, Nvidia ShadowPlay
+//            (window mode), Windows Game Bar window/display capture,
+//            Steam screenshot in WINDOW CAPTURE mode.
+//    Does NOT block: OBS Game Capture (bypasses window system entirely).
+//
+//  Present VMT hook (CP-2 Init + CP-3 frame wrap):
+//    Blocks: OBS Game Capture (graphics-hook64.dll),
+//            Steam F12 screenshot (GameOverlayRenderer64.dll),
+//            Nvidia ShadowPlay game capture mode (nvspcap64.dll),
+//            AMD ReLive (AMDRSServ.dll),
+//            Fraps, Bandicam, any tool that hooks Present.
+//    Mechanism: detects the capture DLL in the call stack, returns S_OK
+//    without actually presenting — the capture software records a black
+//    frame. Your real Present call (not from a capture hook) goes through
+//    normally so your screen shows the overlay fine.
+//
+//  IMPORTANT — Steam F12 screenshot:
+//    Steam's screenshot hooks Present inside GameOverlayRenderer64.dll.
+//    The Present hook above catches it.  The screenshot in Steam's library
+//    will be black (no overlay visible). The game itself still appears because
+//    Steam grabs the game's OWN swap chain (not yours) for the background —
+//    your overlay's swap chain is what goes black.
+//
+//  IMPORTANT — OBS Game Capture "anti-cheat compatibility mode":
+//    If the user has anti-cheat compatibility mode ON in OBS, game capture
+//    uses a different injection path (shared memory + hook32/hook64 rather
+//    than a DLL injected into the process). The stack-based caller detection
+//    still works because the hook still calls Present from within a module
+//    that can be identified, but the DLL name changes to "obs-gameapi.dll"
+//    or "hook64.dll". Add these to kCaptureDlls[] if you need to cover them:
+//
+//       L"obs-gameapi.dll",
+//       L"hook64.dll",
+//
+// ============================================================================

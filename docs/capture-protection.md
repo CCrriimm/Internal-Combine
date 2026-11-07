@@ -7,7 +7,7 @@ implements. Read the first table before changing anything here.
 
 | Path | Who does it | What it reads | What stops it |
 |---|---|---|---|
-| **Composed desktop / window** | OBS *Window* and *Display* capture (BitBlt or Windows Graphics Capture), Windows Game Bar, desktop duplication, PrintWindow | The DWM output, i.e. what the monitor shows | `SetWindowDisplayAffinity(hwnd, WDA_EXCLUDEFROMCAPTURE)` on the window that must not appear |
+| **Composed desktop / window** | OBS *Window* and *Display* capture (BitBlt or Windows Graphics Capture), Windows Game Bar, desktop duplication, PrintWindow | The DWM output, i.e. what the monitor shows | `SetWindowDisplayAffinity(hwnd, WDA_EXCLUDEFROMCAPTURE)` on the window that must not appear — optional here, because it paints that window black in the capture |
 | **Swap-chain hook** | OBS *Game Capture* (`graphics-hook64.dll`), Steam F12 (`GameOverlayRenderer64.dll`), ShadowPlay (`nvspcap64.dll`), ReLive | The game's DXGI back buffer, copied inside the game process by a `Present` detour | The overlay must not be in that buffer. Window flags do nothing here |
 | **GDI read of the game window** | Anti-cheat screenshot modules, older tools | `BitBlt`/`StretchBlt`/`PrintWindow` on a DC of the game window | Nothing, once the pixels are drawn. Drawing must be held back for that capture |
 
@@ -81,9 +81,19 @@ buffer is never written to.
 
 That is what makes OBS Game Capture and Steam's F12 clean: they copy buffer 0 of
 the game's swap chain, and buffer 0 no longer contains anything the overlay drew.
-The shield window itself carries `WDA_EXCLUDEFROMCAPTURE`, so *display* and
-*window* capture of the desktop leave it out as well. Both directions are covered
-at once, which is why this is the default.
+
+Display affinity on the shield window is a **separate, optional** switch
+(`Settings -> Protection -> Hide overlay from Windows capture`, off by default).
+With it on, *display* and *window* capture of the desktop leave the overlay out
+too - but DWM renders an excluded window as a black rectangle, and the shield
+covers the whole game, so a `Win+Shift+S` snip or an OBS Display Capture came
+back as a black screen. A black screen over a live game is itself something a
+screen-checking anti-cheat can notice, so the default is off: leave it off unless
+something specifically reads the composed desktop.
+
+Independently of that switch, the shield hides itself while the Windows snipping
+tool or Game Bar has its capture UI open (`SystemCaptureUiActive()`): the snip
+then shows the game, with no overlay and no black area.
 
 Properties that matter in use:
 
@@ -95,8 +105,9 @@ Properties that matter in use:
   focus; the menu still reads the game window's messages through the existing
   `WndProc` hook, so clicking, dragging and key binds work exactly as before.
 * The window follows the game's client rect, hides when the game is not the
-  foreground window or is minimised, and takes itself down when the game goes
-  exclusive fullscreen or the device is lost.
+  foreground window or is minimised, hides while the snipping tool / Game Bar
+  capture UI is open, and takes itself down when the game goes exclusive
+  fullscreen or the device is lost.
 * If anything in the chain fails (`CreateWindowEx`, `CreateSwapChainForComposition`,
   `DCompositionCreateDevice`, the visual tree), the failure and its code are
   logged and the overlay falls back to drawing in-game. The overlay never

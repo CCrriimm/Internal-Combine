@@ -27,7 +27,8 @@ class CosmeticsBudgetTests(unittest.TestCase):
               'UNLOCK_TRUE': {'owned'}, 'UNLOCK_FALSE': {'locked'}, '_unlock_iter': None,
               '_unlock_pred_iter': None, '_unlock_done': False, '_unlock_step_t': 0.0,
               '_last_unlock': 0.0, '_unlock_scan_t': 0.0, '_unlock_changed': 0,
-              '_wrapped_preds': set()}
+              '_unlock_interval': 120.0, '_unlock_dir_cache': {},
+              '_entry_pending': None, '_wrapped_preds': set()}
         exec(compile(ast.Module(body=nodes, type_ignores=[]), str(source), 'exec'), ns)
         ns['_refresh_runtime_cosmetics']()
         self.assertFalse(ns['_unlock_done'])
@@ -51,3 +52,60 @@ class CosmeticsBudgetTests(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+def _harness(rows, modules, start=1000.0):
+    import traceback
+    source = Path(__file__).resolve().parents[1] / 'pyexec' / 'bs_runtime.py'
+    names = {'_iter_data_entries', '_eval_cosmetic_entry', '_sync_cosmetics_budget',
+             '_iter_cosmetic_predicates', '_refresh_runtime_cosmetics'}
+    nodes = [n for n in ast.parse(source.read_text(encoding='utf-8-sig')).body
+             if isinstance(n, ast.FunctionDef) and n.name in names]
+    clock = [start]
+    def now():
+        clock[0] += 0.0001
+        return clock[0]
+    logs = []
+    ns = {'sys': types.SimpleNamespace(modules=modules), 'time': types.SimpleNamespace(time=now),
+          'traceback': traceback, '_sys_log': logs.append,
+          'UNLOCK_TRUE': {'owned'}, 'UNLOCK_FALSE': {'locked'},
+          '_unlock_iter': None, '_unlock_pred_iter': None, '_unlock_done': True,
+          '_unlock_step_t': 0.0, '_last_unlock': 0.0, '_unlock_scan_t': 0.0,
+          '_unlock_changed': 0, '_unlock_interval': 120.0, '_unlock_dir_cache': {},
+          '_entry_pending': None, '_wrapped_preds': set()}
+    exec(compile(ast.Module(body=nodes, type_ignores=[]), str(source), 'exec'), ns)
+    ns['clock'] = clock
+    ns['logs'] = logs
+    return ns
+
+
+class LargeRowTests(unittest.TestCase):
+    def test_one_huge_row_is_spread_over_ticks(self):
+        """A single data row with 200k keys used to be evaluated in one go: that
+        is the 25 ms `unlock=` spike measured inside a 17 ms frame."""
+        row = {'owned': 0}
+        for i in range(20000):
+            row['k%d' % i] = 0
+        ns = _harness([row], {'gclient.data.example': types.SimpleNamespace(data=[row])})
+        ns['_eval_cosmetic_entry'](row, 0.0005)
+        self.assertIsNotNone(ns['_entry_pending'], 'the row must be left partially done')
+        self.assertGreater(len(ns['_entry_pending'][1]), 1000)
+        # Resuming finishes it and flips the flag exactly once.
+        for _ in range(20000):
+            ns['_sync_cosmetics_budget'](0.0005)
+            if ns['_entry_pending'] is None:
+                break
+        self.assertIsNone(ns['_entry_pending'], 'row would not finish')
+        self.assertEqual(row['owned'], 1)
+
+    def test_a_pass_that_changes_nothing_backs_off(self):
+        rows = [{'k%d' % i: 0 for i in range(50)}]
+        ns = _harness(rows, {'gclient.data.example': types.SimpleNamespace(data=rows)})
+        for _ in range(500):
+            ns['_refresh_runtime_cosmetics']()
+            ns['clock'][0] += 0.017
+            if any('unlock pass done' in line for line in ns['logs']):
+                break
+        self.assertTrue(any('unlock pass done changed=0' in line for line in ns['logs']),
+                        ns['logs'])
+        self.assertEqual(ns['_unlock_interval'], 240.0)
