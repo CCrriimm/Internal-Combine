@@ -60,6 +60,8 @@
 #include "esp_team.hpp"
 #include "esp_armor_tier.hpp"
 #include "capture_guard.hpp"
+#include "capture_shield.hpp"
+#include "protected_output.hpp"
 
 
 
@@ -508,6 +510,56 @@ static teamtint::Labels g_team_labels;
 
 static comet_capture::Blackout g_obs{};
 
+// ---------------------------------------------------------------------------
+// Capture shield state
+//
+// g_surface is the separate capture-excluded window the overlay can be drawn
+// into (docs/capture-protection.md). When it is ready the game's back buffer is
+// never touched, which is the only way an in-process overlay stays out of OBS
+// Game Capture and Steam screenshots.
+// ---------------------------------------------------------------------------
+static comet_surface::Output g_surface{};
+static comet_shield::CleanFrameGate g_clean_frame{};
+static comet_shield::Modules g_capture_modules{};
+static ULONGLONG g_capture_module_poll = 0;
+static ULONGLONG g_surface_retry_at = 0;
+static DWORD g_render_thread = 0;
+// Address of the Present implementation MinHook patched. A swap chain slot that
+// still equals it has nobody else's detour above ours.
+static void* g_present_entry = nullptr;
+
+// Frame pacing, refreshed from the Present hook and shown in Settings. Cheap
+// enough to keep per frame: two counters and an exponential average.
+struct PacingStat {
+    double fps = 0.0;
+    double overlay_ms = 0.0;
+    double present_ms = 0.0;
+    unsigned sync = 0;
+    unsigned long long frames = 0;
+};
+static PacingStat g_pacing{};
+
+static bool ShieldSurfaceReady() {
+    return g_surface.state == comet_surface::State::Ready;
+}
+
+// A topmost overlay window only shows over a windowed / borderless game. In
+// exclusive fullscreen the game owns the output, the shield window sits behind
+// it, and drawing there would make the overlay invisible - so that combination
+// falls back to drawing in-game instead of pretending to protect anything.
+// Cached for a second: this is a swap-chain query and Present runs at frame rate.
+static bool GameUsesWindowedPresentation() {
+    static bool cached = true;
+    static ULONGLONG cached_at = 0;
+    const ULONGLONG now = GetTickCount64();
+    if (cached_at && now - cached_at < 1000) return cached;
+    cached_at = now ? now : 1;
+    if (!g_swapchain) return cached = true;
+    DXGI_SWAP_CHAIN_DESC desc{};
+    if (FAILED(g_swapchain->GetDesc(&desc))) return cached = true;
+    return cached = desc.Windowed != FALSE;
+}
+
 static FILETIME g_state_write{};
 
 static ULONGLONG g_state_size = 0;
@@ -817,7 +869,7 @@ static void DefaultCfg() {
     g_cfg.humanize = 0.0f;  // 0 = pure memory damping (pyexec); raise to add mouse counter-drag.
 
     g_cfg.aim_bone = 0;
-    g_cfg.reserved = OPT_AIM_BONES_SET | OPT_AIM_HEAD | OPT_FOV_COLOR_SET;
+    g_cfg.reserved = OPT_AIM_BONES_SET | OPT_AIM_HEAD | OPT_FOV_COLOR_SET | OPT_SHIELD_MARKER;
 
     g_cfg.esp_max_dist = 400;
 
@@ -867,7 +919,7 @@ static void DefaultCfg() {
         g_cfg.col_armor_tier[i] = kDefaultArmorTier[i];
     }
 
-    g_cfg.opts = OPT2_OBS_PROTECT;
+    g_cfg.opts = OPT2_OBS_PROTECT | OPT2_CAPTURE_SHIELD;
 
     g_cfg.noise_strength = 0.0016f;
 
@@ -917,7 +969,7 @@ static bool LoadCfg() {
             for (int i = 0; i < 4; ++i) {
                 m.col_armor_tier[i] = kDefaultArmorTier[i];
             }
-            m.opts = OPT2_OBS_PROTECT;
+            m.opts = OPT2_OBS_PROTECT | OPT2_CAPTURE_SHIELD;
             m.noise_strength = 0.0016f;
             m.version = VERSION;
             buf.assign(reinterpret_cast<const uint8_t*>(&m),
@@ -1010,6 +1062,15 @@ static bool LoadCfg() {
         c.pad[0] = CFG_UI_TAG; c.pad[1] = 2; c.pad[2] = 0;
     }
     c.pad[2] = c.pad[2] ? 1u : 0u;
+    // One-time upgrade: builds before this one drew the overlay into the game's
+    // back buffer only. The marker bit is in the overlay-only `reserved` word, so
+    // this runs once per config instead of forcing the setting on every load: a
+    // user who turns the protected output off keeps it off, and a fresh or
+    // migrated config starts with it on.
+    if (!(c.reserved & OPT_SHIELD_MARKER)) {
+        c.reserved |= OPT_SHIELD_MARKER;
+        c.opts |= OPT2_CAPTURE_SHIELD;
+    }
     // Session commands must never be replayed when loading persistent preferences.
     c.flags = (c.flags & ~F_EXIT_CHEAT) | F_MENU_OPEN;
     c.apply_seq = c.apply_item = 0; c.apply_type = 0;
@@ -1127,13 +1188,109 @@ static bool CaptureProtectionKilled() {
     return killed;
 }
 
+// Names of in-process capture modules. GetModuleHandleW is a lookup in the
+// loader's module list - no new library, no enumeration walk - and the answer is
+// cached for two seconds because a capture tool only appears when the user
+// starts a capture.
+static comet_shield::Modules& CaptureModules() {
+    const ULONGLONG now = GetTickCount64();
+    if (g_capture_module_poll && now - g_capture_module_poll < 2000) return g_capture_modules;
+    const bool first = g_capture_module_poll == 0;
+    g_capture_module_poll = now ? now : 1;
+
+    auto loaded = [](const wchar_t* name) { return GetModuleHandleW(name) != nullptr; };
+    comet_shield::Modules m{};
+    m.obs_graphics_hook = loaded(L"graphics-hook64.dll") || loaded(L"graphics-hook32.dll");
+    m.obs_hook_dll      = loaded(L"hook64.dll") || loaded(L"obs-gameapi.dll");
+    m.steam_overlay     = loaded(L"GameOverlayRenderer64.dll") || loaded(L"GameOverlayRenderer.dll");
+    m.nvidia_share      = loaded(L"nvspcap64.dll");
+    m.amd_relive        = loaded(L"AMDRSServ.dll");
+    m.other_hook        = loaded(L"bdcam64.dll") || loaded(L"bdcam.dll") ||
+                          loaded(L"fraps64.dll") || loaded(L"fraps.dll") ||
+                          loaded(L"DiscordHook64.dll") ||
+                          loaded(L"EOSOVH-Win64-Shipping.dll");
+
+    if (first || m.Count() != g_capture_modules.Count()) {
+        char list[160] = {};
+        const int n = comet_shield::Describe(m, list, (int)sizeof(list));
+        Log("capture modules: %s", n ? list : "none");
+    }
+    g_capture_modules = m;
+    return g_capture_modules;
+}
+
+// Where our Present detour sits relative to anything else that hooked the game's
+// swap chain. Reported in Settings and the log; it is the piece of information
+// that says whether drawing into the back buffer can leak into a capture.
+static comet_shield::Chain PresentChainPosition() {
+    if (!g_swapchain || !g_present_entry) return comet_shield::Chain::Unknown;
+    void** vt = *reinterpret_cast<void***>(g_swapchain);
+    if (!vt) return comet_shield::Chain::Unknown;
+    return comet_shield::ClassifyPresentChain(vt[8], g_present_entry);
+}
+
+// Creates, refreshes or tears down the protected output. Never disables the
+// overlay: if the surface cannot be created the caller keeps drawing into the
+// game exactly as before and Settings says why.
+static void MaintainShieldSurface() {
+    const bool want = HasOpt2(OPT2_CAPTURE_SHIELD) && !CaptureProtectionKilled();
+    if (!want) {
+        if (g_surface.state != comet_surface::State::Off) {
+            comet_surface::Destroy(g_surface);
+            Log("capture shield released");
+        }
+        return;
+    }
+    if (g_surface.state == comet_surface::State::Ready) {
+        if (GameUsesWindowedPresentation()) return;
+        // The game went exclusive fullscreen: give the drawing back to the game
+        // window instead of hiding the overlay behind a fullscreen flip.
+        comet_surface::Destroy(g_surface);
+        Log("capture shield released: exclusive fullscreen");
+        return;
+    }
+
+    if (!GameUsesWindowedPresentation()) {
+        g_surface_retry_at = GetTickCount64() + 2000;
+        return;
+    }
+
+    const ULONGLONG now = GetTickCount64();
+    if (now < g_surface_retry_at) return;
+    if (!g_device || !g_hwnd) return;
+
+    UINT w = g_client_w, h = g_client_h;
+    if (!w || !h) { w = g_width; h = g_height; }
+    if (!w || !h) return;
+
+    if (comet_surface::Create(g_surface, g_device, g_hwnd, w, h)) {
+        char described[192] = {};
+        comet_surface::Describe(g_surface, described, (int)sizeof(described));
+        Log("capture shield ready: %s", described);
+        g_surface_retry_at = 0;
+    } else {
+        // Retry on a slow cadence: a device reset or a fullscreen transition can
+        // make the first attempt fail for a reason that disappears.
+        g_surface_retry_at = now + 5000;
+        Log("capture shield unavailable hr=0x%08lx", (unsigned long)g_surface.error);
+    }
+}
+
 static void ApplyObsProtection() {
     if (!g_hwnd) {
         comet_capture::Apply(nullptr, false, g_obs, GetTickCount64());
         return;
     }
     const comet_capture::Status before = g_obs.status;
-    const bool want = HasOpt2(OPT2_OBS_PROTECT) && !CaptureProtectionKilled();
+    // Display affinity on the *game* window is a DWM-level request: it hides the
+    // game from Windows capture, and it also stops the game from using
+    // independent flip (DWM has to compose the window to leave it out of the
+    // capture buffer). That is the one setting here that can pin a flip-model
+    // game to the desktop refresh rate. The protected output excludes the
+    // overlay at the window level instead, so affinity is dropped while it is
+    // in use and the game keeps its normal presentation path.
+    const bool surface = ShieldSurfaceReady();
+    const bool want = HasOpt2(OPT2_OBS_PROTECT) && !surface && !CaptureProtectionKilled();
     comet_capture::Apply(g_hwnd, want, g_obs, GetTickCount64());
     if (g_obs.status != before) {
         if (g_obs.status == comet_capture::Status::Denied)
@@ -3268,6 +3425,7 @@ static DWORD WINAPI UnloadWorker(LPVOID) {
     Sleep(100);
 
     comet_capture::Restore(g_hwnd, g_obs);
+    comet_surface::Destroy(g_surface);
 
     if (g_hwnd && g_wndproc) {
 
@@ -3330,6 +3488,7 @@ static DWORD WINAPI UnloadWorker(LPVOID) {
 static void SafeExitCheatAndGame() {
     g_unloading=true;
     comet_capture::Restore(g_hwnd, g_obs);
+    comet_surface::Destroy(g_surface);
     if (g_hwnd && g_wndproc) {
         SetWindowLongPtrW(g_hwnd, GWLP_WNDPROC, (LONG_PTR)g_wndproc);
         g_wndproc = nullptr;
@@ -3411,8 +3570,27 @@ static void DrawSettingsTab() {
     ImGui::TableNextColumn();
     BeginCard("settings_protection",ImVec2(0,0));
     Section("Protection");
+
+    // Protected output: the overlay gets its own capture-excluded window, so the
+    // game's swap-chain back buffer (what OBS Game Capture and Steam's F12 copy)
+    // never contains it. This is the only setting that covers those two paths.
+    bool shield = HasOpt2(OPT2_CAPTURE_SHIELD);
+    if (CometUi::Toggle("Protected output",&shield,ImGui::GetContentRegionAvail().x)) {
+        SetOpt2(OPT2_CAPTURE_SHIELD,shield);
+        g_surface_retry_at = 0;
+        if (shield) MaintainShieldSurface();
+        else comet_surface::Destroy(g_surface);
+    }
+    {
+        char described[192] = {};
+        ImGui::TextDisabled("%s",comet_surface::Describe(g_surface,described,(int)sizeof(described)));
+    }
+    if (ShieldSurfaceReady() && !comet_surface::ShouldShow(g_hwnd))
+        ImGui::TextDisabled("Hidden right now: the game is not the foreground window, is minimised, or is exclusive fullscreen.");
+    ImGui::TextWrapped("Draws the menu and visuals into a separate window that screen capture cannot see. Use borderless or windowed game mode. This is the only option that keeps OBS Game Capture and Steam screenshots clean, because both copy the game's own back buffer.");
+
     bool obs = HasOpt2(OPT2_OBS_PROTECT);
-    if (CometUi::Toggle("Windows capture exclusion",&obs,ImGui::GetContentRegionAvail().x)) {
+    if (CometUi::Toggle("Windows capture exclusion (game window)",&obs,ImGui::GetContentRegionAvail().x)) {
         SetOpt2(OPT2_OBS_PROTECT,obs);
         // Re-apply immediately so the toggle is honest in the same frame.
         g_obs = comet_capture::Blackout{};
@@ -3421,7 +3599,27 @@ static void DrawSettingsTab() {
     ImGui::TextDisabled("%s",comet_capture::Describe(g_obs));
     if (g_obs.status==comet_capture::Status::Denied)
         ImGui::TextDisabled("SetWindowDisplayAffinity failed (%lu); the last affinity is unchanged.",g_obs.error);
-    ImGui::TextWrapped("Windows capture exclusion is best effort. OBS Game Capture and Steam can still capture the overlay because it is drawn into the game. Do not rely on this to hide it.");
+    if (ShieldSurfaceReady())
+        ImGui::TextDisabled("Suspended while the protected output is active.");
+    ImGui::TextWrapped("Excludes the game window itself from Windows capture (display/window capture, Game Bar). It cannot stop OBS Game Capture or Steam, and Windows may drop the game off independent flip to honour it, which caps the frame rate at the desktop refresh.");
+
+    // GDI capture guard: only matters while the overlay is drawn into the game.
+    bool gdi = HasOpt2(OPT2_GDI_GUARD);
+    if (CometUi::Toggle("Delay GDI captures",&gdi,ImGui::GetContentRegionAvail().x)) {
+        SetOpt2(OPT2_GDI_GUARD,gdi);
+    }
+    ImGui::TextDisabled("%s",!gdi?"off":(ShieldSurfaceReady()?"not needed (protected output)":"armed for the game window"));
+    ImGui::TextWrapped("Waits for one overlay-free frame before a BitBlt/PrintWindow of the game window runs. Narrow by design: captures of other windows and the desktop are untouched.");
+
+    ImGui::Dummy(ImVec2(0,6));
+    ImGui::TextDisabled("Pacing: %.0f fps | overlay %.2f ms | present %.2f ms | sync %u",
+                        g_pacing.fps,g_pacing.overlay_ms,g_pacing.present_ms,g_pacing.sync);
+    {
+        char list[160] = {};
+        const int n = comet_shield::Describe(CaptureModules(),list,(int)sizeof(list));
+        ImGui::TextDisabled("Capture modules: %s",n?list:"none");
+    }
+    ImGui::TextDisabled("Present chain: %s",comet_shield::Describe(PresentChainPosition()));
     FlagCheck("Block reports",F_BLOCK_REPORT);
     FlagCheck("Unlock effects",F_UNLOCK_EFFECTS);
     FlagCheck("Force killfx",F_FORCE_KILLFX);
@@ -4088,6 +4286,7 @@ static void RenderFrame(IDXGISwapChain* sc) {
     }
 
     EnsureWndProc();
+    MaintainShieldSurface();
     ApplyObsProtection();
 
     // Leaving the match is the reliable boundary for a new "Team 1": the label
@@ -4098,13 +4297,31 @@ static void RenderFrame(IDXGISwapChain* sc) {
     bool need = menu || (g_state.in_match &&
                          (Has(F_ESP) || Has(F_AIM_FOV_CIRCLE)));
 
-    if (!need) return;
+    if (!need) {
+        // Nothing to draw this frame. Take the protected window off the screen
+        // so it cannot leave the last ESP frame standing there as a still.
+        if (ShieldSurfaceReady()) comet_surface::Hide(g_surface);
+        return;
+    }
+
+    // A GDI capture of the game window is waiting for an overlay-free frame.
+    // Skip drawing; Present still runs, so the frame it is waiting for arrives
+    // immediately. (No-op when the protected output is in use: the game's back
+    // buffer never holds the overlay in the first place.)
+    if (!ShieldSurfaceReady() && g_clean_frame.Busy()) return;
 
     if (!BindSwapchain(sc)) return;
 
-    if (!g_rtv_live) CreateRTV();
+    if (ShieldSurfaceReady()) {
+        // Follow the game's client area. Cheap: it only calls SetWindowPos when
+        // the rectangle actually changed.
+        comet_surface::Follow(g_surface, g_hwnd, g_client_w, g_client_h,
+                              comet_surface::ShouldShow(g_hwnd));
+    } else {
+        if (!g_rtv_live) CreateRTV();
 
-    if (!g_rtv_live) return;
+        if (!g_rtv_live) return;
+    }
 
     // Back-buffer size change -> rebuild the RTV and the ImGui device objects.
     // This must run *before* NewFrame: NewFrame uploads the font atlas using the
@@ -4175,9 +4392,31 @@ static void RenderFrame(IDXGISwapChain* sc) {
     g_team_labels.Frame(g_state.in_match && !g_ents.empty());
     DrawESP();DrawFOV();DrawRadar();
     background->ChannelsMerge();
-    if(g_unloading) {ImGui::EndFrame();return;}
+    // Second check: a GDI capture can start while this frame is being built.
+    if(g_unloading||(!ShieldSurfaceReady()&&g_clean_frame.Busy())) {ImGui::EndFrame();return;}
 
     ImGui::Render();
+
+    // Protected output: the whole frame (menu, ESP, snaplines, radar, FOV) goes
+    // to the capture-excluded window and the game's back buffer is not touched.
+    // That is what keeps OBS Game Capture, Steam's F12 screenshot and any other
+    // in-process Present hook from recording the overlay: they copy buffer 0,
+    // and this frame never wrote to it.
+    if (ShieldSurfaceReady()) {
+        // Not on screen (game in the background, minimised, exclusive
+        // fullscreen): draw nothing at all. Falling back to the game's back
+        // buffer here would put the overlay into exactly the buffer a capture
+        // reads, which is the thing this path exists to prevent.
+        if (!comet_surface::ShouldShow(g_hwnd)) return;
+
+        if (comet_surface::Begin(g_surface, g_device, g_context, g_client_w, g_client_h)) {
+            ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+            comet_surface::End(g_surface, g_context);
+            return;
+        }
+        // The surface refused this frame (resize race, device reset). Fall
+        // through and draw in-game rather than dropping the frame silently.
+    }
 
     // Save the game's pipeline state and put it back afterwards. Binding our RTV
     // without restoring the previous render target leaves the game drawing into
@@ -4271,6 +4510,28 @@ static void NotePresentPerf(IDXGISwapChain* sc, const char* which, UINT sync,
     const double scale = 1000.0 / (double)frequency.QuadPart;
     const double render = (before_present.QuadPart - begin.QuadPart) * scale;
     const double present = (after_present.QuadPart - before_present.QuadPart) * scale;
+
+    // Frame pacing for the Settings row and the periodic log line. Exponential
+    // averages so one resize or load spike does not make the number useless.
+    {
+        static thread_local LARGE_INTEGER last_begin{};
+        if (last_begin.QuadPart && begin.QuadPart > last_begin.QuadPart) {
+            const double frame_s = (double)(begin.QuadPart - last_begin.QuadPart) /
+                                   (double)frequency.QuadPart;
+            if (frame_s > 0.0005 && frame_s < 1.0) {
+                const double fps = 1.0 / frame_s;
+                g_pacing.fps = g_pacing.fps > 0.0 ? g_pacing.fps * 0.9 + fps * 0.1 : fps;
+            }
+        }
+        last_begin = begin;
+        g_pacing.overlay_ms = g_pacing.overlay_ms > 0.0 ? g_pacing.overlay_ms * 0.9 + render * 0.1
+                                                        : render;
+        g_pacing.present_ms = g_pacing.present_ms > 0.0 ? g_pacing.present_ms * 0.9 + present * 0.1
+                                                        : present;
+        g_pacing.sync = sync;
+        ++g_pacing.frames;
+    }
+
     ++sample.frames;
     if (sync == 0) ++sample.sync_zero;
     else if (sync == 1) ++sample.sync_one;
@@ -4279,20 +4540,102 @@ static void NotePresentPerf(IDXGISwapChain* sc, const char* which, UINT sync,
     sample.present_ms += present;
     if (render > sample.overlay_max_ms) sample.overlay_max_ms = render;
     if (now - sample.started >= 10000) {
-        Log("perf %s frames=%u interval_ms=%llu sync0=%u sync1=%u sync_other=%u overlay_avg_ms=%.3f overlay_max_ms=%.3f present_avg_ms=%.3f",
-            which, sample.frames, (unsigned long long)(now - sample.started),
+        // fps is measured between Present calls, so it is what the game actually
+        // achieves; sync is what the engine asked for. sync=1 means the game is
+        // vsync-bound and its ceiling is the display refresh rate, not the
+        // overlay - that is the first thing to check when the frame rate looks
+        // pinned at 60.
+        Log("perf %s frames=%u interval_ms=%llu fps=%.1f sync0=%u sync1=%u sync_other=%u overlay_avg_ms=%.3f overlay_max_ms=%.3f present_avg_ms=%.3f shield=%d chain=%s modules=%d",
+            which, sample.frames, (unsigned long long)(now - sample.started), g_pacing.fps,
             sample.sync_zero, sample.sync_one, sample.sync_other,
-            sample.overlay_ms / sample.frames, sample.overlay_max_ms, sample.present_ms / sample.frames);
+            sample.overlay_ms / sample.frames, sample.overlay_max_ms,
+            sample.present_ms / sample.frames, ShieldSurfaceReady() ? 1 : 0,
+            comet_shield::Describe(PresentChainPosition()), CaptureModules().Count());
         sample = PresentPerfSample{};
         sample.swapchain = sc;
         sample.started = now;
     }
 }
 
+// ---------------------------------------------------------------------------
+// GDI capture detours (opt-in: Settings -> Protection -> "Delay GDI captures")
+//
+// A capture that names the game window (GetDC(game_hwnd) + BitBlt, PrintWindow,
+// StretchBlt) reads whatever is in the window's surface at the moment it runs.
+// While the overlay is drawn into the game's back buffer, the only honest way to
+// hand such a capture a clean frame is to stop drawing and let one frame go out
+// first. That is what CleanFrameScope does - it is the correct version of the
+// "Sleep(2) and hope" that the public guides suggest, because it waits for a
+// frame to actually be presented (bounded) instead of assuming a duration.
+//
+// Deliberately narrow:
+//   * only BitBlt / StretchBlt / PrintWindow, not every GDI entry point;
+//   * only when the source DC is the game window's DC, or the HWND is the game
+//     window - a capture of another window, a memory DC or the desktop is left
+//     completely alone;
+//   * never when the protected output is active (nothing to hide);
+//   * never from the render thread, where waiting would deadlock.
+// ---------------------------------------------------------------------------
+using BitBltFn = BOOL(WINAPI*)(HDC, int, int, int, int, HDC, int, int, DWORD);
+using StretchBltFn = BOOL(WINAPI*)(HDC, int, int, int, int, HDC, int, int, int, int, DWORD);
+using PrintWindowFn = BOOL(WINAPI*)(HWND, HDC, UINT);
+
+static BitBltFn g_bitblt = nullptr;
+static StretchBltFn g_stretchblt = nullptr;
+static PrintWindowFn g_printwindow = nullptr;
+
+static bool GdiGuardArmed() {
+    return HasOpt2(OPT2_GDI_GUARD) && !ShieldSurfaceReady() && g_hwnd && !g_unloading;
+}
+
+static bool CaptureReadsGameWindow(HDC source) {
+    if (!source || !g_hwnd) return false;
+    return WindowFromDC(source) == g_hwnd;
+}
+
+struct CleanFrameScope {
+    bool armed = false;
+    explicit CleanFrameScope(bool use) {
+        if (!use) return;
+        if (GetCurrentThreadId() == g_render_thread) return;  // would deadlock
+        if (g_inside_present) return;
+        armed = true;
+        g_clean_frame.Request();
+        const unsigned long long since = g_clean_frame.Frame();
+        g_clean_frame.Await(since, comet_shield::kCaptureWaitMs,
+                            [] { return GetTickCount64(); },
+                            [] { SwitchToThread(); });
+    }
+    ~CleanFrameScope() { if (armed) g_clean_frame.Release(); }
+};
+
+static BOOL WINAPI HookBitBlt(HDC dst, int x, int y, int w, int h, HDC src,
+                              int sx, int sy, DWORD rop) {
+    CleanFrameScope scope(GdiGuardArmed() && CaptureReadsGameWindow(src));
+    return g_bitblt(dst, x, y, w, h, src, sx, sy, rop);
+}
+
+static BOOL WINAPI HookStretchBlt(HDC dst, int x, int y, int w, int h, HDC src,
+                                  int sx, int sy, int sw, int sh, DWORD rop) {
+    CleanFrameScope scope(GdiGuardArmed() && CaptureReadsGameWindow(src));
+    return g_stretchblt(dst, x, y, w, h, src, sx, sy, sw, sh, rop);
+}
+
+static BOOL WINAPI HookPrintWindow(HWND window, HDC dc, UINT flags) {
+    CleanFrameScope scope(GdiGuardArmed() && window && window == g_hwnd);
+    return g_printwindow(window, dc, flags);
+}
+
 static HRESULT STDMETHODCALLTYPE HookPresent(IDXGISwapChain* sc, UINT sync, UINT flags) {
     if(g_inside_present) return g_present(sc,sync,flags);
     PresentScope present_scope;
-    if (g_unloading) return g_present ? g_present(sc, sync, flags) : sc->Present(sync, flags);
+    if (!g_render_thread) g_render_thread = GetCurrentThreadId();
+    if (g_unloading) {
+        // The shield window belongs to this thread; tear it down here so the
+        // window class and its WndProc cannot outlive the module.
+        if (g_surface.state != comet_surface::State::Off) comet_surface::Destroy(g_surface);
+        return g_present ? g_present(sc, sync, flags) : sc->Present(sync, flags);
+    }
 
     LARGE_INTEGER perf_begin{}, perf_before{}, perf_after{};
     static thread_local LARGE_INTEGER perf_freq{};
@@ -4312,6 +4655,9 @@ static HRESULT STDMETHODCALLTYPE HookPresent(IDXGISwapChain* sc, UINT sync, UINT
     QueryPerformanceCounter(&perf_before);
     const HRESULT hr = g_present(sc, sync, flags);
     QueryPerformanceCounter(&perf_after);
+    // Releases a GDI capture that is waiting for an overlay-free frame (see the
+    // PrintWindow/BitBlt detours below).
+    g_clean_frame.OnPresented();
     NotePresentPerf(sc, "Present", sync, perf_begin, perf_before, perf_after, perf_freq);
     NotePresentResult(hr, "Present");
     return hr;
@@ -4341,6 +4687,7 @@ static HRESULT STDMETHODCALLTYPE HookPresent1(IDXGISwapChain1* sc, UINT sync, UI
     QueryPerformanceCounter(&perf_before);
     const HRESULT hr = g_present1(sc, sync, flags, params);
     QueryPerformanceCounter(&perf_after);
+    g_clean_frame.OnPresented();
     NotePresentPerf(sc, "Present1", sync, perf_begin, perf_before, perf_after, perf_freq);
     NotePresentResult(hr, "Present1");
     return hr;
@@ -4528,9 +4875,13 @@ static bool InstallHook() {
 
     Log("MinHook init=%d present=%p present1=%p resize=%p", (int)st, present_addr, present1_addr, resize_addr);
 
+    // Remember what we patched: a swap chain whose slot 8 still points here has
+    // no other Present hook above ours (see PresentChainPosition).
+    g_present_entry = present_addr;
+
     bool ok = true;
 
-    if (MH_CreateHook(present_addr, &HookPresent, (void**)&g_present) != MH_OK) {
+    if (MH_CreateHook(present_addr, (void*)&HookPresent, (void**)&g_present) != MH_OK) {
 
         ok = false;
 
@@ -4538,16 +4889,36 @@ static bool InstallHook() {
 
     }
 
-    if (present1_addr && MH_CreateHook(present1_addr, &HookPresent1, (void**)&g_present1) != MH_OK) {
+    if (present1_addr && MH_CreateHook(present1_addr, (void*)&HookPresent1, (void**)&g_present1) != MH_OK) {
 
         Log("MH_CreateHook present1 failed");
 
     }
 
-    if (resize_addr && MH_CreateHook(resize_addr, &HookResizeBuffers, (void**)&g_resize) != MH_OK) {
+    if (resize_addr && MH_CreateHook(resize_addr, (void*)&HookResizeBuffers, (void**)&g_resize) != MH_OK) {
 
         Log("MH_CreateHook resize failed");
 
+    }
+
+    // GDI capture detours. Created unconditionally (the option is read later,
+    // once the config is loaded) but they do nothing at all unless the user
+    // turns "Delay GDI captures" on. A failure here must not take the overlay's
+    // Present hook down with it.
+    if (MH_CreateHook(reinterpret_cast<void*>(&BitBlt), reinterpret_cast<void*>(&HookBitBlt),
+                      reinterpret_cast<void**>(&g_bitblt)) != MH_OK) {
+        Log("MH_CreateHook BitBlt failed");
+        g_bitblt = nullptr;
+    }
+    if (MH_CreateHook(reinterpret_cast<void*>(&StretchBlt), reinterpret_cast<void*>(&HookStretchBlt),
+                      reinterpret_cast<void**>(&g_stretchblt)) != MH_OK) {
+        Log("MH_CreateHook StretchBlt failed");
+        g_stretchblt = nullptr;
+    }
+    if (MH_CreateHook(reinterpret_cast<void*>(&PrintWindow), reinterpret_cast<void*>(&HookPrintWindow),
+                      reinterpret_cast<void**>(&g_printwindow)) != MH_OK) {
+        Log("MH_CreateHook PrintWindow failed");
+        g_printwindow = nullptr;
     }
 
     if (ok) {
@@ -4726,6 +5097,7 @@ static LONG WINAPI CrashFilter(EXCEPTION_POINTERS* info) {
              g_inside_present ? 1 : 0);
     // An excluded window is invisible to screen capture; never leave one behind.
     if (g_hwnd) SetWindowDisplayAffinity(g_hwnd, WDA_NONE);
+    if (g_surface.window) SetWindowDisplayAffinity(g_surface.window, WDA_NONE);
     g_obs.active = false;
     g_obs.requested = false;
     // Chain to whoever was installed before us (the engine's own reporter), so

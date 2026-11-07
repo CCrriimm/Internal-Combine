@@ -66,8 +66,11 @@ unavailable`. It never claims success it does not have.
 
 **Limits.** This is Windows display affinity, not a spoofer. Hardware capture
 (e.g. a capture card) and recorders that ignore display affinity still record
-the screen, and exclusive fullscreen is a known weak spot. The `F8` visual-hide
-path remains the manual fallback.
+the screen, and exclusive fullscreen is a known weak spot. Display affinity also
+cannot reach a capture that hooks `Present` inside the game process, which is
+what OBS Game Capture and Steam's F12 screenshot do - see
+[capture-protection.md](capture-protection.md) for the path-by-path answer and
+for the `Protected output` setting that covers them.
 
 ## 3. The bypass
 

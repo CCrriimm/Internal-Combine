@@ -103,6 +103,13 @@ enum : uint32_t {
                                  // old config stays layout-compatible.
     OPT2_OBS_PROTECT  = 1u << 5, // OBS capture exclusion for the game window
     OPT2_AIM_NOISE    = 1u << 6, // Input noise (aimbot only)
+    OPT2_CAPTURE_SHIELD = 1u << 7, // Draw the overlay in its own capture-excluded
+                                   // window so OBS Game Capture and Steam
+                                   // screenshots only ever get the game.
+    OPT2_GDI_GUARD    = 1u << 8, // Delay GDI captures of the game window until a
+                                 // frame without overlay has been presented.
+                                 // Only used when the protected output is not
+                                 // active; see docs/capture-protection.md.
 };
 
 inline constexpr uint32_t CFG_UI_TAG = 0x55490001;
@@ -116,12 +123,17 @@ inline constexpr uint32_t OPT_AIM_BONES_SET = 1u << 2;
 inline constexpr uint32_t OPT_ESP_RADAR = 1u << 3;
 inline constexpr uint32_t OPT_AIM_SILENT = 1u << 5;
 inline constexpr uint32_t OPT_FOV_COLOR_SET = 1u << 4;
+// One-time "this build has the protected output" marker. It lives in the
+// overlay-only `reserved` word (which the Python runtime never reads), so the
+// serialized layout is unchanged and a user who turns the feature off keeps it
+// off on the next load.
+inline constexpr uint32_t OPT_SHIELD_MARKER = 1u << 11;
 inline constexpr uint32_t OPT_AIM_HEAD = 1u << 8;
 inline constexpr uint32_t OPT_AIM_NECK = 1u << 9;
 inline constexpr uint32_t OPT_AIM_BODY = 1u << 10;
 inline constexpr uint32_t OPT_AIM_BONE_MASK = OPT_AIM_HEAD | OPT_AIM_NECK | OPT_AIM_BODY;
 static_assert((OPT_AIM_SILENT & (OPT_AIM_IGNORE_KNOCKED | OPT_AIM_BONES_SET | OPT_ESP_RADAR |
-                               OPT_FOV_COLOR_SET | OPT_AIM_BONE_MASK)) == 0);
+                               OPT_FOV_COLOR_SET | OPT_SHIELD_MARKER | OPT_AIM_BONE_MASK)) == 0);
 
 extern Cfg  g_cfg;
 extern bool g_cfg_dirty;

@@ -24,6 +24,10 @@ bypass, loot ESP, max-armor tier colours, team label + team colours, aimbot-only
 input noise, SendInput-only mouse output) are documented in
 [docs/comet-port.md](docs/comet-port.md).
 
+Capture protection - what each capture path reads, which one OBS Game Capture
+and Steam use, and what this build does about them - is in
+[docs/capture-protection.md](docs/capture-protection.md).
+
 Run the isolated regression suite with `python -m unittest discover -s tests`.
 
 Logic reports: [skin effects](reports/weapon-effects/2026-11-05_skin-effects-fix-report.md), [recoil](reports/recoil-probe/2026-11-05_recoil-report.md), [runtime performance](reports/performance/2026-11-05_runtime-lag-report.md), and [custom-room fields](reports/custom-room/2026-11-05_custom-room-report.md). The full weapon-effect mapping is in `reports/weapon-effects/weapon-effects.json` and `all-menu-guns.csv`.

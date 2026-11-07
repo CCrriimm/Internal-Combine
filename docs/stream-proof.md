@@ -1,5 +1,11 @@
 # Stream-proof
 
+> Superseded. The protected-window approach described below was removed from
+> the build; capture protection is now implemented by
+> [capture-protection.md](capture-protection.md) (`src/protected_output.hpp`,
+> `src/capture_shield.hpp`). This page is kept because the DirectComposition
+> and input notes in it are still accurate.
+
 **Currently disabled at the user's request.** The configuration loader, publisher/saver and frame entry clear `F_STREAM_PROOF`; Settings shows it as temporarily disabled. No protected window is initialized during normal use. The complete menu/ESP frame renders directly to the game. The forced in-match null-cursor policy has been removed, so ESC/backtick and native game cursor selection are no longer overridden. Tests cover clearing an old saved enabled flag and publishing/saving it off. Restart the game before loading this build to remove the previous injected overlay and its window.
 
 The following describes the dormant implementation, not an enabled feature.
