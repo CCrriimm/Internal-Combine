@@ -3412,7 +3412,7 @@ static void DrawSettingsTab() {
     BeginCard("settings_protection",ImVec2(0,0));
     Section("Protection");
     bool obs = HasOpt2(OPT2_OBS_PROTECT);
-    if (CometUi::Toggle("OBS / screenshot blackout",&obs,ImGui::GetContentRegionAvail().x)) {
+    if (CometUi::Toggle("Windows capture exclusion",&obs,ImGui::GetContentRegionAvail().x)) {
         SetOpt2(OPT2_OBS_PROTECT,obs);
         // Re-apply immediately so the toggle is honest in the same frame.
         g_obs = comet_capture::Blackout{};
@@ -3421,7 +3421,7 @@ static void DrawSettingsTab() {
     ImGui::TextDisabled("%s",comet_capture::Describe(g_obs));
     if (g_obs.status==comet_capture::Status::Denied)
         ImGui::TextDisabled("SetWindowDisplayAffinity failed (%lu); the last affinity is unchanged.",g_obs.error);
-    ImGui::TextWrapped("Game window excludes itself from Windows capture paths. Best effort: hardware capture or recorders that ignore display affinity still see the screen.");
+    ImGui::TextWrapped("Windows capture exclusion is best effort. OBS Game Capture and Steam can still capture the overlay because it is drawn into the game. Do not rely on this to hide it.");
     FlagCheck("Block reports",F_BLOCK_REPORT);
     FlagCheck("Unlock effects",F_UNLOCK_EFFECTS);
     FlagCheck("Force killfx",F_FORCE_KILLFX);
@@ -4247,11 +4247,57 @@ static void NotePresentResult(HRESULT hr, const char* which) {
     }
 }
 
+// Measure CPU time spent in overlay work and in the game's Present separately.
+// This does not time GPU execution. Each presenting thread has its own sample;
+// only the selected swap chain is recorded, and the log is written once per 10s.
+struct PresentPerfSample {
+    IDXGISwapChain* swapchain = nullptr;
+    ULONGLONG started = 0;
+    unsigned frames = 0, sync_zero = 0, sync_one = 0, sync_other = 0;
+    double overlay_ms = 0.0, present_ms = 0.0, overlay_max_ms = 0.0;
+};
+
+static void NotePresentPerf(IDXGISwapChain* sc, const char* which, UINT sync,
+                            const LARGE_INTEGER& begin, const LARGE_INTEGER& before_present,
+                            const LARGE_INTEGER& after_present, const LARGE_INTEGER& frequency) {
+    if (sc != g_swapchain || frequency.QuadPart <= 0) return;
+    static thread_local PresentPerfSample sample;
+    const ULONGLONG now = GetTickCount64();
+    if (sample.swapchain != sc) {
+        sample = PresentPerfSample{};
+        sample.swapchain = sc;
+        sample.started = now;
+    }
+    const double scale = 1000.0 / (double)frequency.QuadPart;
+    const double render = (before_present.QuadPart - begin.QuadPart) * scale;
+    const double present = (after_present.QuadPart - before_present.QuadPart) * scale;
+    ++sample.frames;
+    if (sync == 0) ++sample.sync_zero;
+    else if (sync == 1) ++sample.sync_one;
+    else ++sample.sync_other;
+    sample.overlay_ms += render;
+    sample.present_ms += present;
+    if (render > sample.overlay_max_ms) sample.overlay_max_ms = render;
+    if (now - sample.started >= 10000) {
+        Log("perf %s frames=%u interval_ms=%llu sync0=%u sync1=%u sync_other=%u overlay_avg_ms=%.3f overlay_max_ms=%.3f present_avg_ms=%.3f",
+            which, sample.frames, (unsigned long long)(now - sample.started),
+            sample.sync_zero, sample.sync_one, sample.sync_other,
+            sample.overlay_ms / sample.frames, sample.overlay_max_ms, sample.present_ms / sample.frames);
+        sample = PresentPerfSample{};
+        sample.swapchain = sc;
+        sample.started = now;
+    }
+}
+
 static HRESULT STDMETHODCALLTYPE HookPresent(IDXGISwapChain* sc, UINT sync, UINT flags) {
     if(g_inside_present) return g_present(sc,sync,flags);
     PresentScope present_scope;
     if (g_unloading) return g_present ? g_present(sc, sync, flags) : sc->Present(sync, flags);
 
+    LARGE_INTEGER perf_begin{}, perf_before{}, perf_after{};
+    static thread_local LARGE_INTEGER perf_freq{};
+    if (!perf_freq.QuadPart) QueryPerformanceFrequency(&perf_freq);
+    QueryPerformanceCounter(&perf_begin);
     if (!g_render_disabled) {
         const unsigned fault = RenderFrameGuarded(sc);
         if (fault) NoteFault("present", fault);
@@ -4263,7 +4309,10 @@ static HRESULT STDMETHODCALLTYPE HookPresent(IDXGISwapChain* sc, UINT sync, UINT
     }
     // Always forward, whatever happened above: skipping the game's own Present
     // is what turns an overlay fault into a frozen picture.
+    QueryPerformanceCounter(&perf_before);
     const HRESULT hr = g_present(sc, sync, flags);
+    QueryPerformanceCounter(&perf_after);
+    NotePresentPerf(sc, "Present", sync, perf_begin, perf_before, perf_after, perf_freq);
     NotePresentResult(hr, "Present");
     return hr;
 }
@@ -4277,6 +4326,10 @@ static HRESULT STDMETHODCALLTYPE HookPresent1(IDXGISwapChain1* sc, UINT sync, UI
     PresentScope present_scope;
     if (g_unloading) return g_present1 ? g_present1(sc, sync, flags, params) : sc->Present1(sync, flags, params);
 
+    LARGE_INTEGER perf_begin{}, perf_before{}, perf_after{};
+    static thread_local LARGE_INTEGER perf_freq{};
+    if (!perf_freq.QuadPart) QueryPerformanceFrequency(&perf_freq);
+    QueryPerformanceCounter(&perf_begin);
     if (!g_render_disabled) {
         const unsigned fault = RenderFrameGuarded(sc);
         if (fault) NoteFault("present1", fault);
@@ -4285,7 +4338,10 @@ static HRESULT STDMETHODCALLTYPE HookPresent1(IDXGISwapChain1* sc, UINT sync, UI
     if (sc == g_swapchain && InterlockedCompareExchange(&logged_game_present1, 1, 0) == 0) {
         Log("game Present1 sync=%u flags=0x%08x", (unsigned)sync, (unsigned)flags);
     }
+    QueryPerformanceCounter(&perf_before);
     const HRESULT hr = g_present1(sc, sync, flags, params);
+    QueryPerformanceCounter(&perf_after);
+    NotePresentPerf(sc, "Present1", sync, perf_begin, perf_before, perf_after, perf_freq);
     NotePresentResult(hr, "Present1");
     return hr;
 }

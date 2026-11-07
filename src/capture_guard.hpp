@@ -5,11 +5,10 @@
 //
 //   SetWindowDisplayAffinity(hwnd, WDA_EXCLUDEFROMCAPTURE)
 //
-// asks Windows capture paths (OBS Game/Window Capture, Snipping Tool, the
-// desktop compositor's capture surface, ...) to exclude the window. It is
-// best-effort by design: hardware capture and recorders that ignore display
-// affinity still see the pixels, so the manual hide key remains available and
-// the UI reports the real API result rather than claiming success.
+// requests exclusion from compatible Windows capture paths. It does not hide
+// pixels drawn directly into the game's swap-chain back buffer from direct
+// swap-chain capture such as OBS Game Capture or Steam screenshots. A successful
+// API result is not proof that any particular recorder will honor the request.
 //
 // The "bypass" part is the re-apply loop: the game (or anything it hands the
 // window to) can clear or reject the affinity at any time, so while protection
@@ -184,7 +183,7 @@ inline void Restore(HWND window, Blackout& state) {
 inline const char* Describe(const Blackout& state) {
     switch (state.status) {
         case Status::Active:
-            return state.reapplies > 0 ? "active (re-applied)" : "active";
+            return state.reapplies > 0 ? "Windows affinity set (re-applied)" : "Windows affinity set";
         case Status::Denied:
             return "SetWindowDisplayAffinity failed";
         case Status::WindowLost:
