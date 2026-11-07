@@ -2,7 +2,7 @@ name: Build
 
 on:
   push:
-    branches: [main]
+    branches: [main, arena/8fd1b987-internal-combine]
   workflow_dispatch:
 
 jobs:
@@ -18,13 +18,13 @@ jobs:
         run: cmake -S . -B build -A x64
 
       - name: Build loader, Python bridge and overlay
-        run: cmake --build build --config Release --target bs_loader bs_pyexec bs_overlay
+        run: cmake --build build --config Release --target comet_loader comet_pyexec comet_overlay
 
       - name: Embed runtime payload into loader
         run: cmake --build build --config Release --target pack_loader
 
       # One artifact zip, exactly as before: the same two directories, so the
-      # contents are unchanged (loader + injector + bsmap + both DLLs). Only the
+      # contents are unchanged (loader, both DLLs and the embedded payloads). Only the
       # artifact name follows the Comet rebrand. Do not add or drop paths here.
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
