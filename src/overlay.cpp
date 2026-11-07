@@ -4256,6 +4256,10 @@ static HRESULT STDMETHODCALLTYPE HookResizeBuffers(IDXGISwapChain* sc, UINT coun
 
     }
 
+    // We hold a reference to buffer 0 through g_rtv, and ResizeBuffers fails with
+    // DXGI_ERROR_INVALID_CALL while that reference exists - which leaves the game
+    // on a stale back buffer, the classic "picture is frozen but the UI still
+    // responds" symptom. Release exactly once here, re-create it below.
     if (g_rtv) {
 
         g_rtv->Release();
@@ -4265,19 +4269,6 @@ static HRESULT STDMETHODCALLTYPE HookResizeBuffers(IDXGISwapChain* sc, UINT coun
     }
 
     if (g_imgui_ready) ImGui_ImplDX11_InvalidateDeviceObjects();
-
-    // We hold a reference to buffer 0 through g_rtv. ResizeBuffers fails with
-    // DXGI_ERROR_INVALID_CALL while that reference exists, which leaves the game
-    // on a stale back buffer - the classic "picture is frozen but the UI still
-    // responds" symptom. It is released above and re-created below; assert that
-    // ordering so a future edit cannot reintroduce the bug.
-    if (g_rtv) {
-
-        g_rtv->Release();
-
-        g_rtv = nullptr;
-
-    }
 
     HRESULT hr = g_resize(sc, count, w, h, fmt, flags);
 
