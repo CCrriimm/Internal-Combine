@@ -246,6 +246,8 @@ _model_to_hero = {}
 _unlock_cache = {}
 _unlock_done = False
 _unlock_iter = None
+_unlock_pred_iter = None
+_unlock_step_t = 0.0
 _unlock_scan_t = 0.0
 _unlock_changed = 0
 _wrapped_preds = set()
@@ -4058,6 +4060,9 @@ UNLOCK_FALSE = {
 
 def _iter_data_entries():
     for name, mod in list(sys.modules.items()):
+        # Yield even for skipped modules/rows, so next() cannot spend an
+        # unbounded time searching before the caller can check its budget.
+        yield None
         if not name.startswith('gclient.data'):
             continue
         try:
@@ -4077,8 +4082,7 @@ def _iter_data_entries():
             continue
         try:
             for v in vals:
-                if hasattr(v, 'keys'):
-                    yield v
+                yield v if hasattr(v, 'keys') else None
         except Exception:
             pass
 
@@ -4125,7 +4129,8 @@ def _sync_cosmetics_budget(budget):
             _unlock_iter = None
             _unlock_changed += changed
             return changed, True
-        changed += _eval_cosmetic_entry(entry)
+        if entry is not None:
+            changed += _eval_cosmetic_entry(entry)
     _unlock_changed += changed
     return changed, False
 
@@ -4133,12 +4138,16 @@ def _sync_cosmetics_budget(budget):
 def _sync_cosmetics_batch():
     changed = 0
     for entry in _iter_data_entries():
-        changed += _eval_cosmetic_entry(entry)
+        if entry is not None:
+            changed += _eval_cosmetic_entry(entry)
     return changed
 
 
-def _bind_cosmetic_predicates():
+def _iter_cosmetic_predicates():
+    # One yield per module/attribute lets the caller spread introspection across
+    # ticks instead of doing the whole scan at once on the game thread.
     for name, mod in list(sys.modules.items()):
+        yield None
         if not (name.startswith('gclient') or name.startswith('gshare')):
             continue
         try:
@@ -4146,6 +4155,7 @@ def _bind_cosmetic_predicates():
         except Exception:
             continue
         for attr in attrs:
+            yield None
             low = attr.lower()
             if not any(x in low for x in ('unlock', 'owned', 'is_have', 'can_use', 'obtain')):
                 continue
@@ -4175,9 +4185,16 @@ def _bind_cosmetic_predicates():
 
 
 def _refresh_runtime_cosmetics():
-    global _last_unlock, _unlock_done, _unlock_iter, _unlock_scan_t, _unlock_changed
+    global _last_unlock, _unlock_done, _unlock_iter, _unlock_pred_iter
+    global _unlock_scan_t, _unlock_changed, _unlock_step_t
     now = time.time()
-    if _unlock_iter is None:
+    # The scan previously used 3 ms on every frame, enough by itself to turn
+    # 250 FPS into ~140 FPS while a pass runs. Spread the same work over time;
+    # visual entity gathering and projection remain at the full frame rate.
+    if now >= _unlock_step_t and now - _unlock_step_t < 0.016:
+        return
+    _unlock_step_t = now
+    if _unlock_iter is None and _unlock_pred_iter is None:
         if now - _last_unlock < 120.0:
             return
         _last_unlock = now
@@ -4185,15 +4202,29 @@ def _refresh_runtime_cosmetics():
         _unlock_changed = 0
         _unlock_iter = _iter_data_entries()
     try:
-        changed, done = _sync_cosmetics_budget(0.003)
-        if done:
+        if _unlock_iter is not None:
+            _, done = _sync_cosmetics_budget(0.0005)
+            if not done:
+                return
             if not _unlock_done:
-                _bind_cosmetic_predicates()
-                _unlock_done = True
-            _sys_log('unlock pass done changed=%d preds=%d took=%.2fs' % (
-                _unlock_changed, len(_wrapped_preds), time.time() - _unlock_scan_t))
+                _unlock_pred_iter = _iter_cosmetic_predicates()
+                return
+        if _unlock_pred_iter is not None:
+            deadline = time.time() + 0.0005
+            while time.time() < deadline:
+                try:
+                    next(_unlock_pred_iter)
+                except StopIteration:
+                    _unlock_pred_iter = None
+                    _unlock_done = True
+                    break
+            if _unlock_pred_iter is not None:
+                return
+        _sys_log('unlock pass done changed=%d preds=%d took=%.2fs' % (
+            _unlock_changed, len(_wrapped_preds), time.time() - _unlock_scan_t))
     except Exception:
         _unlock_iter = None
+        _unlock_pred_iter = None
         _sys_log(traceback.format_exc())
 
 
