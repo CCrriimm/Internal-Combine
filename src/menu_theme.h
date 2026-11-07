@@ -8,6 +8,13 @@
 
 namespace CometUi {
 // Menu-only styling. The loader continues to use ui_theme.h unchanged.
+//
+// Optional trace hook: the host records which control was pressed, so a crash
+// that follows a click leaves its last known action in the log instead of being
+// guesswork.
+inline void (*g_trace)(const char*) = nullptr;
+inline void SetTrace(void (*fn)(const char*)) { g_trace = fn; }
+inline void Trace(const char* what) { if (g_trace && what) g_trace(what); }
 inline ImU32 Accent = IM_COL32(53, 198, 217, 255);
 inline bool ReducedMotion = false;
 inline void SetTheme(unsigned theme) {
@@ -122,6 +129,7 @@ inline bool Slider(const char* label, T* value, T lo, T hi, const char* format) 
     ImGui::PushStyleColor(ImGuiCol_Text,text_input?ImGui::ColorConvertU32ToFloat4(Text):ImVec4(0,0,0,0));
     const bool changed=ImGui::SliderScalar("##value",std::is_integral_v<T>?ImGuiDataType_S32:ImGuiDataType_Float,
                                          value,&lo,&hi,format,ImGuiSliderFlags_AlwaysClamp);
+    if(ImGui::IsItemDeactivatedAfterEdit()) Trace(label);
     ImGui::PopStyleColor();
     const bool typing=ImGui::TempInputIsActive(slider_id);
     const bool emphasized=ImGui::IsItemHovered()||ImGui::IsItemActive();
@@ -176,6 +184,7 @@ inline bool NavItem(const char* label, Icon icon, bool active, float width) {
     ImGui::PushStyleColor(ImGuiCol_ButtonActive,ImVec4(0,0,0,0));
     ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize,0);
     bool pressed=ImGui::Button("##nav",ImVec2(width,42));
+    if(pressed) Trace(label);
     ImGui::PopStyleVar();
     bool hovered=ImGui::IsItemHovered();
     ImGui::PopStyleColor(3);

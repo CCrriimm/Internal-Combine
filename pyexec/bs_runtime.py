@@ -1714,8 +1714,37 @@ def _install_instance_hooks():
             pass
 
 
+_no_hooks_cached = None
+
+
+def _no_hooks_requested():
+    """Bisect switch: `no_hooks.txt` next to the runtime or in `ipc/` skips every
+    patch that reaches into the game's own Python. ESP/aim data collection and the
+    overlay keep running, so "does the crash survive with our hooks off?" is one
+    file and one restart instead of another guess. Checked once per session."""
+    global _no_hooks_cached
+    if _no_hooks_cached is not None:
+        return _no_hooks_cached
+    _no_hooks_cached = False
+    try:
+        base = os.path.dirname(os.path.abspath(__file__))
+        for path in (os.path.join(base, 'no_hooks.txt'),
+                     os.path.join(base, 'ipc', 'no_hooks.txt'),
+                     os.path.join(os.path.dirname(base), 'no_hooks.txt')):
+            if os.path.isfile(path):
+                _no_hooks_cached = True
+                break
+    except Exception:
+        pass
+    return _no_hooks_cached
+
+
 def _install_hooks():
     global _hooks_done, _hook_avatar_id
+    if _no_hooks_requested():
+        _hooks_done = True
+        _sys_log('[sys:sec] no_hooks.txt present: game patches skipped')
+        return
     try:
         _scrub_disk_markers()
         _patch_anti_plugin_modules()
@@ -4673,15 +4702,16 @@ def _on_story_tick(dt):
             _mouse(False)
             _fire_release_at = 0.0
         menu_open = _flag(cfg, F_MENU_OPEN)
+        hooks_off = _no_hooks_requested()
         in_match = not bool(getattr(genv, 'is_in_hall', True))
         _sync_ray_interceptor(cfg, in_match)
         _apply(cfg)
         _sync_configured_appearance(cfg)
         _dispatch_appearance_queue()
         t_apply = time.time()
-        if _flag(cfg, F_UNLOCK_EFFECTS):
+        if _flag(cfg, F_UNLOCK_EFFECTS) and not hooks_off:
             _refresh_runtime_cosmetics(not in_match)
-        if _flag(cfg, F_FORCE_KILLFX):
+        if _flag(cfg, F_FORCE_KILLFX) and not hooks_off:
             _force_killfx_on_equipped()
         t_unlock = time.time()
         cam = None

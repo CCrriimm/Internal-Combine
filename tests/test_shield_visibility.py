@@ -11,8 +11,10 @@ the ESP on screencaptures", "no black screen", and "one button".
   from the keyboard, and the snip overlay process/window are watched as well;
 * the Protection card is a single toggle plus three feature flags - no GDI guard
   switch, no game-window exclusion switch, no paragraphs;
-* the menu has an explicit drag strip and corner grip (the window has no title
-  bar, so there was nothing to grab).
+* every menu press leaves a trace line, and the frame loop leaves a heartbeat, so
+  a crash after a click names its last action instead of inviting another guess;
+* the shield swap chain has three buffers, so the per-frame `GetBuffer` does not
+  wait on the compositor.
 """
 from pathlib import Path
 import unittest
@@ -65,11 +67,15 @@ class ShieldVisibilityTests(unittest.TestCase):
                        'Capture modules', 'Present chain', 'Pacing:'):
             self.assertNotIn(banned, card, 'the Protection card stays minimal: %r' % banned)
 
-    def test_menu_can_be_moved_and_resized(self):
-        self.assertIn('##menu_move', self.overlay)
-        self.assertIn('##menu_resize', self.overlay)
-        self.assertIn('ImGui::SetWindowPos(ImVec2(wp.x + delta.x, wp.y + delta.y))', self.overlay)
-        self.assertIn('ImGui::SetWindowSize(', self.overlay)
+    def test_menu_presses_are_traced(self):
+        theme = (ROOT / 'src' / 'menu_theme.h').read_text(encoding='utf-8')
+        self.assertIn('SetTrace', theme)
+        self.assertIn('Trace(label)', theme)
+        self.assertIn('CometUi::SetTrace(TraceUi)', self.overlay)
+        self.assertIn('TraceFrameStart', self.overlay)
+
+    def test_shield_swap_chain_has_three_buffers(self):
+        self.assertIn('desc.BufferCount = 3;', self.output)
 
 
 if __name__ == '__main__':

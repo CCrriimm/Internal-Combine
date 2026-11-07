@@ -629,6 +629,21 @@ static int g_tab = 0;
 
 
 
+static void Log(const char* fmt, ...);
+
+// Record a menu interaction in the log. Cheap (one append per click, not per
+// frame) and it is what turns "clicking crashes the game" into a last-known-action
+// line in overlay_log.txt instead of a guess.
+static void TraceUi(const char* label) {
+    if (!label) return;
+    char text[96];
+    size_t n = 0;
+    while (label[n] && n + 1 < sizeof(text) && !(label[n] == '#' && label[n + 1] == '#')) ++n;
+    memcpy(text, label, n);
+    text[n] = 0;
+    Log("[ui] %s", text);
+}
+
 static void Log(const char* fmt, ...) {
 
     char msg[1024];
@@ -3653,35 +3668,6 @@ static void DrawMenu() {
     auto* dl = ImGui::GetWindowDrawList();
     const ImVec2 wp = ImGui::GetWindowPos(), ws = ImGui::GetWindowSize();
 
-    // The window has no title bar, so give it an explicit grab strip over the
-    // header and a grip in the bottom-right corner. Both drive ImGui's own window
-    // position/size, so the menu moves and resizes exactly like any other window.
-    ImGui::SetCursorPos(ImVec2(200, 4));
-    ImGui::InvisibleButton("##menu_move", ImVec2(std::max(40.f, ws.x - 200 - 196), 58));
-    if (ImGui::IsItemActive() && ImGui::IsMouseDragging(ImGuiMouseButton_Left)) {
-        const ImVec2 delta = io.MouseDelta;
-        ImGui::SetWindowPos(ImVec2(wp.x + delta.x, wp.y + delta.y));
-    }
-    if (ImGui::IsItemHovered() || ImGui::IsItemActive())
-        ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeAll);
-    {
-        const ImVec2 grip(ws.x - 20, ws.y - 20);
-        ImGui::SetCursorPos(grip);
-        ImGui::InvisibleButton("##menu_resize", ImVec2(18, 18));
-        const bool grip_active = ImGui::IsItemActive();
-        if (grip_active && ImGui::IsMouseDragging(ImGuiMouseButton_Left))
-            ImGui::SetWindowSize(ImVec2(ws.x + io.MouseDelta.x, ws.y + io.MouseDelta.y));
-        if (grip_active || ImGui::IsItemHovered())
-            ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeNWSE);
-        const ImU32 grip_col = (grip_active || ImGui::IsItemHovered()) ? CometUi::Text
-                                                                      : CometUi::Border;
-        for (int i = 1; i <= 3; ++i) {
-            dl->AddLine(ImVec2(wp.x + ws.x - 6.f - i * 5.f, wp.y + ws.y - 6.f),
-                        ImVec2(wp.x + ws.x - 6.f, wp.y + ws.y - 6.f - i * 5.f), grip_col, 1.f);
-        }
-    }
-
-    CometUi::Shadow(ImGui::GetBackgroundDrawList(),wp,ws);
     constexpr float rail = 188;
     dl->AddRectFilled(wp, ImVec2(wp.x + rail, wp.y + ws.y), CometUi::Ground, 12, ImDrawFlags_RoundCornersLeft);
     dl->AddLine(ImVec2(wp.x + rail, wp.y), ImVec2(wp.x + rail, wp.y + ws.y), CometUi::Border);
@@ -4222,6 +4208,8 @@ static bool InitOverlay(IDXGISwapChain* sc) {
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
 
     CometUi::ApplyStyle();
+    // Every control press lands in overlay_log.txt as "[ui] <label>".
+    CometUi::SetTrace(TraceUi);
 
     InitFonts();
 
@@ -4260,11 +4248,35 @@ static bool InitOverlay(IDXGISwapChain* sc) {
 
 
 
+// Per-frame cost split (CPU, milliseconds). Written by RenderFrame on the
+// presenting thread and read by NotePresentPerf on the same thread.
+static thread_local LARGE_INTEGER g_frame_start_qpc{};
+static thread_local double t_ui_ms = 0.0;
+static thread_local double t_shield_begin_ms = 0.0;
+static thread_local double t_shield_present_ms = 0.0;
+
+// Once per half second while the menu is open: proves the render loop reached
+// this frame. If the log stops at "frame start" after a click, the crash is inside
+// the overlay's own frame; if it keeps counting, the overlay is innocent and the
+// fault is in the game or the runtime.
+static void TraceFrameStart() {
+    static ULONGLONG last = 0;
+    const ULONGLONG now = GetTickCount64();
+    if (now - last < 500) return;
+    last = now;
+    Log("[ui] frame start menu=%d surface=%d", Has(F_MENU_OPEN) ? 1 : 0,
+        ShieldSurfaceReady() ? 1 : 0);
+}
+
 static void RenderFrame(IDXGISwapChain* sc) {
+
+    t_ui_ms = t_shield_begin_ms = t_shield_present_ms = 0.0;
+    QueryPerformanceCounter(&g_frame_start_qpc);
 
     if(!BindSwapchain(sc)) return;
 
     HandleToggle();
+    if (Has(F_MENU_OPEN)) TraceFrameStart();
 
     if (!g_imgui_ready) return;
 
@@ -4406,6 +4418,17 @@ static void RenderFrame(IDXGISwapChain* sc) {
 
     ImGui::Render();
 
+    // Cost split for the perf line: everything up to here is CPU work on the
+    // game's render thread (ImGui frame + draw-list building for menu and ESP).
+    {
+        LARGE_INTEGER now_qpc{}, freq{};
+        QueryPerformanceFrequency(&freq);
+        QueryPerformanceCounter(&now_qpc);
+        if (g_frame_start_qpc.QuadPart && freq.QuadPart)
+            t_ui_ms = (double)(now_qpc.QuadPart - g_frame_start_qpc.QuadPart) * 1000.0 /
+                      (double)freq.QuadPart;
+    }
+
     // Protected output: the whole frame (menu, ESP, snaplines, radar, FOV) goes
     // to the capture-excluded window and the game's back buffer is not touched.
     // That is what keeps OBS Game Capture, Steam's F12 screenshot and any other
@@ -4419,9 +4442,21 @@ static void RenderFrame(IDXGISwapChain* sc) {
         // prevent.
         if (!ShieldVisible()) return;
 
-        if (comet_surface::Begin(g_surface, g_device, g_context, g_client_w, g_client_h)) {
+        LARGE_INTEGER freq{}, t0{}, t1{}, t2{};
+        QueryPerformanceFrequency(&freq);
+        QueryPerformanceCounter(&t0);
+        const bool shield_frame =
+            comet_surface::Begin(g_surface, g_device, g_context, g_client_w, g_client_h);
+        QueryPerformanceCounter(&t1);
+        if (shield_frame) {
             ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
             comet_surface::End(g_surface, g_context);
+            QueryPerformanceCounter(&t2);
+            if (freq.QuadPart) {
+                const double scale = 1000.0 / (double)freq.QuadPart;
+                t_shield_begin_ms = (double)(t1.QuadPart - t0.QuadPart) * scale;
+                t_shield_present_ms = (double)(t2.QuadPart - t1.QuadPart) * scale;
+            }
             return;
         }
         // The surface refused this frame (resize race, device reset). Fall
@@ -4504,7 +4539,13 @@ struct PresentPerfSample {
     ULONGLONG started = 0;
     unsigned frames = 0, sync_zero = 0, sync_one = 0, sync_other = 0;
     double overlay_ms = 0.0, present_ms = 0.0, overlay_max_ms = 0.0;
+    // Split of the overlay milliseconds, filled in by RenderFrame. `overlay_ms`
+    // says how much the overlay costs; these say what it is spending it on.
+    double ui_ms = 0.0;       // ImGui frame + draw-list building (menu + ESP)
+    double shield_begin_ms = 0.0;   // GetBuffer + RTV + state save
+    double shield_present_ms = 0.0; // shield Present (blocking)
 };
+
 
 static void NotePresentPerf(IDXGISwapChain* sc, const char* which, UINT sync,
                             const LARGE_INTEGER& begin, const LARGE_INTEGER& before_present,
@@ -4548,6 +4589,9 @@ static void NotePresentPerf(IDXGISwapChain* sc, const char* which, UINT sync,
     else ++sample.sync_other;
     sample.overlay_ms += render;
     sample.present_ms += present;
+    sample.ui_ms += t_ui_ms;
+    sample.shield_begin_ms += t_shield_begin_ms;
+    sample.shield_present_ms += t_shield_present_ms;
     if (render > sample.overlay_max_ms) sample.overlay_max_ms = render;
     if (now - sample.started >= 10000) {
         // fps is measured between Present calls, so it is what the game actually
@@ -4555,11 +4599,14 @@ static void NotePresentPerf(IDXGISwapChain* sc, const char* which, UINT sync,
         // vsync-bound and its ceiling is the display refresh rate, not the
         // overlay - that is the first thing to check when the frame rate looks
         // pinned at 60.
-        Log("perf %s frames=%u interval_ms=%llu fps=%.1f sync0=%u sync1=%u sync_other=%u overlay_avg_ms=%.3f overlay_max_ms=%.3f present_avg_ms=%.3f shield=%d chain=%s modules=%d",
+        Log("perf %s frames=%u interval_ms=%llu fps=%.1f sync0=%u sync1=%u sync_other=%u overlay_avg_ms=%.3f overlay_max_ms=%.3f present_avg_ms=%.3f ui_avg_ms=%.3f shield_begin_ms=%.3f shield_present_ms=%.3f shield=%d chain=%s modules=%d",
             which, sample.frames, (unsigned long long)(now - sample.started), g_pacing.fps,
             sample.sync_zero, sample.sync_one, sample.sync_other,
             sample.overlay_ms / sample.frames, sample.overlay_max_ms,
-            sample.present_ms / sample.frames, ShieldSurfaceReady() ? 1 : 0,
+            sample.present_ms / sample.frames,
+            sample.ui_ms / sample.frames, sample.shield_begin_ms / sample.frames,
+            sample.shield_present_ms / sample.frames,
+            ShieldSurfaceReady() ? 1 : 0,
             comet_shield::Describe(PresentChainPosition()), CaptureModules().Count());
         sample = PresentPerfSample{};
         sample.swapchain = sc;

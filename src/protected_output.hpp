@@ -173,7 +173,12 @@ inline bool Create(Output& out, ID3D11Device* device, HWND game, UINT width, UIN
         desc.Stereo = FALSE;
         desc.SampleDesc.Count = 1;
         desc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-        desc.BufferCount = 2;
+        // Three buffers instead of two: with two, GetBuffer(0) blocks until the
+        // compositor has released the buffer we presented last frame, which puts a
+        // compositor-sized stall inside the game's Present. The third buffer makes
+        // that wait rare without skipping frames (a skipped frame leaves a stale
+        // ESP on screen, which is what "trailing" looked like).
+        desc.BufferCount = 3;
         desc.Scaling = DXGI_SCALING_STRETCH;        // required for composition
         desc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL; // required too
         desc.AlphaMode = DXGI_ALPHA_MODE_PREMULTIPLIED;
