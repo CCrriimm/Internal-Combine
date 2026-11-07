@@ -1,65 +1,94 @@
-"""The Protection toggle must not touch the surface mid-frame.
+"""The capture-protection switch must never mutate state mid-frame, and the
+protection itself must not cost the game a frame.
 
-The menu is drawn between `comet_surface::Begin()` and `comet_surface::End()`,
-so a Toggle handler runs with the shield's render target bound. Tearing the
-surface down there released the bound view and the swap chain while the frame's
-draw data was already recorded against them, and skipped the restore of the
-game's render targets (both are kept inside the Output for the duration of the
-frame). The visible result was a menu that stopped responding and a game drawing
-into a dead buffer - the crash the user reported when they pressed the switch.
+History, both bugs are covered here:
+
+1. The menu is drawn between `comet_surface::Begin()` and `End()`. The old Toggle
+   handler destroyed/created the shield surface right there, releasing the bound
+   render target and skipping the restore of the game's own targets - the menu
+   froze and the game kept drawing into a dead buffer.
+2. The shield drew into a second composition swap chain with its own topmost
+   window: a second Present per frame plus a DWM-composited surface over the game
+   took 240 fps down to 40-65. Protection is now a copy of the game's frame plus a
+   GetBuffer substitution, which adds no window and no Present.
 """
 
 import pathlib
-import re
 import unittest
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 OVERLAY = ROOT / 'src' / 'overlay.cpp'
-SURFACE = ROOT / 'src' / 'protected_output.hpp'
 
 
-class ToggleLifetimeTests(unittest.TestCase):
+class CaptureProtectionTests(unittest.TestCase):
 
     def setUp(self):
-        self.overlay = OVERLAY.read_text(encoding='utf-8')
-        self.surface = SURFACE.read_text(encoding='utf-8')
+        self.text = OVERLAY.read_text(encoding='utf-8')
 
-    def toggle_block(self):
-        start = self.overlay.index('Hide ESP from screen capture')
-        end = self.overlay.index('if (protect && !ShieldSurfaceReady())', start)
-        block = self.overlay[start:end]
-        # comments explain the rule; only code counts
+    def code(self, start_marker, end_marker):
+        start = self.text.index(start_marker)
+        end = self.text.index(end_marker, start)
+        block = self.text[start:end]
         return '\n'.join(line.split('//')[0] for line in block.splitlines())
 
-    def test_toggle_does_not_touch_the_surface(self):
-        block = self.toggle_block()
-        self.assertNotIn('comet_surface::Destroy', block,
-                         'the toggle runs mid-frame; it may only record the wish')
-        self.assertNotIn('MaintainShieldSurface', block,
-                         'the toggle runs mid-frame; it may only record the wish')
+    # -- the switch ---------------------------------------------------------
+    def test_toggle_only_records_the_wish(self):
+        block = self.code('Hide ESP from screen capture', 'if (protect && !g_clean_tex)')
+        for forbidden in ('comet_surface::Destroy', 'comet_surface::Create',
+                          'MaintainShieldSurface', 'ReleaseCleanCopy', 'RefreshCleanCopy'):
+            self.assertNotIn(forbidden, block,
+                             'the toggle runs mid-frame; it may only record the wish')
 
-    def test_maintain_defers_while_bound(self):
-        start = self.overlay.index('static void MaintainShieldSurface()')
-        end = self.overlay.index('static void ApplyObsProtection()', start)
-        body = self.overlay[start:end]
-        self.assertIn('g_surface.bound', body)
-        self.assertLess(body.index('g_surface.bound'), body.index('comet_surface::Create'),
-                        'the bound check has to run before the surface is created')
+    def test_maintain_does_not_create_a_second_swap_chain(self):
+        block = self.code('static void MaintainShieldSurface()', 'static void ApplyObsProtection()')
+        self.assertNotIn('comet_surface::Create', block,
+                         'a composition swap chain over the game costs the game its frame rate')
+        self.assertIn('ReleaseCleanCopy', block,
+                      'turning the switch off has to give the kept copy back')
 
-    def test_destroy_refuses_while_bound(self):
-        start = self.surface.index('inline void Destroy(Output& out)')
-        body = self.surface[start:start + 900]
+    def test_destroy_refuses_while_a_frame_is_in_flight(self):
+        surface = (ROOT / 'src' / 'protected_output.hpp').read_text(encoding='utf-8')
+        start = surface.index('inline void Destroy(Output& out)')
+        body = surface[start:start + 900]
         self.assertIn('if (out.bound) return;', body)
         self.assertLess(body.index('if (out.bound) return;'),
-                        body.index('detail::ReleasePipeline'),
-                        'the guard has to run before anything is released')
+                        body.index('detail::ReleasePipeline'))
 
-    def test_begin_and_end_bracket_the_draw(self):
-        begin = self.overlay.index('comet_surface::Begin(g_surface')
-        end = self.overlay.index('comet_surface::End(g_surface')
-        draw = self.overlay.index('ImGui_ImplDX11_RenderDrawData', begin)
-        self.assertLess(begin, draw)
-        self.assertLess(draw, end)
+    # -- the protection -----------------------------------------------------
+    def test_clean_copy_is_taken_before_the_overlay_is_drawn(self):
+        copy = self.text.index('RefreshCleanCopy(back)')
+        draw = self.text.index('ImGui_ImplDX11_RenderDrawData', copy)
+        self.assertLess(copy, draw,
+                        'copying after the draw would capture the overlay itself')
+
+    def test_get_buffer_answers_capture_modules_only(self):
+        block = self.code('static HRESULT STDMETHODCALLTYPE HookGetBuffer',
+                          'static bool CaptureProtectionKilled() {')
+        self.assertIn('CallerIsCaptureModule()', block)
+        self.assertIn('CaptureProtectionOn()', block)
+        self.assertIn('g_clean_tex', block)
+        self.assertIn('g_get_buffer(sc, index, iid, out)', block,
+                      'every other caller must get the real back buffer')
+
+    def test_get_buffer_is_hooked_on_slot_nine(self):
+        self.assertIn('vt[9]', self.text)
+        self.assertIn('MH_CreateHook(vt[9], (void*)&HookGetBuffer', self.text)
+
+    def test_known_capture_modules_are_listed(self):
+        block = self.code('static bool CallerIsCaptureModule()', 'static HRESULT STDMETHODCALLTYPE HookGetBuffer')
+        for name in ('graphics-hook64.dll', 'GameOverlayRenderer64.dll'):
+            self.assertIn(name, block)
+
+
+class FrameCostTests(unittest.TestCase):
+    """Nothing expensive may run on every presented frame."""
+
+    def test_state_file_read_is_throttled(self):
+        text = OVERLAY.read_text(encoding='utf-8')
+        start = text.index('// 2. Disk file fallback')
+        body = text[start:start + 900]
+        self.assertIn('now - last_poll < 8', body,
+                      'reading state.bin every frame cost ~5 ms of every frame')
 
 
 if __name__ == '__main__':

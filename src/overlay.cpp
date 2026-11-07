@@ -61,6 +61,12 @@
 #include "esp_armor_tier.hpp"
 #include "capture_guard.hpp"
 #include "capture_shield.hpp"
+
+#if defined(_MSC_VER)
+#include <intrin.h>
+#else
+#define _ReturnAddress() __builtin_return_address(0)
+#endif
 #include "protected_output.hpp"
 
 
@@ -372,6 +378,8 @@ using Present1Fn = HRESULT(STDMETHODCALLTYPE*)(IDXGISwapChain1*, UINT, UINT, con
 
 using ResizeBuffersFn = HRESULT(STDMETHODCALLTYPE*)(IDXGISwapChain*, UINT, UINT, UINT, DXGI_FORMAT, UINT);
 
+using GetBufferFn = HRESULT(STDMETHODCALLTYPE*)(IDXGISwapChain*, UINT, REFIID, void**);
+
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND, UINT, WPARAM, LPARAM);
 
 
@@ -391,6 +399,8 @@ struct PresentScope {
 };
 
 static ResizeBuffersFn g_resize = nullptr;
+
+static GetBufferFn g_get_buffer = nullptr;
 
 static WNDPROC g_wndproc = nullptr;
 
@@ -1209,6 +1219,120 @@ static void SetOptAimToggle(bool on) {
 // work before the config is read and without the loader re-packaging anything,
 // so a build can always be recovered when the protected window is invisible to
 // screen capture.
+// ---------------------------------------------------------------------------
+// Capture protection, second design: a clean copy of the back buffer.
+//
+// The first design drew the overlay into a separate composition swap chain with
+// its own window. It worked - Game Capture and Steam's F12 saw nothing - but it
+// cost the user 240 fps -> 40-65: a second Present that has to be taken by DWM
+// on every frame, and a topmost composition window over the game, which keeps the
+// game out of independent flip. Measured against the user's own before/after:
+// 240-250 fps without the internal, 40-65 with it.
+//
+// This design adds no window and no second Present. The overlay still draws into
+// the game's back buffer, so it costs the same as any in-game overlay, and the
+// capture tools are given something else to copy: before the overlay is drawn,
+// the finished game frame is copied into `g_clean_tex`, and `IDXGISwapChain::
+// GetBuffer` hands that texture to any caller that lives inside a known capture
+// module. OBS Game Capture (graphics-hook64.dll) and Steam's screenshot
+// (GameOverlayRenderer64.dll) both read the frame by calling GetBuffer on the
+// game's swap chain, so they copy the game without the overlay. The game itself,
+// our own code and everything else keep getting the real buffer.
+static bool CaptureProtectionKilled();
+
+static ID3D11Texture2D* g_clean_tex = nullptr;
+static UINT g_clean_w = 0, g_clean_h = 0;
+
+static bool CaptureProtectionOn() {
+    return HasOpt2(OPT2_CAPTURE_SHIELD) && !CaptureProtectionKilled();
+}
+
+// Copies the game's finished frame out of the back buffer. Called just before the
+// overlay is drawn into it, so what is captured is the frame as the game made it.
+static void RefreshCleanCopy(ID3D11Texture2D* back) {
+    if (!back || !g_device || !g_context) return;
+    D3D11_TEXTURE2D_DESC td{};
+    back->GetDesc(&td);
+    if (!td.Width || !td.Height) return;
+    if (!g_clean_tex || g_clean_w != td.Width || g_clean_h != td.Height) {
+        if (g_clean_tex) { g_clean_tex->Release(); g_clean_tex = nullptr; }
+        D3D11_TEXTURE2D_DESC cd = td;
+        cd.BindFlags = 0;
+        cd.Usage = D3D11_USAGE_DEFAULT;
+        cd.CPUAccessFlags = 0;
+        cd.MiscFlags = 0;
+        if (FAILED(g_device->CreateTexture2D(&cd, nullptr, &g_clean_tex)) || !g_clean_tex) {
+            g_clean_tex = nullptr;
+            return;
+        }
+        g_clean_w = td.Width;
+        g_clean_h = td.Height;
+        Log("capture clean copy %ux%u", g_clean_w, g_clean_h);
+    }
+    g_context->CopyResource(g_clean_tex, back);
+}
+
+static void ReleaseCleanCopy() {
+    if (g_clean_tex) { g_clean_tex->Release(); g_clean_tex = nullptr; }
+    g_clean_w = g_clean_h = 0;
+}
+
+// True when the caller of the hooked GetBuffer is a module that copies the
+// frame. One lookup, cached per module.
+static bool CallerIsCaptureModule() {
+    static thread_local void* last_caller = nullptr;
+    static thread_local bool last_answer = false;
+    void* caller = _ReturnAddress();
+    if (caller == last_caller) return last_answer;
+    last_caller = caller;
+
+    HMODULE module = nullptr;
+    bool answer = false;
+    if (GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS |
+                               GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+                           reinterpret_cast<LPCWSTR>(caller), &module) &&
+        module) {
+        wchar_t path[MAX_PATH] = {};
+        if (GetModuleFileNameW(module, path, MAX_PATH)) {
+            const wchar_t* base = path;
+            for (const wchar_t* p = path; *p; ++p) {
+                if (*p == L'\\' || *p == L'/') base = p + 1;
+            }
+            static const wchar_t* kCaptureModules[] = {
+                L"graphics-hook64.dll",     // OBS game capture
+                L"graphics-hook32.dll",
+                L"hook64.dll",              // older OBS
+                L"obs-gameapi.dll",
+                L"GameOverlayRenderer64.dll", // Steam screenshot / overlay
+                L"GameOverlayRenderer.dll",
+                L"nvspcap64.dll",           // NVIDIA share
+                L"AMDRSServ.dll",           // AMD ReLive
+                L"bdcam64.dll",             // Bandicam
+                L"fraps64.dll",
+                L"fraps.dll",
+                L"DiscordHook64.dll",
+                L"RTSSHooks64.dll",
+                L"Overlay64.dll",
+                L"EOSOVH-Win64-Shipping.dll",
+            };
+            for (const wchar_t* name : kCaptureModules) {
+                if (_wcsicmp(base, name) == 0) { answer = true; break; }
+            }
+        }
+    }
+    last_answer = answer;
+    return answer;
+}
+
+static HRESULT STDMETHODCALLTYPE HookGetBuffer(IDXGISwapChain* sc, UINT index, REFIID iid,
+                                              void** out) {
+    if (index == 0 && out && g_clean_tex && sc == g_swapchain && CaptureProtectionOn() &&
+        CallerIsCaptureModule()) {
+        if (SUCCEEDED(g_clean_tex->QueryInterface(iid, out)) && *out) return S_OK;
+    }
+    return g_get_buffer(sc, index, iid, out);
+}
+
 static bool CaptureProtectionKilled() {
     static const bool killed = [] {
         const std::wstring flag = PathBase() + L"\\no_capture_guard.txt";
@@ -1262,50 +1386,18 @@ static comet_shield::Chain PresentChainPosition() {
 // overlay: if the surface cannot be created the caller keeps drawing into the
 // game exactly as before and Settings says why.
 static void MaintainShieldSurface() {
-    // Never mutate the surface while one of its buffers is bound: the game's
-    // render targets are saved inside the Output for the duration of the frame,
-    // and releasing or recreating the swap chain there loses them.
-    if (g_surface.bound) return;
-    const bool want = HasOpt2(OPT2_CAPTURE_SHIELD) && !CaptureProtectionKilled();
-    if (!want) {
-        if (g_surface.state != comet_surface::State::Off) {
-            comet_surface::Destroy(g_surface);
-            Log("capture shield released");
-        }
+    // Capture protection is a clean copy of the back buffer plus a GetBuffer
+    // substitution (see RefreshCleanCopy). Nothing is allocated here: the copy is
+    // created on the first frame the overlay actually draws and released when the
+    // switch goes off, so a game session that never enables it pays nothing.
+    if (!CaptureProtectionOn()) {
+        ReleaseCleanCopy();
         return;
     }
-    if (g_surface.state == comet_surface::State::Ready) {
-        if (GameUsesWindowedPresentation()) return;
-        // The game went exclusive fullscreen: give the drawing back to the game
-        // window instead of hiding the overlay behind a fullscreen flip.
+    // The old composition window is retired. If a session still has one from an
+    // older build, take it down once.
+    if (g_surface.state != comet_surface::State::Off && !g_surface.bound) {
         comet_surface::Destroy(g_surface);
-        Log("capture shield released: exclusive fullscreen");
-        return;
-    }
-
-    if (!GameUsesWindowedPresentation()) {
-        g_surface_retry_at = GetTickCount64() + 2000;
-        return;
-    }
-
-    const ULONGLONG now = GetTickCount64();
-    if (now < g_surface_retry_at) return;
-    if (!g_device || !g_hwnd) return;
-
-    UINT w = g_client_w, h = g_client_h;
-    if (!w || !h) { w = g_width; h = g_height; }
-    if (!w || !h) return;
-
-    if (comet_surface::Create(g_surface, g_device, g_hwnd, w, h)) {
-        char described[192] = {};
-        comet_surface::Describe(g_surface, described, (int)sizeof(described));
-        Log("capture shield ready: %s", described);
-        g_surface_retry_at = 0;
-    } else {
-        // Retry on a slow cadence: a device reset or a fullscreen transition can
-        // make the first attempt fail for a reason that disappears.
-        g_surface_retry_at = now + 5000;
-        Log("capture shield unavailable hr=0x%08lx", (unsigned long)g_surface.error);
     }
 }
 
@@ -1366,7 +1458,17 @@ static bool LoadState() {
 
     }
 
-    // 2. Disk file fallback
+    // 2. Disk file fallback. Only reached while the shared-memory block is not
+    // available. The file is rewritten on every runtime tick, so "read it when it
+    // changed" means a 30-40 KB read (and an antivirus scan of it) inside Present
+    // on every frame - measured at ~5 ms as `pre_avg_ms`. Nothing can be fresher
+    // than the 60 Hz writer, so polling faster than that is pure cost.
+    {
+        static ULONGLONG last_poll = 0;
+        const ULONGLONG now = GetTickCount64();
+        if (last_poll && now - last_poll < 8) return true;
+        last_poll = now;
+    }
 
     if (!StateFileChanged()) return true;
 
@@ -3624,9 +3726,9 @@ static void DrawSettingsTab() {
         g_surface_retry_at = 0;
         Log("capture shield %s", protect ? "requested: on" : "requested: off");
     }
-    if (protect && !ShieldSurfaceReady()) {
-        char described[192] = {};
-        ImGui::TextDisabled("%s",comet_surface::Describe(g_surface,described,(int)sizeof(described)));
+    if (protect && !g_clean_tex) {
+        // One short line, only while the first drawn frame is still pending.
+        ImGui::TextDisabled("armed");
     }
 
     FlagCheck("Block reports",F_BLOCK_REPORT);
@@ -4518,6 +4620,10 @@ static void RenderFrame(IDXGISwapChain* sc) {
     ID3D11RenderTargetView* rtv = nullptr;
     const bool have_back =
         SUCCEEDED(g_swapchain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&back)) && back;
+    // Capture protection: keep a copy of the frame as the game made it, before a
+    // single overlay pixel goes into this buffer. Done before the render target is
+    // bound, so the back buffer is not read and written at the same time.
+    if (have_back && CaptureProtectionOn()) RefreshCleanCopy(back);
     if (have_back && SUCCEEDED(g_device->CreateRenderTargetView(back, nullptr, &rtv)) && rtv) {
         g_context->OMSetRenderTargets(1, &rtv, nullptr);
         ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
@@ -4983,6 +5089,16 @@ static bool InstallHook() {
     if (resize_addr && MH_CreateHook(resize_addr, (void*)&HookResizeBuffers, (void**)&g_resize) != MH_OK) {
 
         Log("MH_CreateHook resize failed");
+
+    }
+
+    // Slot 9 is IDXGISwapChain::GetBuffer. Capture tools read the frame through
+    // it; the detour answers them with the clean copy (see RefreshCleanCopy).
+    if (vt[9] && MH_CreateHook(vt[9], (void*)&HookGetBuffer, (void**)&g_get_buffer) != MH_OK) {
+
+        Log("MH_CreateHook GetBuffer failed");
+
+        g_get_buffer = nullptr;
 
     }
 

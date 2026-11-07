@@ -1,5 +1,6 @@
 import builtins
-import os
+import ctypes          # eager: the engine's importer is broken on some installs and a
+import os             # later `import ctypes` inside a try/except then fails silently
 import sys
 import struct
 import time
@@ -457,37 +458,63 @@ def _finite(*xs):
 _shm_state_p = None
 _shm_cfg_p = None
 
+_shm_logged = None
+
+
 def _init_ctypes_shm():
-    global _shm_state_p, _shm_cfg_p
+    """Map the shared-memory blocks the overlay reads each frame.
+
+    No `ctypes.wintypes` here: on a broken install the engine's importer raises
+    TypeError for any module that is not already loaded, `ctypes.wintypes` is one
+    of them, and the old code swallowed the failure - so the overlay fell back to
+    reading state.bin from disk on every presented frame. That is the ~5 ms/frame
+    measured as `pre_avg_ms` in overlay_log.txt.
+    """
+    global _shm_state_p, _shm_cfg_p, _shm_logged
+    if _shm_state_p is not None and _shm_cfg_p is not None:
+        return
     try:
-        import ctypes
-        from ctypes import wintypes
         k32 = ctypes.windll.kernel32
-        k32.OpenFileMappingA.argtypes = [wintypes.DWORD, wintypes.BOOL, wintypes.LPCSTR]
-        k32.OpenFileMappingA.restype = wintypes.HANDLE
-        k32.CreateFileMappingA.argtypes = [wintypes.HANDLE, wintypes.LPVOID, wintypes.DWORD, wintypes.DWORD, wintypes.DWORD, wintypes.LPCSTR]
-        k32.CreateFileMappingA.restype = wintypes.HANDLE
-        k32.MapViewOfFile.argtypes = [wintypes.HANDLE, wintypes.DWORD, wintypes.DWORD, wintypes.DWORD, ctypes.c_size_t]
+        k32.OpenFileMappingA.argtypes = [ctypes.c_uint32, ctypes.c_int, ctypes.c_char_p]
+        k32.OpenFileMappingA.restype = ctypes.c_void_p
+        k32.CreateFileMappingA.argtypes = [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_uint32,
+                                           ctypes.c_uint32, ctypes.c_uint32, ctypes.c_char_p]
+        k32.CreateFileMappingA.restype = ctypes.c_void_p
+        k32.MapViewOfFile.argtypes = [ctypes.c_void_p, ctypes.c_uint32, ctypes.c_uint32,
+                                      ctypes.c_uint32, ctypes.c_size_t]
         k32.MapViewOfFile.restype = ctypes.c_void_p
 
         PAGE_READWRITE = 0x04
         FILE_MAP_ALL_ACCESS = 0x000F001F
+        INVALID_HANDLE = ctypes.c_void_p(-1)
 
         if _shm_state_p is None:
             h = k32.OpenFileMappingA(FILE_MAP_ALL_ACCESS, False, b"Local\\BS_IPC_STATE")
             if not h:
-                h = k32.CreateFileMappingA(wintypes.HANDLE(-1), None, PAGE_READWRITE, 0, 65536, b"Local\\BS_IPC_STATE")
+                h = k32.CreateFileMappingA(INVALID_HANDLE, None, PAGE_READWRITE, 0, 65536,
+                                           b"Local\\BS_IPC_STATE")
             if h:
                 _shm_state_p = k32.MapViewOfFile(h, FILE_MAP_ALL_ACCESS, 0, 0, 65536)
 
         if _shm_cfg_p is None:
             h = k32.OpenFileMappingA(FILE_MAP_ALL_ACCESS, False, b"Local\\BS_IPC_CFG")
             if not h:
-                h = k32.CreateFileMappingA(wintypes.HANDLE(-1), None, PAGE_READWRITE, 0, CFG_SIZE, b"Local\\BS_IPC_CFG")
+                h = k32.CreateFileMappingA(INVALID_HANDLE, None, PAGE_READWRITE, 0, CFG_SIZE,
+                                           b"Local\\BS_IPC_CFG")
             if h:
                 _shm_cfg_p = k32.MapViewOfFile(h, FILE_MAP_ALL_ACCESS, 0, 0, CFG_SIZE)
     except Exception:
         pass
+
+    ok = _shm_state_p is not None
+    if _shm_logged != ok:
+        _shm_logged = ok
+        if ok:
+            _sys_log('[sys:ipc] state shared memory ok')
+        else:
+            _sys_log('[sys:ipc] state shared memory failed - overlay reads state.bin on every '
+                     'frame; retrying')
+
 
 # Disk fallback must not block the engine tick: replace pending snapshots with
 # the newest one instead of queueing unbounded old frames. The worker only sees
@@ -1611,6 +1638,13 @@ def _install_class_hooks():
 
 
 def _install_instance_hooks():
+    # Retried here (2 s cadence) until the mapping exists: the disk fallback costs
+    # the overlay ~5 ms of every presented frame.
+    try:
+        if _shm_state_p is None:
+            _init_ctypes_shm()
+    except Exception:
+        pass
     # UI classes can be imported after install; the guard is idempotent.
     try:
         _guard_ui_events()
