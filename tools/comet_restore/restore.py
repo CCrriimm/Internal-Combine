@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Reconstruct large source files from base64 chunks and write them in-place."""
 from pathlib import Path
-import base64, sys
+import base64, sys, re
 
 ROOT = Path(__file__).resolve().parents[2]
 MAPPING = {
@@ -16,7 +16,7 @@ for key, dest in MAPPING.items():
     if not parts:
         print(f"missing chunks for {key}", file=sys.stderr)
         sys.exit(1)
-    b64 = "".join(p.read_text().strip() for p in parts)
+    b64 = "".join(re.sub(r"\s+", "", p.read_text()) for p in parts)
     data = base64.b64decode(b64)
     dest.parent.mkdir(parents=True, exist_ok=True)
     dest.write_bytes(data)
