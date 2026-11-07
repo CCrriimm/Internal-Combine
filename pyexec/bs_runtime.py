@@ -1429,58 +1429,23 @@ def _patch_anti_plugin_modules():
         _sys_log('[sys:sec] anti-plugin modules patched (%d targets)' % patched)
 
 
-def _scrub_disk_markers():
-    """Remove anti-cheat droppings that live *outside* the game installation.
-
-    This used to delete files inside the game's patch root
-    (``PATCHROOT/UIScript/*.pyo``, the two ``0d``/``0a`` GUID files and the
-    ``032dc4...*`` bundles). Those are the game's hot-patch *script* bundles, not
-    anti-cheat markers, and deleting them breaks the engine's own importer for
-    every module that only exists in a patch:
-
-        MImporter.finder.find_spec_in_patch_encrypt
-          -> find_spec_in_encrypt -> get_relpath_with_path
-        TypeError: unsupported operand type(s) for +: 'NoneType' and 'str'
-
-    That error surfaces inside the UI click handler of whichever window needed
-    the module (personal space, combat record, in-game settings), so the engine
-    reports "has stopped working" and the game stops taking input until it is
-    restarted - "cannot shoot or click" in a match. It repeats because this runs
-    again every 60 s, so files the game re-downloaded were deleted again
-    (runtime_err.txt shows the TypeError from the first scrub onwards).
-
-    Only ``%TEMP%`` droppings and the two anti-cheat directories in Common Files
-    are removed now; nothing under the game directory is touched.
-    """
-    try:
-        import tempfile, shutil
-        paths_to_clean = []
-        td = tempfile.gettempdir()
-        paths_to_clean.append(os.path.join(td, '4040BDD0BA0f042.pyo'))
-        paths_to_clean.append(os.path.join(td, '4051BDD0000f042.pyo'))
-        parent_td = os.path.dirname(td)
-        paths_to_clean.append(os.path.join(parent_td, '4040BDD0BA0f042.pyo'))
-        paths_to_clean.append(os.path.join(parent_td, '4051BDD0000f042.pyo'))
-        cur_drive = os.path.splitdrive(td)[0] or 'C:'
-        common_files = os.path.join(cur_drive, 'Program Files (x86)', 'Common Files')
-        for d in ('ApexsCorporation', 'MicrosoftCorporation'):
-            paths_to_clean.append(os.path.join(common_files, d))
-
-        removed = 0
-        for p in paths_to_clean:
-            try:
-                if os.path.isfile(p):
-                    os.remove(p)
-                    removed += 1
-                elif os.path.isdir(p):
-                    shutil.rmtree(p, ignore_errors=True)
-                    removed += 1
-            except Exception:
-                pass
-        if removed > 0:
-            _sys_log('[sys:sec] scrubbed %d anticheat markers from disk' % removed)
-    except Exception:
-        pass
+# The "anti-cheat marker" scrub that used to live here is gone for good.
+#
+# It deleted the game's hot-patch script bundles from PATCHROOT (UIScript/*.pyo,
+# the 0d/0a GUID files and everything matching 032dc4cac2903ad0fa44ccdd81a20d7da*)
+# plus two directories under Common Files, on install and again every 60 seconds.
+# Those patch bundles are how the engine's own importer resolves any module that
+# only exists in a patch, so deleting them makes every UI that lazily imports one
+# fail inside MImporter.finder:
+#
+#     find_spec_in_patch_encrypt -> find_spec_in_encrypt -> get_relpath_with_path
+#     TypeError: unsupported operand type(s) for +: 'NoneType' and 'str'
+#
+# The failing import kills the click handler that triggered it, which the engine
+# reports as "bloodstrike.exe has stopped working" - the personal-space / combat
+# record buttons, in the logs the user sent. The files are gone from that install
+# now and re-patching is the only way to get them back, so nothing here deletes
+# anything any more: not under the game directory, not in Common Files.
 
 
 def _guard_story_pipeline():
@@ -1646,6 +1611,11 @@ def _install_class_hooks():
 
 
 def _install_instance_hooks():
+    # UI classes can be imported after install; the guard is idempotent.
+    try:
+        _guard_ui_events()
+    except Exception:
+        pass
     targets = []
     for obj in (getattr(genv, 'avatar', None),
                 getattr(genv, 'player', None),
@@ -1739,6 +1709,80 @@ def _no_hooks_requested():
     return _no_hooks_cached
 
 
+_ui_guard_logged = set()
+
+
+def _log_ui_failure(text):
+    """Report a UI event that the engine would otherwise turn into a crash dialog."""
+    try:
+        first = text.strip().splitlines()[-1][:160]
+    except Exception:
+        first = 'unknown error'
+    if first in _ui_guard_logged:
+        return
+    if len(_ui_guard_logged) < 40:
+        _ui_guard_logged.add(first)
+    if 'get_relpath_with_path' in text or 'MImporter' in text:
+        _sys_log('[sys:sec] UI event failed: a game patch module could not be imported '
+                 '(MImporter find_spec_in_patch_encrypt -> get_relpath_with_path -> None). '
+                 'The game install is missing patch data - verify / re-download the game '
+                 'files. The click was ignored instead of letting it kill the game.')
+    _sys_log('[sys:sec] UI event swallowed: ' + first)
+
+
+def _guard_ui_events():
+    """Wrap the engine's UI event dispatcher.
+
+    An uncaught exception in a click handler is fatal for the session: the engine
+    reports "bloodstrike.exe has stopped working" and the match loses input until
+    the process is restarted. A broken game install (missing patch module) throws
+    inside `ui_node.eventDispatcher` every time the same button is pressed, so the
+    button becomes a no-op with a log line instead of a crash.
+    """
+    if _no_hooks_requested():
+        return 0
+    try:
+        import gclient.framework.ui.widgets.ui_node as ui_node
+    except Exception:
+        return 0
+
+    def make_guarded(orig):
+        def dispatch(self, *args, **kwargs):
+            try:
+                return orig(self, *args, **kwargs)
+            except Exception:
+                _log_ui_failure(traceback.format_exc())
+                return None
+        dispatch._m_ui_guard = True
+        dispatch.__name__ = getattr(orig, '__name__', 'dispatch')
+        return dispatch
+
+    wrapped = 0
+    try:
+        names = dir(ui_node)
+    except Exception:
+        return 0
+    for name in names:
+        try:
+            cls = getattr(ui_node, name, None)
+        except Exception:
+            continue
+        if not isinstance(cls, type):
+            continue
+        for method in ('eventDispatcher', 'onTouchEnded'):
+            fn = getattr(cls, method, None)
+            if not callable(fn) or getattr(fn, '_m_ui_guard', False):
+                continue
+            try:
+                setattr(cls, method, make_guarded(fn))
+                wrapped += 1
+            except Exception:
+                pass
+    if wrapped:
+        _sys_log('[sys:sec] ui event guard installed (%d methods)' % wrapped)
+    return wrapped
+
+
 def _install_hooks():
     global _hooks_done, _hook_avatar_id
     if _no_hooks_requested():
@@ -1746,7 +1790,6 @@ def _install_hooks():
         _sys_log('[sys:sec] no_hooks.txt present: game patches skipped')
         return
     try:
-        _scrub_disk_markers()
         _patch_anti_plugin_modules()
         _install_class_hooks()
         _patch_mmy_lighting()
@@ -1755,6 +1798,7 @@ def _install_hooks():
         _guard_story_pipeline()
         _patch_http_client()
         _install_excepthook_guard()
+        _guard_ui_events()
         _install_instance_hooks()
         _hooks_done = True
         av = getattr(genv, 'avatar', None)
@@ -4691,9 +4735,7 @@ def _on_story_tick(dt):
         if now - _last_hooks >= 2.0:
             _last_hooks = now
             _install_instance_hooks()
-        if now - _last_scrub >= 60.0:
-            _last_scrub = now
-            _scrub_disk_markers()
+
         if now - _last_catalog_check >= 5.0:
             _last_catalog_check = now
             _save_template_cache()

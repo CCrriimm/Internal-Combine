@@ -4252,6 +4252,7 @@ static bool InitOverlay(IDXGISwapChain* sc) {
 // presenting thread and read by NotePresentPerf on the same thread.
 static thread_local LARGE_INTEGER g_frame_start_qpc{};
 static thread_local double t_ui_ms = 0.0;
+static thread_local double t_pre_ms = 0.0;
 static thread_local double t_shield_begin_ms = 0.0;
 static thread_local double t_shield_present_ms = 0.0;
 
@@ -4318,6 +4319,18 @@ static void RenderFrame(IDXGISwapChain* sc) {
 
     bool need = menu || (g_state.in_match &&
                          (Has(F_ESP) || Has(F_AIM_FOV_CIRCLE)));
+
+    // Everything above this point runs on every present, drawing or not (config
+    // autosave, state poll, shield upkeep). Timing it separately is what tells a
+    // fixed per-frame cost apart from the cost of actually drawing.
+    {
+        LARGE_INTEGER now_qpc{}, freq{};
+        QueryPerformanceFrequency(&freq);
+        QueryPerformanceCounter(&now_qpc);
+        if (g_frame_start_qpc.QuadPart && freq.QuadPart)
+            t_pre_ms = (double)(now_qpc.QuadPart - g_frame_start_qpc.QuadPart) * 1000.0 /
+                       (double)freq.QuadPart;
+    }
 
     if (!need) {
         // Nothing to draw this frame. Take the protected window off the screen
@@ -4541,6 +4554,7 @@ struct PresentPerfSample {
     double overlay_ms = 0.0, present_ms = 0.0, overlay_max_ms = 0.0;
     // Split of the overlay milliseconds, filled in by RenderFrame. `overlay_ms`
     // says how much the overlay costs; these say what it is spending it on.
+    double pre_ms = 0.0;      // everything before the "anything to draw?" test
     double ui_ms = 0.0;       // ImGui frame + draw-list building (menu + ESP)
     double shield_begin_ms = 0.0;   // GetBuffer + RTV + state save
     double shield_present_ms = 0.0; // shield Present (blocking)
@@ -4589,6 +4603,7 @@ static void NotePresentPerf(IDXGISwapChain* sc, const char* which, UINT sync,
     else ++sample.sync_other;
     sample.overlay_ms += render;
     sample.present_ms += present;
+    sample.pre_ms += t_pre_ms;
     sample.ui_ms += t_ui_ms;
     sample.shield_begin_ms += t_shield_begin_ms;
     sample.shield_present_ms += t_shield_present_ms;
@@ -4599,11 +4614,11 @@ static void NotePresentPerf(IDXGISwapChain* sc, const char* which, UINT sync,
         // vsync-bound and its ceiling is the display refresh rate, not the
         // overlay - that is the first thing to check when the frame rate looks
         // pinned at 60.
-        Log("perf %s frames=%u interval_ms=%llu fps=%.1f sync0=%u sync1=%u sync_other=%u overlay_avg_ms=%.3f overlay_max_ms=%.3f present_avg_ms=%.3f ui_avg_ms=%.3f shield_begin_ms=%.3f shield_present_ms=%.3f shield=%d chain=%s modules=%d",
+        Log("perf %s frames=%u interval_ms=%llu fps=%.1f sync0=%u sync1=%u sync_other=%u overlay_avg_ms=%.3f overlay_max_ms=%.3f present_avg_ms=%.3f pre_avg_ms=%.3f ui_avg_ms=%.3f shield_begin_ms=%.3f shield_present_ms=%.3f shield=%d chain=%s modules=%d",
             which, sample.frames, (unsigned long long)(now - sample.started), g_pacing.fps,
             sample.sync_zero, sample.sync_one, sample.sync_other,
             sample.overlay_ms / sample.frames, sample.overlay_max_ms,
-            sample.present_ms / sample.frames,
+            sample.present_ms / sample.frames, sample.pre_ms / sample.frames,
             sample.ui_ms / sample.frames, sample.shield_begin_ms / sample.frames,
             sample.shield_present_ms / sample.frames,
             ShieldSurfaceReady() ? 1 : 0,
