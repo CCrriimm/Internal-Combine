@@ -34,6 +34,7 @@
 #endif
 
 #include <windows.h>
+#include <tlhelp32.h>
 #include <d3d11.h>
 #include <dxgi1_2.h>
 #include <dcomp.h>
@@ -199,12 +200,18 @@ inline bool Create(Output& out, ID3D11Device* device, HWND game, UINT width, UIN
     out.width = width;
     out.height = height;
     out.state = State::Ready;
-    // Set before the window is ever shown: there is no frame in which the
-    // overlay is both visible and capturable. Windows renders an excluded window
-    // as a black rectangle in a desktop capture, which is why SystemCaptureUiActive
-    // hides the window (rather than blanking it) while the snipping tool is open.
-    out.excluded = SetWindowDisplayAffinity(w, WDA_EXCLUDEFROMCAPTURE) != FALSE;
-    if (!out.excluded) out.error = (long)GetLastError();
+    // No display affinity on purpose.
+    //
+    // WDA_EXCLUDEFROMCAPTURE is the one flag that can hide this window from a
+    // desktop capture, but DWM renders an excluded window as a black rectangle,
+    // and this window covers the whole game: a Win+Shift+S snip then came back as
+    // a black screen instead of a clean game frame. The captures that matter -
+    // OBS Game Capture, Steam's F12, anything else that copies the game's swap
+    // chain - never read this window anyway, so the flag bought nothing there and
+    // cost a black screenshot. Instead the window hides itself while a screenshot
+    // is being taken (SystemCaptureUiActive), which leaves the game visible with
+    // no overlay and no black area.
+    out.excluded = false;
     return true;
 }
 
@@ -244,56 +251,53 @@ inline void Destroy(Output& out) {
 
 namespace detail {
 
+inline bool IsCaptureHostName(const wchar_t* name) {
+    static const wchar_t* kHosts[] = {
+        L"ScreenClippingHost.exe",  // Win+Shift+S on Windows 11
+        L"SnippingTool.exe",        // Windows 11 Snipping Tool
+        L"ScreenSketch.exe",        // "Snipping Tool" package on 10/11
+        L"GameBar.exe",             // Win+G / Win+Alt+R capture UI
+        L"GameBarFTServer.exe",
+    };
+    if (!name) return false;
+    for (const wchar_t* candidate : kHosts) {
+        if (_wcsicmp(name, candidate) == 0) return true;
+    }
+    return false;
+}
+
+inline const wchar_t* ProcessBaseName(DWORD pid, wchar_t* buffer, DWORD size) {
+    if (!pid || !buffer || !size) return nullptr;
+    HANDLE process = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, pid);
+    if (!process) return nullptr;
+    DWORD written = size;
+    const wchar_t* base = nullptr;
+    if (QueryFullProcessImageNameW(process, 0, buffer, &written)) {
+        base = buffer;
+        for (const wchar_t* p = buffer; *p; ++p) {
+            if (*p == L'\\' || *p == L'/') base = p + 1;
+        }
+    }
+    CloseHandle(process);
+    return base;
+}
+
 // A window belonging to one of the system's own screen-capture UIs.
 inline bool IsCaptureHostWindow(HWND window) {
     DWORD pid = 0;
     GetWindowThreadProcessId(window, &pid);
     if (!pid) return false;
-
-    struct Entry { DWORD pid; bool host; };
-    static Entry cache[24]{};
-    static int count = 0;
-    for (int i = 0; i < count; ++i) {
-        if (cache[i].pid == pid) return cache[i].host;
-    }
-
-    bool host = false;
-    HANDLE process = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, pid);
-    if (process) {
-        wchar_t path[MAX_PATH] = {};
-        DWORD size = MAX_PATH;
-        if (QueryFullProcessImageNameW(process, 0, path, &size)) {
-            const wchar_t* base = path;
-            for (const wchar_t* p = path; *p; ++p) {
-                if (*p == L'\\' || *p == L'/') base = p + 1;
-            }
-            static const wchar_t* kHosts[] = {
-                L"ScreenClippingHost.exe",  // Win+Shift+S on Windows 11
-                L"SnippingTool.exe",        // Windows 11 Snipping Tool
-                L"ScreenSketch.exe",        // "Snipping Tool" package on 10/11
-                L"GameBar.exe",             // Win+G / Win+Alt+R capture UI
-                L"GameBarFTServer.exe",
-            };
-            for (const wchar_t* candidate : kHosts) {
-                if (_wcsicmp(base, candidate) == 0) { host = true; break; }
-            }
-        }
-        CloseHandle(process);
-    }
-    if (count < (int)(sizeof(cache) / sizeof(cache[0]))) {
-        cache[count].pid = pid;
-        cache[count].host = host;
-        ++count;
-    }
-    return host;
+    wchar_t path[MAX_PATH] = {};
+    const wchar_t* base = ProcessBaseName(pid, path, MAX_PATH);
+    return base && IsCaptureHostName(base);
 }
 
 inline BOOL CALLBACK CaptureHostEnum(HWND window, LPARAM param) {
     if (!IsWindowVisible(window) || IsIconic(window)) return TRUE;
     if (!IsCaptureHostWindow(window)) return TRUE;
-    // The snip overlay itself covers (nearly) the whole desktop. A small window
+    // The snip overlay itself covers (nearly) the whole desktop. A smaller window
     // from the same executable only counts while it owns the foreground, which is
-    // the state the toolbar-less "new snip" popup is in.
+    // the state of the toolbox-less "new snip" popup.
     RECT rc{};
     if (!GetWindowRect(window, &rc)) return TRUE;
     const int screen_w = GetSystemMetrics(SM_CXSCREEN);
@@ -306,18 +310,64 @@ inline BOOL CALLBACK CaptureHostEnum(HWND window, LPARAM param) {
     return FALSE;
 }
 
+// Win+Shift+S / PrtScn, read straight from the keyboard state.
+//
+// This is the part that makes a snip clean rather than black: the tool captures
+// the composed desktop, so the window has to already be off screen when the
+// selection is taken - waiting for the tool's own window to appear is one frame
+// too late on some builds. Polling here means no hook and no dependency on which
+// executable the build of Windows happens to use.
+inline bool ScreenshotHotkeyRecentlyDown() {
+    static ULONGLONG triggered_at = 0;
+    const ULONGLONG now = GetTickCount64();
+    const bool win = ((GetAsyncKeyState(VK_LWIN) | GetAsyncKeyState(VK_RWIN)) & 0x8000) != 0;
+    const bool shift = (GetAsyncKeyState(VK_SHIFT) & 0x8000) != 0;
+    const bool s_key = (GetAsyncKeyState('S') & 0x8000) != 0;
+    const bool prtsc = (GetAsyncKeyState(VK_SNAPSHOT) & 0x8000) != 0;
+    if ((win && shift && s_key) || prtsc) triggered_at = now;
+    // Stay hidden through the selection itself and the tool's own capture.
+    return triggered_at != 0 && now - triggered_at < 1500;
+}
+
+// ScreenClippingHost.exe only: it is spawned for the Win+Shift+S overlay and goes
+// away again. SnippingTool.exe / GameBar.exe can sit resident, so those are only
+// honoured through their windows (above) - hiding the overlay permanently because
+// a helper process is parked in the tray would be worse than a stray ESP.
+inline bool SnippingOverlayProcessRunning() {
+    static ULONGLONG checked_at = 0;
+    static bool running = false;
+    const ULONGLONG now = GetTickCount64();
+    if (checked_at && now - checked_at < 200) return running;
+    checked_at = now ? now : 1;
+    running = false;
+    HANDLE snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+    if (snapshot == INVALID_HANDLE_VALUE) return false;
+    PROCESSENTRY32W entry{};
+    entry.dwSize = sizeof(entry);
+    if (Process32FirstW(snapshot, &entry)) {
+        do {
+            if (_wcsicmp(entry.szExeFile, L"ScreenClippingHost.exe") == 0) {
+                running = true;
+                break;
+            }
+        } while (Process32NextW(snapshot, &entry));
+    }
+    CloseHandle(snapshot);
+    return running;
+}
+
 } // namespace detail
 
-// True while the Windows snipping tool or Game Bar has its capture UI over the
-// desktop. Those tools capture the composed desktop and honour display
-// affinity, so an excluded shield window comes back as a black rectangle the
-// size of the game - which is exactly the "screen turns black on Win+Shift+S"
-// report, and the kind of thing a screen-checking anti-cheat notices.
+// True while a screenshot of the desktop is being taken, in which case the shield
+// hides itself instead of being captured.
 //
-// Hiding the shield for the duration is better than dropping the exclusion: the
-// snip then shows the game with no overlay and no black area. Re-checked at
-// 250 ms, which is far inside the time it takes to drag a selection.
+// Three independent signals, because the tools differ: the hotkey itself (Win+
+// Shift+S, PrtScn), the Windows 11 snip overlay process, and the capture UI
+// windows of the snipping tool / Game Bar. Any of them hides the overlay, which is
+// what makes a snip come back as the game with no ESP and no black rectangle.
 inline bool SystemCaptureUiActive() {
+    if (detail::ScreenshotHotkeyRecentlyDown()) return true;
+    if (detail::SnippingOverlayProcessRunning()) return true;
     static ULONGLONG checked_at = 0;
     static bool active = false;
     const ULONGLONG now = GetTickCount64();
@@ -467,15 +517,8 @@ inline const char* Describe(const Output& out, char* buffer, int size) {
     if (!buffer || size <= 0) return "";
     switch (out.state) {
         case State::Ready:
-            if (out.excluded) {
-                _snprintf_s(buffer, (size_t)size, _TRUNCATE,
-                            "protected output %ux%u, capture exclusion on",
-                            out.width, out.height);
-            } else {
-                _snprintf_s(buffer, (size_t)size, _TRUNCATE,
-                            "protected output %ux%u, capture exclusion REFUSED (win32 %ld)",
-                            out.width, out.height, out.error);
-            }
+            _snprintf_s(buffer, (size_t)size, _TRUNCATE,
+                        "protected output %ux%u", out.width, out.height);
             return buffer;
         case State::Failed:
             _snprintf_s(buffer, (size_t)size, _TRUNCATE,

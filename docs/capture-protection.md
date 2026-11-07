@@ -82,50 +82,42 @@ buffer is never written to.
 That is what makes OBS Game Capture and Steam's F12 clean: they copy buffer 0 of
 the game's swap chain, and buffer 0 no longer contains anything the overlay drew.
 
-The shield window carries `WDA_EXCLUDEFROMCAPTURE`, so *display* and *window*
-capture of the desktop leave the overlay out as well.
+The shield window deliberately carries **no** display affinity.
 
-Windows renders an excluded window as a **black rectangle**, and the shield covers
-the whole game - that is why a `Win+Shift+S` snip used to come back black. The
-shield therefore hides itself (`SystemCaptureUiActive()`) while the Windows
-snipping tool or Game Bar has its capture UI on screen, including the small
-"new snip" popup once it owns the foreground. A snip then shows the game with the
-overlay gone and no black area, which is the clean result; nothing is blanked on
-purpose.
+`WDA_EXCLUDEFROMCAPTURE` is the only flag that hides a window from a *desktop*
+capture, but DWM then renders that window as a black rectangle - and this window
+covers the whole game, so a `Win+Shift+S` snip came back as a black screen instead
+of a clean game frame. It also bought nothing where it mattered: OBS Game Capture
+and Steam copy the game's swap chain, not the composed desktop.
+
+Instead the window hides itself (`SystemCaptureUiActive()`) whenever a screenshot
+is being taken, which leaves the game visible with no overlay and no black area:
+
+* the hotkey itself - `Win+Shift+S` and `PrtScn` are read from the keyboard state
+  each frame, so the window is gone before the tool grabs the composed desktop;
+* `ScreenClippingHost.exe`, the process Windows 11 spawns for the snip overlay;
+* the capture-UI windows of the snipping tool / Game Bar, including the small
+  "new snip" popup once it owns the foreground.
+
+Nothing is blanked on purpose, and the game window itself is not excluded either
+(that is the other way to turn a screenshot black).
 
 Presenting is blocking (`Present(0, 0)`). A non-blocking present was tried and
 withdrawn: a skipped frame leaves the previous ESP frame on screen, which reads as
 the overlay trailing the world while the camera turns.
 
-Properties that matter in use:
+### Retired: Windows capture exclusion (game window)
 
-* It needs a windowed or borderless game. In exclusive fullscreen a topmost
-  window sits behind the game's output, so `MaintainShieldSurface()` refuses the
-  surface and the overlay keeps drawing in-game; `Settings` says so instead of
-  silently showing nothing.
-* Input is unchanged. The shield window is `WS_EX_TRANSPARENT` and never takes
-  focus; the menu still reads the game window's messages through the existing
-  `WndProc` hook, so clicking, dragging and key binds work exactly as before.
-* The window follows the game's client rect, hides when the game is not the
-  foreground window or is minimised, hides while the snipping tool / Game Bar
-  capture UI is open, and takes itself down when the game goes exclusive
-  fullscreen or the device is lost.
-* If anything in the chain fails (`CreateWindowEx`, `CreateSwapChainForComposition`,
-  `DCompositionCreateDevice`, the visual tree), the failure and its code are
-  logged and the overlay falls back to drawing in-game. The overlay never
-  disappears because of this feature.
-* Cost: one extra full-screen composition surface and one extra `Present` per
-  drawn frame (~2 buffers of pixels of video memory; at 4K, roughly 66 MB).
+The game window used to carry `WDA_EXCLUDEFROMCAPTURE` with a re-apply loop. That
+is gone: it hid the game itself from Windows capture, which paints the *whole
+game* black in a screenshot or a display capture, and it can drop a flip-model
+game off independent flip. `ApplyObsProtection()` now always applies `false`,
+which also clears an exclusion left behind by an older config.
 
-### Windows capture exclusion (game window)
+### Retired: Delay GDI captures
 
-Unchanged behaviour (`src/capture_guard.hpp`): affinity on the game window with a
-re-apply loop. It is automatically **suspended while the protected output is
-active**, because the shield window already covers that path and affinity on the
-game window is the one setting here that can cost frame rate.
-
-Use it only if you want the game itself hidden from Windows capture (for example
-OBS Display Capture showing a black game), not to hide the overlay.
+Hooks on `BitBlt`, `StretchBlt` and `PrintWindow`; off by default, and not needed
+while the protected output is active, so the switch is no longer shown.
 
 ### Delay GDI captures (off by default)
 

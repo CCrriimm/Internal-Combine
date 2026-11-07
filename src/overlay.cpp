@@ -931,7 +931,7 @@ static void DefaultCfg() {
         g_cfg.col_armor_tier[i] = kDefaultArmorTier[i];
     }
 
-    g_cfg.opts = OPT2_OBS_PROTECT | OPT2_CAPTURE_SHIELD;
+    g_cfg.opts = OPT2_CAPTURE_SHIELD;
 
     g_cfg.noise_strength = 0.0016f;
 
@@ -981,7 +981,7 @@ static bool LoadCfg() {
             for (int i = 0; i < 4; ++i) {
                 m.col_armor_tier[i] = kDefaultArmorTier[i];
             }
-            m.opts = OPT2_OBS_PROTECT | OPT2_CAPTURE_SHIELD;
+            m.opts = OPT2_CAPTURE_SHIELD;
             m.noise_strength = 0.0016f;
             m.version = VERSION;
             buf.assign(reinterpret_cast<const uint8_t*>(&m),
@@ -1294,15 +1294,13 @@ static void ApplyObsProtection() {
         return;
     }
     const comet_capture::Status before = g_obs.status;
-    // Display affinity on the *game* window is a DWM-level request: it hides the
-    // game from Windows capture, and it also stops the game from using
-    // independent flip (DWM has to compose the window to leave it out of the
-    // capture buffer). That is the one setting here that can pin a flip-model
-    // game to the desktop refresh rate. The protected output excludes the
-    // overlay at the window level instead, so affinity is dropped while it is
-    // in use and the game keeps its normal presentation path.
-    const bool surface = ShieldSurfaceReady();
-    const bool want = HasOpt2(OPT2_OBS_PROTECT) && !surface && !CaptureProtectionKilled();
+    // Display affinity on the *game* window is retired. It hides the game from
+    // Windows capture, but DWM then renders the whole game as a black rectangle in
+    // a screenshot or a display capture, and it also stops a flip-model game from
+    // using independent flip. Applying `false` every tick clears an exclusion left
+    // behind by an older config; the protected output is what covers captures that
+    // matter (it keeps the overlay out of the game's own back buffer).
+    const bool want = false;
     comet_capture::Apply(g_hwnd, want, g_obs, GetTickCount64());
     if (g_obs.status != before) {
         if (g_obs.status == comet_capture::Status::Denied)
@@ -3583,50 +3581,26 @@ static void DrawSettingsTab() {
     BeginCard("settings_protection",ImVec2(0,0));
     Section("Protection");
 
-    // Protected output: the overlay gets its own capture-excluded window, so the
-    // game's swap-chain back buffer (what OBS Game Capture and Steam's F12 copy)
-    // never contains it. This is the only setting that covers those two paths.
-    bool shield = HasOpt2(OPT2_CAPTURE_SHIELD);
-    if (CometUi::Toggle("Protected output",&shield,ImGui::GetContentRegionAvail().x)) {
-        SetOpt2(OPT2_CAPTURE_SHIELD,shield);
+    // One switch, one behaviour: the overlay is drawn into its own window, so the
+    // game's swap-chain back buffer - what OBS Game Capture, Steam's F12 and any
+    // other in-process Present hook copy - never contains it. That window also
+    // hides itself while a screenshot is being taken, so a snip comes back as the
+    // game with no ESP and no black rectangle.
+    bool protect = HasOpt2(OPT2_CAPTURE_SHIELD);
+    if (CometUi::Toggle("Hide ESP from screen capture",&protect,ImGui::GetContentRegionAvail().x)) {
+        SetOpt2(OPT2_CAPTURE_SHIELD,protect);
+        // The older, narrower switches are folded into this one.
+        SetOpt2(OPT2_GDI_GUARD,false);
+        SetOpt2(OPT2_OBS_PROTECT,false);
         g_surface_retry_at = 0;
-        if (shield) MaintainShieldSurface();
+        if (protect) MaintainShieldSurface();
         else comet_surface::Destroy(g_surface);
     }
-    {
+    if (protect && !ShieldSurfaceReady()) {
         char described[192] = {};
         ImGui::TextDisabled("%s",comet_surface::Describe(g_surface,described,(int)sizeof(described)));
     }
 
-    bool obs = HasOpt2(OPT2_OBS_PROTECT);
-    if (CometUi::Toggle("Windows capture exclusion (game window)",&obs,ImGui::GetContentRegionAvail().x)) {
-        SetOpt2(OPT2_OBS_PROTECT,obs);
-        // Re-apply immediately so the toggle is honest in the same frame.
-        g_obs = comet_capture::Blackout{};
-        ApplyObsProtection();
-    }
-    ImGui::TextDisabled("%s",comet_capture::Describe(g_obs));
-    if (g_obs.status==comet_capture::Status::Denied)
-        ImGui::TextDisabled("SetWindowDisplayAffinity failed (%lu); the last affinity is unchanged.",g_obs.error);
-    if (ShieldSurfaceReady())
-        ImGui::TextDisabled("Suspended while the protected output is active.");
-
-    // GDI capture guard: only matters while the overlay is drawn into the game.
-    bool gdi = HasOpt2(OPT2_GDI_GUARD);
-    if (CometUi::Toggle("Delay GDI captures",&gdi,ImGui::GetContentRegionAvail().x)) {
-        SetOpt2(OPT2_GDI_GUARD,gdi);
-    }
-    ImGui::TextDisabled("%s",!gdi?"off":(ShieldSurfaceReady()?"not needed (protected output)":"armed for the game window"));
-
-    ImGui::Dummy(ImVec2(0,6));
-    ImGui::TextDisabled("Pacing: %.0f fps | overlay %.2f ms | present %.2f ms | sync %u",
-                        g_pacing.fps,g_pacing.overlay_ms,g_pacing.present_ms,g_pacing.sync);
-    {
-        char list[160] = {};
-        const int n = comet_shield::Describe(CaptureModules(),list,(int)sizeof(list));
-        ImGui::TextDisabled("Capture modules: %s",n?list:"none");
-    }
-    ImGui::TextDisabled("Present chain: %s",comet_shield::Describe(PresentChainPosition()));
     FlagCheck("Block reports",F_BLOCK_REPORT);
     FlagCheck("Unlock effects",F_UNLOCK_EFFECTS);
     FlagCheck("Force killfx",F_FORCE_KILLFX);
@@ -3678,6 +3652,35 @@ static void DrawMenu() {
                  ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoSavedSettings);
     auto* dl = ImGui::GetWindowDrawList();
     const ImVec2 wp = ImGui::GetWindowPos(), ws = ImGui::GetWindowSize();
+
+    // The window has no title bar, so give it an explicit grab strip over the
+    // header and a grip in the bottom-right corner. Both drive ImGui's own window
+    // position/size, so the menu moves and resizes exactly like any other window.
+    ImGui::SetCursorPos(ImVec2(200, 4));
+    ImGui::InvisibleButton("##menu_move", ImVec2(std::max(40.f, ws.x - 200 - 196), 58));
+    if (ImGui::IsItemActive() && ImGui::IsMouseDragging(ImGuiMouseButton_Left)) {
+        const ImVec2 delta = io.MouseDelta;
+        ImGui::SetWindowPos(ImVec2(wp.x + delta.x, wp.y + delta.y));
+    }
+    if (ImGui::IsItemHovered() || ImGui::IsItemActive())
+        ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeAll);
+    {
+        const ImVec2 grip(ws.x - 20, ws.y - 20);
+        ImGui::SetCursorPos(grip);
+        ImGui::InvisibleButton("##menu_resize", ImVec2(18, 18));
+        const bool grip_active = ImGui::IsItemActive();
+        if (grip_active && ImGui::IsMouseDragging(ImGuiMouseButton_Left))
+            ImGui::SetWindowSize(ImVec2(ws.x + io.MouseDelta.x, ws.y + io.MouseDelta.y));
+        if (grip_active || ImGui::IsItemHovered())
+            ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeNWSE);
+        const ImU32 grip_col = (grip_active || ImGui::IsItemHovered()) ? CometUi::Text
+                                                                      : CometUi::Border;
+        for (int i = 1; i <= 3; ++i) {
+            dl->AddLine(ImVec2(wp.x + ws.x - 6.f - i * 5.f, wp.y + ws.y - 6.f),
+                        ImVec2(wp.x + ws.x - 6.f, wp.y + ws.y - 6.f - i * 5.f), grip_col, 1.f);
+        }
+    }
+
     CometUi::Shadow(ImGui::GetBackgroundDrawList(),wp,ws);
     constexpr float rail = 188;
     dl->AddRectFilled(wp, ImVec2(wp.x + rail, wp.y + ws.y), CometUi::Ground, 12, ImDrawFlags_RoundCornersLeft);

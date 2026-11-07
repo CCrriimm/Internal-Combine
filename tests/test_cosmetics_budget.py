@@ -28,7 +28,7 @@ class CosmeticsBudgetTests(unittest.TestCase):
               '_unlock_pred_iter': None, '_unlock_done': False, '_unlock_step_t': 0.0,
               '_last_unlock': 0.0, '_unlock_scan_t': 0.0, '_unlock_changed': 0,
               '_unlock_interval': 120.0, '_unlock_dir_cache': {},
-              '_entry_pending': None, '_wrapped_preds': set()}
+              '_entry_pending': None, '_wrapped_preds': set(), '_wrapped_logged': False}
         exec(compile(ast.Module(body=nodes, type_ignores=[]), str(source), 'exec'), ns)
         ns['_refresh_runtime_cosmetics']()
         self.assertFalse(ns['_unlock_done'])
@@ -45,9 +45,12 @@ class CosmeticsBudgetTests(unittest.TestCase):
         self.assertEqual(rows[2]['locked'], 0)
         self.assertTrue(modules['gclient.test'].is_unlocked())
         self.assertEqual(ns['_unlock_changed'], 2)
-        self.assertEqual(len(logs), 1)
+        self.assertEqual([l for l in logs if l.startswith('unlock pass done')][0].split()[3:4],
+                         ['changed=2'])
+        self.assertTrue(any(l.startswith('[sys:sec] forced predicates:') for l in logs), logs)
+        after = len(logs)
         ns['_refresh_runtime_cosmetics']()
-        self.assertEqual(len(logs), 1)
+        self.assertEqual(len(logs), after)
 
 
 if __name__ == '__main__':
@@ -72,7 +75,7 @@ def _harness(rows, modules, start=1000.0):
           '_unlock_iter': None, '_unlock_pred_iter': None, '_unlock_done': True,
           '_unlock_step_t': 0.0, '_last_unlock': 0.0, '_unlock_scan_t': 0.0,
           '_unlock_changed': 0, '_unlock_interval': 120.0, '_unlock_dir_cache': {},
-          '_entry_pending': None, '_wrapped_preds': set()}
+          '_entry_pending': None, '_wrapped_preds': set(), '_wrapped_logged': False}
     exec(compile(ast.Module(body=nodes, type_ignores=[]), str(source), 'exec'), ns)
     ns['clock'] = clock
     ns['logs'] = logs

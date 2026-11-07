@@ -252,6 +252,7 @@ _unlock_step_t = 0.0
 _unlock_scan_t = 0.0
 _unlock_changed = 0
 _wrapped_preds = set()
+_wrapped_logged = False
 _last_unlock = 0.0
 _my_gen = 0
 _asset_auto_seen = None
@@ -4261,6 +4262,14 @@ def _iter_cosmetic_predicates():
                 continue
             if not callable(fn) or not hasattr(fn, '__code__'):
                 continue
+            # Only zero-argument predicates are safe to force. Anything that takes
+            # parameters is real logic - `can_use(slot, item)` and friends - and
+            # replacing it with a constant is exactly how a click handler ends up
+            # acting on data that is not there, which the engine reports as a crash.
+            if getattr(fn.__code__, 'co_argcount', 0) - getattr(fn.__code__, 'co_posonlyargcount', 0):
+                continue
+            if getattr(fn.__code__, 'co_kwonlyargcount', 0):
+                continue
 
             def make(orig):
                 def pred(*args, **kwargs):
@@ -4281,6 +4290,7 @@ _unlock_interval = 120.0    # seconds between passes; grows while they do nothin
 def _refresh_runtime_cosmetics(lobby=True):
     global _last_unlock, _unlock_done, _unlock_iter, _unlock_pred_iter
     global _unlock_scan_t, _unlock_changed, _unlock_step_t, _unlock_interval
+    global _wrapped_logged
     # Unlocking cosmetics is a lobby/menu effect, and the pass walks every game
     # module and every catalog row: the logs show whole passes taking 96 s of wall
     # time while reporting changed=0, overlapping a live match. Nothing here can
@@ -4332,6 +4342,10 @@ def _refresh_runtime_cosmetics(lobby=True):
         took = time.time() - _unlock_scan_t
         _sys_log('unlock pass done changed=%d preds=%d took=%.2fs' % (
             _unlock_changed, len(_wrapped_preds), took))
+        if _wrapped_preds and not _wrapped_logged:
+            _wrapped_logged = True
+            names = sorted('%s.%s' % (m, a) for m, a in _wrapped_preds)
+            _sys_log('[sys:sec] forced predicates: %s' % ', '.join(names[:24]))
         # Nothing to force: a pass that changes nothing is pure cost, so back off
         # instead of repeating the whole module walk every two minutes.
         if _unlock_changed:
