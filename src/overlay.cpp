@@ -3965,6 +3965,13 @@ static bool InitOverlay(IDXGISwapChain* sc) {
 
     }
 
+    // This is the game's actual swap chain, not the hidden probe created by
+    // InstallHook. Record its settings rather than assuming a presentation mode.
+    Log("game swapchain effect=%u buffers=%u windowed=%d flags=0x%08x size=%ux%u hwnd=%p",
+        (unsigned)desc.SwapEffect, (unsigned)desc.BufferCount, (int)desc.Windowed,
+        (unsigned)desc.Flags, (unsigned)desc.BufferDesc.Width,
+        (unsigned)desc.BufferDesc.Height, desc.OutputWindow);
+
     g_swapchain = sc;
 
     g_hwnd = desc.OutputWindow;
@@ -4261,6 +4268,11 @@ static HRESULT STDMETHODCALLTYPE HookPresent(IDXGISwapChain* sc, UINT sync, UINT
         const unsigned fault = RenderFrameGuarded(sc);
         if (fault) NoteFault("present", fault);
     }
+    // Log the game's requested sync interval once, without overriding it.
+    static volatile LONG logged_game_present = 0;
+    if (sc == g_swapchain && InterlockedCompareExchange(&logged_game_present, 1, 0) == 0) {
+        Log("game Present sync=%u flags=0x%08x", (unsigned)sync, (unsigned)flags);
+    }
     // Always forward, whatever happened above: skipping the game's own Present
     // is what turns an overlay fault into a frozen picture.
     const HRESULT hr = g_present(sc, sync, flags);
@@ -4280,6 +4292,10 @@ static HRESULT STDMETHODCALLTYPE HookPresent1(IDXGISwapChain1* sc, UINT sync, UI
     if (!g_render_disabled) {
         const unsigned fault = RenderFrameGuarded(sc);
         if (fault) NoteFault("present1", fault);
+    }
+    static volatile LONG logged_game_present1 = 0;
+    if (sc == g_swapchain && InterlockedCompareExchange(&logged_game_present1, 1, 0) == 0) {
+        Log("game Present1 sync=%u flags=0x%08x", (unsigned)sync, (unsigned)flags);
     }
     const HRESULT hr = g_present1(sc, sync, flags, params);
     NotePresentResult(hr, "Present1");
