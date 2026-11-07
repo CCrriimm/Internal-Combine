@@ -13,6 +13,74 @@ try:
 except Exception:
     MUI = None
 
+_import_order_moved = False
+
+
+def _repair_import_order():
+    """Move the engine's own import finder to the end of sys.meta_path.
+
+    On a damaged install `MImporter.finder.find_spec` raises
+
+        TypeError: unsupported operand type(s) for +: 'NoneType' and 'str'
+          (find_spec_in_patch_encrypt -> get_relpath_with_path)
+
+    for any module that is not in the patch index. It sits at the *front* of
+    sys.meta_path, so it is asked about every import first - including standard
+    library modules - and a finder that raises aborts the import instead of
+    letting the next finder try. That is why `import ctypes` fails here, which is
+    why the shared-memory IPC never came up, which is why the overlay had to read
+    state.bin from disk on every presented frame (3.4-4.9 ms of every frame,
+    measured as state_avg_ms).
+
+    Nothing is replaced or patched: the finder stays in the chain, it is simply
+    asked last, after the finders that work by path. Game modules that only exist
+    inside the patch bundles are still found by it, because the finders ahead of
+    it cannot resolve them.
+    """
+    try:
+        order = list(sys.meta_path)
+    except Exception:
+        return False
+    engine = []
+    rest = []
+    for finder in order:
+        cls = type(finder)
+        name = (getattr(cls, '__module__', '') or '') + '.' + (getattr(cls, '__name__', '') or '')
+        if 'mimporter' in name.lower() or 'importer' in name.lower():
+            engine.append(finder)
+        else:
+            rest.append(finder)
+    if not engine or order[-1:] == engine[-1:]:
+        return False
+    try:
+        sys.meta_path[:] = rest + engine
+    except Exception:
+        return False
+    global _import_order_moved
+    _import_order_moved = True
+    return True
+
+
+try:
+    _repair_import_order()
+    if _import_order_moved:
+        # Loaded now, on purpose: once it is in sys.modules nothing can stop the
+        # runtime from using it later, whatever the engine's finder does next.
+        import ctypes as _ctypes_early
+        sys.modules.setdefault('ctypes', _ctypes_early)
+except Exception:
+    pass
+
+
+def _log_import_repair():
+    try:
+        if globals().get('_import_order_moved'):
+            _sys_log('[sys:boot] engine import finder moved last: standard imports work now',
+                     force=True)
+    except Exception:
+        pass
+
+
 def _root_dir():
     for key in ('BS_ROOT', 'BS_CHEAT_ROOT'):
         v = os.environ.get(key)
@@ -323,6 +391,12 @@ BONE_NAMES = [
     ('biped R Calf', 'Bip001 R Calf', 'R Calf', 'RCalf'),                     # 14: R Knee
     ('biped R Foot', 'Bip001 R Foot', 'R Foot', 'RFoot')                      # 15: R Foot
 ]
+
+try:
+    _log_import_repair()
+except Exception:
+    pass
+
 
 def _close(a, b, tol=1e-9):
     return a is not None and b is not None and abs(a - b) < tol
