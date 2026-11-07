@@ -4278,9 +4278,15 @@ def _iter_cosmetic_predicates():
 _unlock_interval = 120.0    # seconds between passes; grows while they do nothing
 
 
-def _refresh_runtime_cosmetics():
+def _refresh_runtime_cosmetics(lobby=True):
     global _last_unlock, _unlock_done, _unlock_iter, _unlock_pred_iter
     global _unlock_scan_t, _unlock_changed, _unlock_step_t, _unlock_interval
+    # Unlocking cosmetics is a lobby/menu effect, and the pass walks every game
+    # module and every catalog row: the logs show whole passes taking 96 s of wall
+    # time while reporting changed=0, overlapping a live match. Nothing here can
+    # affect a match that has already loaded, so it does not run during one.
+    if not lobby:
+        return
     now = time.time()
     # The scan previously used 3 ms on every frame, enough by itself to turn
     # 250 FPS into ~140 FPS while a pass runs. Spread the same work over time;
@@ -4660,7 +4666,7 @@ def _on_story_tick(dt):
         _dispatch_appearance_queue()
         t_apply = time.time()
         if _flag(cfg, F_UNLOCK_EFFECTS):
-            _refresh_runtime_cosmetics()
+            _refresh_runtime_cosmetics(not in_match)
         if _flag(cfg, F_FORCE_KILLFX):
             _force_killfx_on_equipped()
         t_unlock = time.time()

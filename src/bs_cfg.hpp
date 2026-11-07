@@ -110,12 +110,6 @@ enum : uint32_t {
                                  // frame without overlay has been presented.
                                  // Only used when the protected output is not
                                  // active; see docs/capture-protection.md.
-    OPT2_SHIELD_AFFINITY = 1u << 9, // WDA_EXCLUDEFROMCAPTURE on the protected
-                                    // output window. Off by default: it is what
-                                    // turns the game black in a Win+Shift+S snip
-                                    // or a display capture, and the captures that
-                                    // matter (OBS Game Capture, Steam) never read
-                                    // that window.
 };
 
 inline constexpr uint32_t CFG_UI_TAG = 0x55490001;

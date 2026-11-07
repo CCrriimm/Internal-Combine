@@ -69,9 +69,7 @@ struct Output {
     UINT win_h = 0;
     int x = -100000, y = -100000;
     bool shown = false;
-    bool excluded = false;      // WDA_EXCLUDEFROMCAPTURE is in force
-    bool applied_exclude = false; // what was last requested from the window
-    bool do_not_wait = true;    // non-blocking Present; cleared if unsupported
+    bool excluded = false;      // WDA_EXCLUDEFROMCAPTURE was accepted
     long error = 0;             // first failing HRESULT / Win32 code
 
     // Pipeline state saved for the duration of one shield draw.
@@ -134,7 +132,6 @@ inline void Fail(Output& out, long code) {
     out.error = code;
     out.shown = false;
     out.excluded = false;
-    out.applied_exclude = false;
     out.width = out.height = 0;
     out.win_w = out.win_h = 0;
 }
@@ -144,11 +141,7 @@ inline void Fail(Output& out, long code) {
 // Creates the shield window, its composition swap chain and the DirectComposition
 // tree. Returns true on success; on failure `state` is Failed and the caller
 // should keep drawing into the game's back buffer.
-// Applies or clears WDA_EXCLUDEFROMCAPTURE on the shield window (defined below).
-inline void SetExcluded(Output& out, bool exclude);
-
-inline bool Create(Output& out, ID3D11Device* device, HWND game, UINT width, UINT height,
-                   bool exclude) {
+inline bool Create(Output& out, ID3D11Device* device, HWND game, UINT width, UINT height) {
     if (out.state == State::Ready) return true;
     if (!device || !width || !height) { detail::Fail(out, E_INVALIDARG); return false; }
     if (!detail::EnsureClass()) { detail::Fail(out, (long)GetLastError()); return false; }
@@ -206,36 +199,13 @@ inline bool Create(Output& out, ID3D11Device* device, HWND game, UINT width, UIN
     out.width = width;
     out.height = height;
     out.state = State::Ready;
-    out.applied_exclude = false;
-    // Applied before the window is ever shown, so there is no frame in which the
-    // overlay is both visible and excluded-when-it-should-not-be.
-    SetExcluded(out, exclude);
+    // Set before the window is ever shown: there is no frame in which the
+    // overlay is both visible and capturable. Windows renders an excluded window
+    // as a black rectangle in a desktop capture, which is why SystemCaptureUiActive
+    // hides the window (rather than blanking it) while the snipping tool is open.
+    out.excluded = SetWindowDisplayAffinity(w, WDA_EXCLUDEFROMCAPTURE) != FALSE;
+    if (!out.excluded) out.error = (long)GetLastError();
     return true;
-}
-
-// Applies or clears WDA_EXCLUDEFROMCAPTURE on the shield window.
-//
-// Exclusion is what keeps the overlay out of Windows display/window capture
-// (OBS Display Capture, Game Bar, a desktop grab), but it also paints the
-// window's whole rectangle black in those captures - and the window covers the
-// game, so a Win+Shift+S snip of a 2560x1440 game came back as a black screen.
-// That is a detection risk of its own, so exclusion is opt-in; the paths that
-// matter for a game (OBS Game Capture, Steam F12) never read this window at all.
-inline void SetExcluded(Output& out, bool exclude) {
-    if (out.state != State::Ready || !out.window) return;
-    if (out.applied_exclude == exclude) return;
-    SetLastError(ERROR_SUCCESS);
-    const BOOL ok = SetWindowDisplayAffinity(out.window, exclude ? WDA_EXCLUDEFROMCAPTURE
-                                                               : WDA_NONE);
-    if (ok) {
-        out.applied_exclude = exclude;
-        out.excluded = exclude;
-        out.error = 0;
-    } else {
-        out.excluded = false;
-        out.error = (long)GetLastError();
-        if (!out.error) out.error = (long)E_FAIL;
-    }
 }
 
 // Releases everything. Safe to call from any thread, any number of times.
@@ -265,7 +235,6 @@ inline void Destroy(Output& out) {
     out.state = State::Off;
     out.shown = false;
     out.excluded = false;
-    out.applied_exclude = false;
     out.width = out.height = 0;
     out.win_w = out.win_h = 0;
     out.x = out.y = -100000;
@@ -321,16 +290,18 @@ inline bool IsCaptureHostWindow(HWND window) {
 
 inline BOOL CALLBACK CaptureHostEnum(HWND window, LPARAM param) {
     if (!IsWindowVisible(window) || IsIconic(window)) return TRUE;
+    if (!IsCaptureHostWindow(window)) return TRUE;
+    // The snip overlay itself covers (nearly) the whole desktop. A small window
+    // from the same executable only counts while it owns the foreground, which is
+    // the state the toolbar-less "new snip" popup is in.
     RECT rc{};
     if (!GetWindowRect(window, &rc)) return TRUE;
     const int screen_w = GetSystemMetrics(SM_CXSCREEN);
     const int screen_h = GetSystemMetrics(SM_CYSCREEN);
     if (screen_w <= 0 || screen_h <= 0) return TRUE;
-    // The snip / capture UI dims and covers most of the desktop; a normal app
-    // window that happens to come from the same executable must not count.
-    if ((rc.right - rc.left) < (screen_w * 2) / 3) return TRUE;
-    if ((rc.bottom - rc.top) < (screen_h * 2) / 3) return TRUE;
-    if (!IsCaptureHostWindow(window)) return TRUE;
+    const bool covers_desktop = (rc.right - rc.left) >= screen_w / 2 &&
+                                (rc.bottom - rc.top) >= screen_h / 2;
+    if (!covers_desktop && GetForegroundWindow() != window) return TRUE;
     *reinterpret_cast<HWND*>(param) = window;
     return FALSE;
 }
@@ -479,29 +450,7 @@ inline bool End(Output& out, ID3D11DeviceContext* ctx) {
     if (out.rtv) { out.rtv->Release(); out.rtv = nullptr; }
     if (out.texture) { out.texture->Release(); out.texture = nullptr; }
 
-    // Non-blocking where the driver allows it: a blocking Present on a
-    // composition swap chain waits for the compositor, which puts the game's own
-    // Present call behind DWM's cadence. When the queue is still full the frame
-    // is simply left in the buffer - the compositor keeps showing the previous
-    // one - instead of stalling the game's render thread.
-    HRESULT hr = E_FAIL;
-    if (out.swap) {
-        if (out.do_not_wait) {
-            hr = out.swap->Present(0, DXGI_PRESENT_DO_NOT_WAIT);
-            if (hr == DXGI_ERROR_WAS_STILL_DRAWING) {
-                hr = S_OK;                       // skipped frame, not a failure
-            } else if (FAILED(hr)) {
-                // Driver/driver-model combination that does not accept the flag
-                // (or a real failure): stop using it and present normally. A
-                // reported failure here would tear the shield down and put the
-                // overlay back into the buffer a capture reads.
-                out.do_not_wait = false;
-                hr = out.swap->Present(0, 0);
-            }
-        } else {
-            hr = out.swap->Present(0, 0);
-        }
-    }
+    const HRESULT hr = out.swap ? out.swap->Present(0, 0) : E_FAIL;
     if (FAILED(hr)) {
         out.error = (long)hr;
         if (hr == DXGI_ERROR_DEVICE_REMOVED || hr == DXGI_ERROR_DEVICE_RESET) {
@@ -518,18 +467,14 @@ inline const char* Describe(const Output& out, char* buffer, int size) {
     if (!buffer || size <= 0) return "";
     switch (out.state) {
         case State::Ready:
-            if (out.applied_exclude && out.excluded) {
+            if (out.excluded) {
                 _snprintf_s(buffer, (size_t)size, _TRUNCATE,
                             "protected output %ux%u, capture exclusion on",
                             out.width, out.height);
-            } else if (out.applied_exclude) {
+            } else {
                 _snprintf_s(buffer, (size_t)size, _TRUNCATE,
                             "protected output %ux%u, capture exclusion REFUSED (win32 %ld)",
                             out.width, out.height, out.error);
-            } else {
-                _snprintf_s(buffer, (size_t)size, _TRUNCATE,
-                            "protected output %ux%u, capture exclusion off",
-                            out.width, out.height);
             }
             return buffer;
         case State::Failed:

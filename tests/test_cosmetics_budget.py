@@ -79,6 +79,18 @@ def _harness(rows, modules, start=1000.0):
     return ns
 
 
+class LobbyOnlyTests(unittest.TestCase):
+    def test_pass_does_nothing_during_a_match(self):
+        rows = [{'owned': 0}]
+        ns = _harness(rows, {'gclient.data.example': types.SimpleNamespace(data=rows)})
+        for _ in range(50):
+            ns['_refresh_runtime_cosmetics'](False)
+            ns['clock'][0] += 0.5
+        self.assertEqual(rows[0]['owned'], 0, 'the pass must not run mid-match')
+        self.assertIsNone(ns['_unlock_iter'])
+        self.assertEqual(ns['logs'], [])
+
+
 class LargeRowTests(unittest.TestCase):
     def test_one_huge_row_is_spread_over_ticks(self):
         """A single data row with 200k keys used to be evaluated in one go: that

@@ -1275,8 +1275,7 @@ static void MaintainShieldSurface() {
     if (!w || !h) { w = g_width; h = g_height; }
     if (!w || !h) return;
 
-    if (comet_surface::Create(g_surface, g_device, g_hwnd, w, h,
-                              HasOpt2(OPT2_SHIELD_AFFINITY))) {
+    if (comet_surface::Create(g_surface, g_device, g_hwnd, w, h)) {
         char described[192] = {};
         comet_surface::Describe(g_surface, described, (int)sizeof(described));
         Log("capture shield ready: %s", described);
@@ -3598,20 +3597,6 @@ static void DrawSettingsTab() {
         char described[192] = {};
         ImGui::TextDisabled("%s",comet_surface::Describe(g_surface,described,(int)sizeof(described)));
     }
-    if (ShieldSurfaceReady() && !ShieldVisible())
-        ImGui::TextDisabled(comet_surface::SystemCaptureUiActive()
-                                ? "Hidden: the snipping tool / Game Bar capture UI is open."
-                                : "Hidden: the game is not the foreground window, is minimised, or is exclusive fullscreen.");
-    ImGui::TextWrapped("Draws the menu and visuals into a separate window instead of the game's back buffer. Use borderless or windowed game mode. This is the only option that keeps OBS Game Capture and Steam screenshots clean, because both copy the game's own back buffer.");
-    bool shield_affinity = HasOpt2(OPT2_SHIELD_AFFINITY);
-    if (CometUi::Toggle("Hide overlay from Windows capture",&shield_affinity,ImGui::GetContentRegionAvail().x)) {
-        SetOpt2(OPT2_SHIELD_AFFINITY,shield_affinity);
-        comet_surface::SetExcluded(g_surface,shield_affinity);
-    }
-    ImGui::TextDisabled("%s",!ShieldSurfaceReady()?"needs the protected output"
-                            :(g_surface.excluded?"overlay excluded from capture"
-                                                :"off: capture shows the overlay, no black areas"));
-    ImGui::TextWrapped("Excludes the overlay window from Windows capture (display/window capture, Game Bar). It paints that window black in those captures, which is why it is off by default; OBS Game Capture and Steam never read this window, so they stay clean either way. The overlay also hides itself while the snipping tool is open.");
 
     bool obs = HasOpt2(OPT2_OBS_PROTECT);
     if (CometUi::Toggle("Windows capture exclusion (game window)",&obs,ImGui::GetContentRegionAvail().x)) {
@@ -3625,7 +3610,6 @@ static void DrawSettingsTab() {
         ImGui::TextDisabled("SetWindowDisplayAffinity failed (%lu); the last affinity is unchanged.",g_obs.error);
     if (ShieldSurfaceReady())
         ImGui::TextDisabled("Suspended while the protected output is active.");
-    ImGui::TextWrapped("Excludes the game window itself from Windows capture (display/window capture, Game Bar). It cannot stop OBS Game Capture or Steam, and Windows may drop the game off independent flip to honour it, which caps the frame rate at the desktop refresh.");
 
     // GDI capture guard: only matters while the overlay is drawn into the game.
     bool gdi = HasOpt2(OPT2_GDI_GUARD);
@@ -3633,7 +3617,6 @@ static void DrawSettingsTab() {
         SetOpt2(OPT2_GDI_GUARD,gdi);
     }
     ImGui::TextDisabled("%s",!gdi?"off":(ShieldSurfaceReady()?"not needed (protected output)":"armed for the game window"));
-    ImGui::TextWrapped("Waits for one overlay-free frame before a BitBlt/PrintWindow of the game window runs. Narrow by design: captures of other windows and the desktop are untouched.");
 
     ImGui::Dummy(ImVec2(0,6));
     ImGui::TextDisabled("Pacing: %.0f fps | overlay %.2f ms | present %.2f ms | sync %u",
@@ -4337,8 +4320,6 @@ static void RenderFrame(IDXGISwapChain* sc) {
     if (!BindSwapchain(sc)) return;
 
     if (ShieldSurfaceReady()) {
-        // Honest in the same frame the toggle moves, and a no-op otherwise.
-        comet_surface::SetExcluded(g_surface, HasOpt2(OPT2_SHIELD_AFFINITY));
         // Follow the game's client area. Cheap: it only calls SetWindowPos when
         // the rectangle actually changed.
         comet_surface::Follow(g_surface, g_hwnd, g_client_w, g_client_h, ShieldVisible());
