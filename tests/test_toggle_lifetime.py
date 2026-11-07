@@ -74,6 +74,10 @@ class CaptureProtectionTests(unittest.TestCase):
         self.assertIn('vt[9]', self.text)
         self.assertIn('MH_CreateHook(vt[9], (void*)&HookGetBuffer', self.text)
 
+    def test_a_desktop_snip_suppresses_the_draw(self):
+        self.assertIn('comet_surface::SystemCaptureUiActive()) return;', self.text,
+                      'a window-based snip reads the window, so the overlay must not be drawn')
+
     def test_known_capture_modules_are_listed(self):
         block = self.code('static bool CallerIsCaptureModule()', 'static HRESULT STDMETHODCALLTYPE HookGetBuffer')
         for name in ('graphics-hook64.dll', 'GameOverlayRenderer64.dll'):

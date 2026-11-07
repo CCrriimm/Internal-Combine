@@ -4454,6 +4454,13 @@ static void RenderFrame(IDXGISwapChain* sc) {
         return;
     }
 
+    // A desktop snip (Win+Shift+S, PrtScn, the Snipping Tool's own window) reads
+    // the window content, not the swap chain, so a substituted back buffer does
+    // not help it: the only way for that screenshot to be clean is for the overlay
+    // not to be drawn while it is being taken. Cheap: the hotkey check is four
+    // GetAsyncKeyState calls and the process/window scans are cached.
+    if (CaptureProtectionOn() && comet_surface::SystemCaptureUiActive()) return;
+
     // A GDI capture of the game window is waiting for an overlay-free frame.
     // Skip drawing; Present still runs, so the frame it is waiting for arrives
     // immediately. (No-op when the protected output is in use: the game's back
