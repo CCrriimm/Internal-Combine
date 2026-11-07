@@ -544,7 +544,7 @@ int wmain(int argc, wchar_t** argv) {
         return d.Open() ? 0 : 3;
     }
     if (argc < 3) {
-        printf("usage: bsmap.exe <process.exe> <dll> [dll...]\n");
+        printf("usage: cometmap.exe <process.exe> <dll> [dll...]\n");
         return 1;
     }
     DWORD pid = FindPid(argv[1]);

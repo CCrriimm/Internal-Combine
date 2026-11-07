@@ -6,7 +6,7 @@
 #include <cstdio>
 #include <type_traits>
 
-namespace CiyEUi {
+namespace CometUi {
 inline constexpr ImU32 Accent = IM_COL32(46, 195, 214, 255);
 inline constexpr ImU32 Text = IM_COL32(237, 237, 239, 255);
 inline constexpr ImU32 Muted = IM_COL32(164, 166, 174, 255);

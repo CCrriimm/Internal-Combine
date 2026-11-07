@@ -222,7 +222,7 @@ class SkinFlowTests(unittest.TestCase):
         return path
 
     def test_inventory_uses_stable_user_directory(self):
-        expected = Path(self.directory.name) / 'CiyE/BloodStrike/skin_inventory.bin'
+        expected = Path(self.directory.name) / 'Comet/BloodStrike/skin_inventory.bin'
         self.assertEqual(Path(self.call('_cached_manifest_path')), expected)
         with patch.dict(os.environ):
             os.environ.pop('LOCALAPPDATA')

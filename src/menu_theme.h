@@ -6,7 +6,7 @@
 #include <cstdio>
 #include <type_traits>
 
-namespace CiyEUi {
+namespace CometUi {
 // Menu-only styling. The loader continues to use ui_theme.h unchanged.
 inline ImU32 Accent = IM_COL32(53, 198, 217, 255);
 inline bool ReducedMotion = false;

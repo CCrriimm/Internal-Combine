@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Append an embedded payload to bs_loader.exe.
+"""Append an embedded payload to the Comet loader executable (dist/Comet.exe).
 
 Payload layout:
     [u32 name_len][name utf8][u64 data_len][data] ...

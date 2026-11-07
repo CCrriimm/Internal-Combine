@@ -62,7 +62,7 @@ def main():
     unique={field:len({json.dumps(r['reference_id'],sort_keys=True) for r in refs if r['field']==field}) for field in counts}
     active=[]
     local=os.environ.get('LOCALAPPDATA')
-    inventory=Path(local)/'CiyE/BloodStrike/skin_inventory.bin' if local else None
+    inventory=Path(local)/'Comet/BloodStrike/skin_inventory.bin' if local else None
     inventory_status='not available'
     if inventory and inventory.is_file():
         raw=inventory.read_bytes()

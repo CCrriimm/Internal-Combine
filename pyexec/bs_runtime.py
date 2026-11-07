@@ -6,6 +6,7 @@ import time
 import math
 import random
 import traceback
+import threading
 
 try:
     import MUI
@@ -38,28 +39,41 @@ ERR_PATH = os.path.join(IPC_DIR, 'runtime_err.txt')
 CFG_MAGIC = 0x42534346
 STATE_MAGIC = 0x42535331
 CATALOG_MAGIC = 0x42534354
-VERSION = 7
+VERSION = 9
 MAX_ENTITIES = 128
 
-CFG_FMT = '<IIIIIiIiIifffffiiI' + 'I' * 13 + 'f' + 'I' * 8
+# Cfg grew at the tail with the Comet port (team colours, armor tiers,
+# options word, noise). Everything before field 37 keeps its original offset, so
+# only the parser had to learn the new tail - the on-disk file is written by the
+# overlay, this is only ever read.
+CFG_FMT = '<IIIIIiIiIifffffiiI' + 'I' * 13 + 'f' + 'I' * 19 + 'ff' + 'I' * 3 + 'i'
 STATE_FMT = '<IIIIQ14fBBH'
-ENT_FMT = '<Q40s32s3f3f2f2f5fi4BI32f'
+# Ent grew by hero_id + is_dying (56 -> 58 packed fields, 280 -> 288 bytes).
+ENT_FMT = '<Q40s32s3f3f2f2f5fi4BI32fII'
 CAT_HEAD_FMT = '<IIII'
 CAT_ENTRY_FMT = '<IIII48s'
+# Ground-loot publishing was removed at the user's request: the marker read as
+# flicker and the scan was measurable work inside the game's tick. The packet
+# still carries an empty trailer so the overlay's reader stays in step.
+LOOT_MAX = 64
+LOOT_FMT = '<Q2ffI'
+LOOT_SIZE = struct.calcsize(LOOT_FMT)
+LOOT_HEAD = 4
 
 CFG_SIZE = struct.calcsize(CFG_FMT)
 STATE_HEAD_SIZE = struct.calcsize(STATE_FMT)
 ENT_SIZE = struct.calcsize(ENT_FMT)
 CAT_HEAD_SIZE = struct.calcsize(CAT_HEAD_FMT)
 CAT_ENTRY_SIZE = struct.calcsize(CAT_ENTRY_FMT)
-STATE_SIZE = STATE_HEAD_SIZE + ENT_SIZE * MAX_ENTITIES
+STATE_SIZE = STATE_HEAD_SIZE + ENT_SIZE * MAX_ENTITIES + LOOT_HEAD + LOOT_SIZE * LOOT_MAX
 MAX_HERO = 4096
 MAX_GUN = 65536
 
-assert CFG_SIZE == 160
+assert CFG_SIZE == 228
 assert STATE_HEAD_SIZE == 84
-assert ENT_SIZE == 280
+assert ENT_SIZE == 288
 assert CAT_ENTRY_SIZE == 64
+assert LOOT_SIZE == 24
 
 IDX_MAGIC = 0
 IDX_VERSION = 1
@@ -98,6 +112,21 @@ IDX_THEME_GUN = 33
 IDX_THEME_KNIFE = 34
 IDX_AUTO_THEME = 35
 IDX_COL_ARMOR = 36
+# Comet port tail (see Cfg in src/bs_cfg.hpp). Only the fields the runtime
+# reads are named; 37-49 are the twelve colour slots (col_team_box[4],
+# col_team_line[4], col_armor_tier[4], col_loot) and 53-55 are Cfg::pad.
+IDX_OPTS = 50
+IDX_LOOT_MAX_DIST = 51
+IDX_NOISE_STRENGTH = 52
+IDX_AIM_KEY2 = 56
+
+# Secondary option word (`Cfg::opts`). Only the bits the runtime acts on are
+# defined here; OPT2_ESP_HERO / TEAM_LABEL / TEAM_COLORS / ESP_ARMOR_MAX are
+# The overlay owns the capture guard; the runtime only has to publish the
+# default so a fresh config starts protected.
+# OPT2_ESP_LOOT (1 << 1) is retired: no ground-loot ESP any more.
+OPT2_OBS_PROTECT = 1 << 5
+OPT2_AIM_NOISE = 1 << 6
 
 OPT_TRACK_TOGGLE = 1 << 0
 OPT_TRACK_IGNORE_DOWNED = 1 << 1
@@ -151,7 +180,17 @@ DEFAULT_CFG = (
     4040674760, 4036750176, 3959422975, 4288408416,
     0, 1.5,
     0, 0, 0, 1,
-    4043289680, 0, 0, 0,
+    4043289680,
+    # col_team_box[4] - identical values to DefaultCfg() in src/overlay.cpp
+    3959401050, 3946815231, 3950244467, 3959390169,
+    # col_team_line[4]
+    3372198490, 3359612671, 3363041907, 3372187609,
+    # col_armor_tier[4] (grey / blue / purple / gold)
+    4120810636, 4127165491, 4127150765, 4112499455,
+    # col_loot, opts, loot_max_dist, noise_strength, pad[3] (= Cfg.pad)
+    4127188531, OPT2_OBS_PROTECT, 120.0, 0.0016,
+    0, 0, 0,
+    0,   # aim_key2: second aim key, 0 = unbound
 )
 
 _runtime = None
@@ -208,6 +247,8 @@ _model_to_hero = {}
 _unlock_cache = {}
 _unlock_done = False
 _unlock_iter = None
+_unlock_pred_iter = None
+_unlock_step_t = 0.0
 _unlock_scan_t = 0.0
 _unlock_changed = 0
 _wrapped_preds = set()
@@ -296,6 +337,24 @@ def _options(cfg):
         return int(cfg[IDX_OPTIONS])
     except Exception:
         return 0
+
+
+def _opt2(cfg, bit):
+    """Secondary option word. Older/partial config tuples simply read as off."""
+    try:
+        return bool(int(cfg[IDX_OPTS]) & bit)
+    except Exception:
+        return False
+
+
+def _noise_strength(cfg):
+    try:
+        value = float(cfg[IDX_NOISE_STRENGTH])
+    except Exception:
+        return 0.0
+    if not math.isfinite(value) or value <= 0.0:
+        return 0.0
+    return min(0.008, max(0.0, value))
 
 
 def _get_track_mode_toggle(cfg):
@@ -429,21 +488,16 @@ def _init_ctypes_shm():
     except Exception:
         pass
 
-def _write(path, data):
-    global _state_file_t
-    if path == STATE_PATH:
-        if _shm_state_p is None:
-            _init_ctypes_shm()
-        if _shm_state_p:
-            try:
-                import ctypes
-                ctypes.memmove(_shm_state_p, data, len(data))
-            except Exception:
-                pass
-            now = time.time()
-            if now - _state_file_t < 0.25:
-                return True
-            _state_file_t = now
+# Disk fallback must not block the engine tick: replace pending snapshots with
+# the newest one instead of queueing unbounded old frames. The worker only sees
+# immutable bytes and filesystem paths, never game/engine objects.
+_state_writer_event = threading.Event()
+_state_writer_lock = threading.Lock()
+_state_writer_pending = None
+_state_writer_thread = None
+
+
+def _write_file(path, data):
     tmp = path + '.tmp'
     try:
         with open(tmp, 'wb') as f:
@@ -462,6 +516,49 @@ def _write(path, data):
         return True
     except Exception:
         return False
+
+
+def _state_writer_loop():
+    global _state_writer_pending
+    while True:
+        _state_writer_event.wait()
+        with _state_writer_lock:
+            pending = _state_writer_pending
+            _state_writer_pending = None
+            _state_writer_event.clear()
+        if pending is not None:
+            _write_file(STATE_PATH, pending)
+
+
+def _write(path, data):
+    global _state_file_t, _state_writer_thread, _state_writer_pending
+    if path != STATE_PATH:
+        return _write_file(path, data)
+    if _shm_state_p is None:
+        _init_ctypes_shm()
+    shared = False
+    if _shm_state_p:
+        try:
+            import ctypes
+            ctypes.memmove(_shm_state_p, data, len(data))
+            shared = True
+        except Exception:
+            pass
+    now = time.time()
+    if shared and now - _state_file_t < 0.25:
+        return True
+    _state_file_t = now
+    try:
+        if _state_writer_thread is None or not _state_writer_thread.is_alive():
+            _state_writer_thread = threading.Thread(target=_state_writer_loop, name='Comet state writer', daemon=True)
+            _state_writer_thread.start()
+        with _state_writer_lock:
+            _state_writer_pending = bytes(data)
+            _state_writer_event.set()
+        return True
+    except Exception:
+        # Do not fall back to synchronous I/O on the game thread.
+        return shared
 
 
 def _read(path, size):
@@ -1410,7 +1507,8 @@ def _install_excepthook_guard():
     def safe_excepthook(exctype, value, tb):
         try:
             tb_str = ''.join(traceback.format_exception(exctype, value, tb))
-            cheat_keywords = ('bs_runtime', 'bs_cheat', 'pyexec', 'cmd.py', 'bs_overlay')
+            cheat_keywords = ('bs_runtime', 'bs_cheat', 'pyexec', 'cmd.py',
+                              'comet_overlay', 'comet_pyexec')
             if any(k in tb_str for k in cheat_keywords):
                 _sys_log('[sys:sec] suppressed cheat exception from NetEase crash reporter')
                 return
@@ -2088,6 +2186,15 @@ def _check_faction_relation(e, local_av, local_team, team, is_bot, is_monster):
 
 
 def _collect_space_entities(space):
+    """All entities in the space, cached for 30 ms.
+
+    Do NOT call this from the aim/tracking path or anything else that runs while
+    the player holds fire: it rebuilds the whole list (list() over every
+    category, a set of ids) and walks entity_category keys with str().lower()
+    per key. During a match that list is large and changes constantly, so the
+    cache almost never hits. It is fine for the ESP gather (already 30 ms
+    amortised) and for read-only scans, which is what it was written for.
+    """
     global _ent_list_cache
     now = time.time()
     c = _ent_list_cache
@@ -2356,6 +2463,24 @@ def _query_visible_entities(max_dist, want_gun=True, want_bone=True):
     return cam, origin, out[:MAX_ENTITIES]
 
 
+def _owner_type_name(obj):
+    """Class name of a synchronized entity object, as exposed by the game."""
+    if obj is None:
+        return ''
+    try:
+        for attr in ('__class__',):
+            cls = getattr(obj, attr, None)
+            name = getattr(cls, '__name__', '') if cls is not None else ''
+            if name:
+                return str(name)
+    except Exception:
+        pass
+    try:
+        return str(type(obj).__name__)
+    except Exception:
+        return ''
+
+
 def _mui_keys(vk):
     if MUI is None:
         return None
@@ -2399,6 +2524,27 @@ def _mui_keys(vk):
     return None
 
 
+def _aim_key2(cfg):
+    """Second aim key (0 = unbound). Absent on older configs -> unbound."""
+    try:
+        vk = int(cfg[IDX_AIM_KEY2]) & 0xFF
+    except Exception:
+        return 0
+    return vk if 0 < vk < 256 else 0
+
+
+def _poll_aim_keys(cfg, primary):
+    """True while either the primary or the optional second aim key is held.
+
+    Both keys behave identically; the second one exists so a user can keep the
+    default mouse bind and add a keyboard bind without losing either.
+    """
+    if _poll_input_keystate(primary):
+        return True
+    second = _aim_key2(cfg)
+    return bool(second) and _poll_input_keystate(second)
+
+
 def _poll_input_keystate(vk):
     vk = int(vk) & 0xFF
     try:
@@ -2430,40 +2576,59 @@ def _key_diag(vk):
 
 
 _MOUSE_INPUT = None
+_MOUSEEVENTF_LEFTDOWN = 0x0002
+_MOUSEEVENTF_LEFTUP = 0x0004
+
+
+def _mouse_input_struct():
+    """Lazily build INPUT/MOUSEINPUT so a failed import is not cached."""
+    global _MOUSE_INPUT
+    if _MOUSE_INPUT is not None:
+        return _MOUSE_INPUT
+    import ctypes
+    from ctypes import wintypes
+
+    class MOUSEINPUT(ctypes.Structure):
+        _fields_ = [('dx', wintypes.LONG), ('dy', wintypes.LONG),
+                    ('mouseData', wintypes.DWORD), ('dwFlags', wintypes.DWORD),
+                    ('time', wintypes.DWORD), ('dwExtraInfo', ctypes.POINTER(wintypes.ULONG))]
+
+    class _INPUT_UNION(ctypes.Union):
+        _fields_ = [('mi', MOUSEINPUT)]
+
+    class INPUT(ctypes.Structure):
+        _fields_ = [('type', wintypes.DWORD), ('u', _INPUT_UNION)]
+
+    _MOUSE_INPUT = INPUT
+    return INPUT
+
+
+def _send_mouse(flags, dx=0, dy=0):
+    """The single mouse output path for the aimbot: SendInput only.
+
+    `mouse_event` is deliberately gone: SendInput is the documented,
+    inspectable path and it carries the same MOUSEEVENTF flags. This is the only
+    place the runtime injects mouse input, so there is exactly one call to
+    audit. Aim movement itself stays on the game's own view placer (see
+    _apply_view_transform); this is the click path.
+    """
+    try:
+        import ctypes
+        INPUT = _mouse_input_struct()
+        inp = INPUT()
+        inp.type = 0
+        inp.u.mi.dx = int(dx)
+        inp.u.mi.dy = int(dy)
+        inp.u.mi.dwFlags = int(flags)
+        ctypes.windll.user32.SendInput(1, ctypes.byref(inp), ctypes.sizeof(inp))
+        return True
+    except Exception:
+        return False
 
 
 def _mouse(down):
-    global _MOUSE_INPUT
-    try:
-        import ctypes
-        from ctypes import wintypes
-        code = 0x0002 if down else 0x0004
-        ctypes.windll.user32.mouse_event(code, 0, 0, 0, 0)
-    except Exception:
-        pass
-    try:
-        import ctypes
-        from ctypes import wintypes
-        if _MOUSE_INPUT is None:
-            class MOUSEINPUT(ctypes.Structure):
-                _fields_ = [('dx', wintypes.LONG), ('dy', wintypes.LONG),
-                            ('mouseData', wintypes.DWORD), ('dwFlags', wintypes.DWORD),
-                            ('time', wintypes.DWORD), ('dwExtraInfo', ctypes.POINTER(wintypes.ULONG))]
-
-            class _INPUT_UNION(ctypes.Union):
-                _fields_ = [('mi', MOUSEINPUT)]
-
-            class INPUT(ctypes.Structure):
-                _fields_ = [('type', wintypes.DWORD), ('u', _INPUT_UNION)]
-
-            _MOUSE_INPUT = INPUT
-        inp = _MOUSE_INPUT()
-        inp.type = 0
-        inp.u.mi.dwFlags = 0x0002 if down else 0x0004
-        ctypes.windll.user32.SendInput(1, ctypes.byref(inp), ctypes.sizeof(inp))
-    except Exception:
-        pass
-    return True
+    """Left button press/release through the single SendInput path."""
+    return _send_mouse(_MOUSEEVENTF_LEFTDOWN if down else _MOUSEEVENTF_LEFTUP)
 
 
 def _trigger_primary_input(down):
@@ -2621,11 +2786,23 @@ def _human_frac(scale):
     return _lerp(slow, fast, 0.20)
 
 
-def _micro_jitter(dt):
+_NOISE_OFF = (0.0, 0.0)
+
+
+def _micro_jitter(dt, amplitude=0.0016):
+    """Coherent, bounded aim-noise offset.
+
+    Only the aimbot path passes a non-zero amplitude (see OPT2_AIM_NOISE and
+    _noise_strength). Every other caller keeps the historical amplitude, so a
+    noise setting can never leak into view tracking or anything the user did
+    not enable it for.
+    """
     global _jit_t
+    amp = float(amplitude)
+    if not math.isfinite(amp) or amp <= 0.0:
+        return _NOISE_OFF
     step = dt if dt > 0.0001 else 0.0166667
     _jit_t += step
-    amp = 0.0016
     yaw = math.sin(_jit_t * 11.7) * amp + math.sin(_jit_t * 29.3 + 1.9) * amp * 0.35
     pitch = math.sin(_jit_t * 9.3 + 0.7) * amp + math.sin(_jit_t * 23.1 + 2.4) * amp * 0.30
     return yaw, pitch
@@ -2841,7 +3018,7 @@ def _calibrate_turn(placer):
     _track_sign_ready = True
 
 
-def _apply_view_transform(placer, cur_dir, target_dir, scale, dt=0.0166667):
+def _apply_view_transform(placer, cur_dir, target_dir, scale, dt=0.0166667, noise=0.0):
     global _track_fallback_n
     try:
         from MType import Vector3
@@ -2862,7 +3039,9 @@ def _apply_view_transform(placer, cur_dir, target_dir, scale, dt=0.0166667):
         if theta < 0.0015:
             return False
         frac = _calc_tracking_ratio(scale, dt, theta)
-        jy, jp = 0.0, 0.0
+        # `noise` is the aimbot's OPT2_AIM_NOISE amplitude; 0 keeps this path
+        # exactly as it was before the Comet port.
+        jy, jp = _micro_jitter(dt, noise)
         if placer is None or not hasattr(placer, 'TurnView'):
             return False
         if not _track_sign_ready:
@@ -3148,7 +3327,7 @@ def _update_cam_trajectory(cfg, items, cam, origin, menu_open, dt=0.0166667):
     now = time.time()
     track_key = int(cfg[IDX_TRACK_KEY])
     track_enabled = _flag(cfg, F_TRACK_VIEW)
-    track_down = track_enabled and _poll_input_keystate(track_key)
+    track_down = track_enabled and _poll_aim_keys(cfg, track_key)
     if track_down:
         _track_hold_until = now + 0.30
     held = track_down or now < _track_hold_until
@@ -3225,7 +3404,8 @@ def _update_cam_trajectory(cfg, items, cam, origin, menu_open, dt=0.0166667):
             _ray_target = (e, tt, now, getattr(genv, 'space', None))
             return
         direction = _filter_view_direction(e, cur, td, cfg, dt)
-        _apply_view_transform(placer, cur, direction, float(cfg[IDX_TRACK_SMOOTH]), dt)
+        noise = _noise_strength(cfg) if _opt2(cfg, OPT2_AIM_NOISE) else 0.0
+        _apply_view_transform(placer, cur, direction, float(cfg[IDX_TRACK_SMOOTH]), dt, noise)
 
 
 def _current_case(entity):
@@ -3765,7 +3945,7 @@ def _cached_manifest_path():
     import os
     local = os.environ.get('LOCALAPPDATA')
     if local:
-        return os.path.join(local, 'CiyE', 'BloodStrike', 'skin_inventory.bin')
+        return os.path.join(local, 'Comet', 'BloodStrike', 'skin_inventory.bin')
     return os.path.join(IPC_DIR, 'skin_inventory.bin')
 
 
@@ -3919,6 +4099,9 @@ UNLOCK_FALSE = {
 
 def _iter_data_entries():
     for name, mod in list(sys.modules.items()):
+        # Yield even for skipped modules/rows, so next() cannot spend an
+        # unbounded time searching before the caller can check its budget.
+        yield None
         if not name.startswith('gclient.data'):
             continue
         try:
@@ -3938,8 +4121,7 @@ def _iter_data_entries():
             continue
         try:
             for v in vals:
-                if hasattr(v, 'keys'):
-                    yield v
+                yield v if hasattr(v, 'keys') else None
         except Exception:
             pass
 
@@ -3986,7 +4168,8 @@ def _sync_cosmetics_budget(budget):
             _unlock_iter = None
             _unlock_changed += changed
             return changed, True
-        changed += _eval_cosmetic_entry(entry)
+        if entry is not None:
+            changed += _eval_cosmetic_entry(entry)
     _unlock_changed += changed
     return changed, False
 
@@ -3994,12 +4177,16 @@ def _sync_cosmetics_budget(budget):
 def _sync_cosmetics_batch():
     changed = 0
     for entry in _iter_data_entries():
-        changed += _eval_cosmetic_entry(entry)
+        if entry is not None:
+            changed += _eval_cosmetic_entry(entry)
     return changed
 
 
-def _bind_cosmetic_predicates():
+def _iter_cosmetic_predicates():
+    # One yield per module/attribute lets the caller spread introspection across
+    # ticks instead of doing the whole scan at once on the game thread.
     for name, mod in list(sys.modules.items()):
+        yield None
         if not (name.startswith('gclient') or name.startswith('gshare')):
             continue
         try:
@@ -4007,6 +4194,7 @@ def _bind_cosmetic_predicates():
         except Exception:
             continue
         for attr in attrs:
+            yield None
             low = attr.lower()
             if not any(x in low for x in ('unlock', 'owned', 'is_have', 'can_use', 'obtain')):
                 continue
@@ -4036,9 +4224,16 @@ def _bind_cosmetic_predicates():
 
 
 def _refresh_runtime_cosmetics():
-    global _last_unlock, _unlock_done, _unlock_iter, _unlock_scan_t, _unlock_changed
+    global _last_unlock, _unlock_done, _unlock_iter, _unlock_pred_iter
+    global _unlock_scan_t, _unlock_changed, _unlock_step_t
     now = time.time()
-    if _unlock_iter is None:
+    # The scan previously used 3 ms on every frame, enough by itself to turn
+    # 250 FPS into ~140 FPS while a pass runs. Spread the same work over time;
+    # visual entity gathering and projection remain at the full frame rate.
+    if now >= _unlock_step_t and now - _unlock_step_t < 0.016:
+        return
+    _unlock_step_t = now
+    if _unlock_iter is None and _unlock_pred_iter is None:
         if now - _last_unlock < 120.0:
             return
         _last_unlock = now
@@ -4046,15 +4241,29 @@ def _refresh_runtime_cosmetics():
         _unlock_changed = 0
         _unlock_iter = _iter_data_entries()
     try:
-        changed, done = _sync_cosmetics_budget(0.003)
-        if done:
+        if _unlock_iter is not None:
+            _, done = _sync_cosmetics_budget(0.0005)
+            if not done:
+                return
             if not _unlock_done:
-                _bind_cosmetic_predicates()
-                _unlock_done = True
-            _sys_log('unlock pass done changed=%d preds=%d took=%.2fs' % (
-                _unlock_changed, len(_wrapped_preds), time.time() - _unlock_scan_t))
+                _unlock_pred_iter = _iter_cosmetic_predicates()
+                return
+        if _unlock_pred_iter is not None:
+            deadline = time.time() + 0.0005
+            while time.time() < deadline:
+                try:
+                    next(_unlock_pred_iter)
+                except StopIteration:
+                    _unlock_pred_iter = None
+                    _unlock_done = True
+                    break
+            if _unlock_pred_iter is not None:
+                return
+        _sys_log('unlock pass done changed=%d preds=%d took=%.2fs' % (
+            _unlock_changed, len(_wrapped_preds), time.time() - _unlock_scan_t))
     except Exception:
         _unlock_iter = None
+        _unlock_pred_iter = None
         _sys_log(traceback.format_exc())
 
 
@@ -4298,6 +4507,10 @@ def _serialize_frame_data(cfg, cam, in_match, origin, lpos, items):
             except Exception:
                 team_i = 0
             try:
+                hero_i = int(_hero_of(e) or 0) & 0xFFFF
+            except Exception:
+                hero_i = 0
+            try:
                 bones_data = ps if (ps and len(ps) == 32) else ([-1.0] * 32)
                 struct.pack_into(ENT_FMT, buf, off,
                                  eid_i, _bytes(_ename(e), 40), _bytes(gun, 32),
@@ -4306,7 +4519,8 @@ def _serialize_frame_data(cfg, cam, in_match, origin, lpos, items):
                                  float(dist), _hp(e), _max_hp(e), _armor(e), _max_armor(e), team_i,
                                  vis, 1 if is_team else 0, 1 if getattr(e, 'IsMonster', False) else 0, 1,
                                  1 if is_dying else 0,
-                                 *bones_data)
+                                 *bones_data,
+                                 hero_i, 1 if is_dying else 0)
             except Exception:
                 continue
             off += ENT_SIZE
@@ -4314,7 +4528,15 @@ def _serialize_frame_data(cfg, cam, in_match, origin, lpos, items):
             if n >= MAX_ENTITIES:
                 break
     struct.pack_into('<I', buf, 12, n)
-    return buf[:STATE_HEAD_SIZE + n * ENT_SIZE]
+    # Trailer header. Ground-loot publishing was removed, so the count is always
+    # zero; it stays in the packet so a reader can rely on the header instead of
+    # guessing the packet length.
+    off = STATE_HEAD_SIZE + n * ENT_SIZE
+    # No ground-loot publishing any more (removed at the user's request). The
+    # count field stays so the overlay's reader keeps its expected layout.
+    loot_count = 0
+    struct.pack_into('<I', buf, off, loot_count)
+    return buf[:off + LOOT_HEAD]
 
 
 def _on_story_tick(dt):
@@ -4411,24 +4633,53 @@ def _on_story_tick(dt):
         t_track = time.time()
         _sync_impulse_damping(cfg, in_match)
         _sync_weapon_case_damping(cfg, in_match)
+        t_sync = time.time()
         _last_state = now
         av, lid, team, lpos = _local()
+        t_local = time.time()
+        # The per-tick ground-loot scan is gone (it walked the whole space and
+        # projected every candidate); nothing calls it any more.
         buf = _serialize_frame_data(cfg, cam, in_match, origin, lpos, items)
+        t_serial = time.time()
         if buf is not None:
             _write(STATE_PATH, buf)
         t1 = time.time()
         total = t1 - t0
         if (total > 0.06 or t_track - t_gather > 0.04) and t0 - _perf_last >= 1.0:
             _perf_last = t0
-            _sys_log('[sys:perf] dt=%.3f total=%.3f apply=%.4f unlock=%.4f gather=%.4f track=%.4f state=%.4f items=%d' % (
+            _sys_log('[sys:perf] dt=%.3f total=%.3f apply=%.4f unlock=%.4f gather=%.4f track=%.4f state=%.4f sync=%.4f local=%.4f serialize=%.4f write=%.4f items=%d' % (
                 dt, total, t_apply - t0, t_unlock - t_apply, t_gather - t_unlock,
-                t_track - t_gather, t1 - t_track, len(items)))
+                t_track - t_gather, t1 - t_track, t_sync - t_track,
+                t_local - t_sync, t_serial - t_local, t1 - t_serial, len(items)))
     except Exception:
         _sys_log(traceback.format_exc())
 
 
 _on_story_tick.__name__ = 'OnEngineViewportUpdate'
 _on_story_tick.__qualname__ = 'OnEngineViewportUpdate'
+
+
+def _install_fault_recorder():
+    """Record fatal Python faults that would otherwise vanish.
+
+    The game installs its own excepthook and, in places, its own threading
+    hooks; when a hook of ours raises where the engine swallows it, the only
+    symptom is that the tick stops. Write a marker so a crash report can tell
+    "our runtime raised" apart from "the process died in native code".
+    """
+    marker = os.path.join(IPC_DIR, 'runtime_fatal.txt')
+    try:
+        def hook(exc_type, exc, tb):
+            try:
+                with open(marker, 'a', encoding='utf-8', errors='replace') as f:
+                    f.write('%s FATAL %s\n' % (time.strftime('%H:%M:%S'), exc_type.__name__))
+                    f.write(''.join(traceback.format_exception(exc_type, exc, tb)))
+            except Exception:
+                pass
+            return _orig_excepthook(exc_type, exc, tb) if _orig_excepthook else None
+        sys.excepthook = hook
+    except Exception:
+        pass
 
 
 def start():
@@ -4440,6 +4691,7 @@ def start():
     _make_cfg_default()
     _save_template_cache()
     _install_hooks()
+    _install_fault_recorder()
     try:
         import gclient.framework.util.story_tick as st
         def OnEngineViewportUpdate(dt):

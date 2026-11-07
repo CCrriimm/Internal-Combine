@@ -2,7 +2,7 @@
 
 Inventory stores the active selection for each character or weapon group. Selecting a skin name or Apply in Characters, Knives or Guns immediately replaces the corresponding slot and saves it. Older inactive history is removed when loading.
 
-Preferences are stored at `%LOCALAPPDATA%/CiyE/BloodStrike/skin_inventory.bin`, with an IPC-directory fallback when that environment variable is unavailable. Writes use a temporary file followed by atomic replacement. An existing empty inventory does not resurrect legacy configuration selections. Invalid files are reported and retained instead of being overwritten with defaults.
+Preferences are stored at `%LOCALAPPDATA%/Comet/BloodStrike/skin_inventory.bin`, with an IPC-directory fallback when that environment variable is unavailable. Writes use a temporary file followed by atomic replacement. An existing empty inventory does not resurrect legacy configuration selections. Invalid files are reported and retained instead of being overwritten with defaults.
 
 Inventory shares the search field and offers Remove. Saved entries remain visible before the catalog loads. Remove stops automatic application of that selection; it does not immediately restore a model already displayed in a match.
 

@@ -24,7 +24,7 @@ std::string ToUtf8(const std::wstring& s) {
 bool ReadRootHint(std::wstring& root) {
     wchar_t tmp[MAX_PATH]{};
     if (!GetTempPathW(MAX_PATH, tmp)) return false;
-    std::wstring path = std::wstring(tmp) + L"CiyE_BSLoader\\root.txt";
+    std::wstring path = std::wstring(tmp) + L"Comet_BSLoader\\root.txt";
     HANDLE h = CreateFileW(path.c_str(), GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE,
                            nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
     if (h == INVALID_HANDLE_VALUE) return false;

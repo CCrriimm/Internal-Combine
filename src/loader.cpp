@@ -41,17 +41,17 @@ extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg
 
 namespace {
 
-constexpr const char* kBrand = "CiyE";
-constexpr const char* kVersion = "v2.1";
+constexpr const char* kBrand = "Comet";
+constexpr const char* kVersion = "v2.2";
 constexpr const wchar_t* kGame = L"BloodStrike.exe";
 constexpr uint8_t kMagic[8] = {'B', 'S', 'L', 'D', 'P', 'A', 'Y', '1'};
 
-const ImU32 kAccent  = CiyEUi::Accent;
-const ImU32 kText    = CiyEUi::Text;
-const ImU32 kMuted   = CiyEUi::Muted;
-const ImU32 kSuccess = CiyEUi::Success;
-const ImU32 kError   = CiyEUi::Danger;
-const ImU32 kWarn    = CiyEUi::Warning;
+const ImU32 kAccent  = CometUi::Accent;
+const ImU32 kText    = CometUi::Text;
+const ImU32 kMuted   = CometUi::Muted;
+const ImU32 kSuccess = CometUi::Success;
+const ImU32 kError   = CometUi::Danger;
+const ImU32 kWarn    = CometUi::Warning;
 
 // ---------------------------------------------------------------------------
 // D3D / window state
@@ -262,7 +262,7 @@ bool LoadPayload(std::vector<PayloadEntry>& out) {
 std::wstring MakeExtractDir() {
     wchar_t tmp[MAX_PATH]{};
     GetTempPathW(MAX_PATH, tmp);
-    std::wstring base = std::wstring(tmp) + L"CiyE_BSLoader";
+    std::wstring base = std::wstring(tmp) + L"Comet_BSLoader";
     CreateDirectoryW(base.c_str(), nullptr);
     return base;
 }
@@ -283,8 +283,8 @@ bool ExtractPayload(const std::vector<PayloadEntry>& entries, const std::wstring
 
     // If a previously injected copy still holds the DLLs, use a fresh sibling dir.
     std::wstring target = dir;
-    if (GetFileAttributesW((dir + L"\\bs_pyexec.dll").c_str()) != INVALID_FILE_ATTRIBUTES) {
-        HANDLE probe = CreateFileW((dir + L"\\bs_pyexec.dll").c_str(), GENERIC_WRITE, 0, nullptr,
+    if (GetFileAttributesW((dir + L"\\comet_pyexec.dll").c_str()) != INVALID_FILE_ATTRIBUTES) {
+        HANDLE probe = CreateFileW((dir + L"\\comet_pyexec.dll").c_str(), GENERIC_WRITE, 0, nullptr,
                                    OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
         if (probe == INVALID_HANDLE_VALUE) {
             char suffix[32];
@@ -713,17 +713,17 @@ bool LoadKernelDriver(const std::wstring& dir) {
 bool MapViaDriver(const std::wstring& dir, DWORD pid, const std::wstring& pyexec,
                   const std::wstring& overlay) {
     (void)pid;
-    std::wstring bsmap = dir + L"\\bsmap.exe";
-    if (GetFileAttributesW(bsmap.c_str()) == INVALID_FILE_ATTRIBUTES) {
-        Log("bsmap.exe not embedded");
+    std::wstring mapper = dir + L"\\cometmap.exe";
+    if (GetFileAttributesW(mapper.c_str()) == INVALID_FILE_ATTRIBUTES) {
+        Log("cometmap.exe not embedded");
         return false;
     }
     std::wstring args = L"\"" + std::wstring(kGame) + L"\" \"" + pyexec + L"\" \"" + overlay + L"\"";
     Log("mapping modules through kernel driver...");
     DWORD code = 1;
-    RunAndWait(bsmap, args, dir, 30000, code);
+    RunAndWait(mapper, args, dir, 30000, code);
     char buf[64];
-    sprintf_s(buf, "bsmap exit=%lu", (unsigned long)code);
+    sprintf_s(buf, "cometmap exit=%lu", (unsigned long)code);
     Log(buf);
     return code == 0;
 }
@@ -767,8 +767,8 @@ void InjectWorker(bool driver_mode) {
     WriteRootHint(base, dir);
     Log("payload ready (" + std::to_string(payload.size()) + " files)");
 
-    std::wstring pyexec = dir + L"\\bs_pyexec.dll";
-    std::wstring overlay = dir + L"\\bs_overlay.dll";
+    std::wstring pyexec = dir + L"\\comet_pyexec.dll";
+    std::wstring overlay = dir + L"\\comet_overlay.dll";
 
     Log("waiting for BloodStrike.exe (up to 90s)...");
     DWORD pid = WaitForProcess(kGame, 90);
@@ -865,15 +865,15 @@ void RenderUI() {
     ImGui::Begin("##root", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove |
                  ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoSavedSettings);
     auto* dl = ImGui::GetWindowDrawList(); const ImVec2 wp = ImGui::GetWindowPos(), ws = io.DisplaySize;
-    dl->AddRectFilled(wp, ImVec2(wp.x + ws.x, wp.y + ws.y), CiyEUi::Ground);
+    dl->AddRectFilled(wp, ImVec2(wp.x + ws.x, wp.y + ws.y), CometUi::Ground);
     const float margin = S(28), left = S(264), gap = S(32), right_x = margin + left + gap;
-    CiyEUi::Logo(dl, ImVec2(wp.x + S(20), wp.y + S(12)), S(22));
+    CometUi::Logo(dl, ImVec2(wp.x + S(20), wp.y + S(12)), S(22));
     dl->AddText(g_font_med, S(13), ImVec2(wp.x + S(54), wp.y + S(15)), kText, kBrand);
     const float badge_x = S(54) + g_font_med->CalcTextSizeA(S(13), FLT_MAX, 0, kBrand).x + S(10);
     const float badge_w = g_font_small->CalcTextSizeA(S(11.5f), FLT_MAX, 0, kVersion).x + S(14);
-    dl->AddRectFilled(ImVec2(wp.x+badge_x,wp.y+S(13)),ImVec2(wp.x+badge_x+badge_w,wp.y+S(31)),CiyEUi::Elevated,S(9));
+    dl->AddRectFilled(ImVec2(wp.x+badge_x,wp.y+S(13)),ImVec2(wp.x+badge_x+badge_w,wp.y+S(31)),CometUi::Elevated,S(9));
     dl->AddText(g_font_small,S(11.5f),ImVec2(wp.x+badge_x+S(7),wp.y+S(16)),kMuted,kVersion);
-    dl->AddLine(ImVec2(wp.x,wp.y+S(44)),ImVec2(wp.x+ws.x,wp.y+S(44)),CiyEUi::Border);
+    dl->AddLine(ImVec2(wp.x,wp.y+S(44)),ImVec2(wp.x+ws.x,wp.y+S(44)),CometUi::Border);
     static DWORD last_scan = 0;
     DWORD now_tick = GetTickCount();
     if (!g_busy.load() && now_tick - last_scan > 800) {
@@ -888,11 +888,11 @@ void RenderUI() {
     const int phase = g_phase.load();
     unsigned long pid = g_pid.load(); if (!pid) pid = g_live_pid.load();
     const char* title = phase == kReady ? "Session ready" : phase == kFailed ? "Session needs attention" : busy ? "Starting session" : "Ready when you are";
-    CiyEUi::Logo(dl, ImVec2(wp.x + margin, wp.y + S(66)), S(40));
+    CometUi::Logo(dl, ImVec2(wp.x + margin, wp.y + S(66)), S(40));
     dl->AddCircle(ImVec2(wp.x + margin + S(20), wp.y + S(86)), S(25), PhaseColor(phase), 48, S(1.25f));
     dl->AddText(g_font_bold, S(20), ImVec2(wp.x + margin, wp.y + S(120)), kText, title);
     dl->AddText(g_font, S(13), ImVec2(wp.x + margin, wp.y + S(152)), kMuted, "Blood Strike");
-    dl->AddLine(ImVec2(wp.x + margin, wp.y + S(190)), ImVec2(wp.x + margin + left, wp.y + S(190)), CiyEUi::Border);
+    dl->AddLine(ImVec2(wp.x + margin, wp.y + S(190)), ImVec2(wp.x + margin + left, wp.y + S(190)), CometUi::Border);
     ImGui::SetCursorPos(ImVec2(margin, S(203)));
     ImGui::TextDisabled("Launch mode"); ImGui::SameLine(S(170));
     ImGui::TextUnformatted(g_driver_mode.load() ? "Kernel mode" : "User mode");
@@ -903,7 +903,7 @@ void RenderUI() {
     if (ToggleButton("Kernel mode", g_driver_mode.load(), ImVec2(S(127), S(32)))) g_driver_mode.store(true);
     ImGui::EndDisabled();
     ImGui::SetCursorPos(ImVec2(margin, ws.y - S(86)));
-    ImGui::PushStyleColor(ImGuiCol_Button, ImGui::ColorConvertU32ToFloat4(CiyEUi::Accent));
+    ImGui::PushStyleColor(ImGuiCol_Button, ImGui::ColorConvertU32ToFloat4(CometUi::Accent));
     ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(.73f, .65f, 1, 1));
     ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(.07f, .055f, .11f, 1));
     ImGui::BeginDisabled(busy);
@@ -913,13 +913,13 @@ void RenderUI() {
     ImGui::EndDisabled(); ImGui::PopStyleColor(3);
     ImGui::SetCursorPos(ImVec2(margin, S(284)));
     bool auto_start = g_auto_inject.load(), close_done = g_close_on_done.load();
-    if (CiyEUi::Toggle("Start automatically", &auto_start, left, g_scale)) g_auto_inject.store(auto_start);
+    if (CometUi::Toggle("Start automatically", &auto_start, left, g_scale)) g_auto_inject.store(auto_start);
     ImGui::SetCursorPos(ImVec2(margin, S(318)));
-    if (CiyEUi::Toggle("Close when ready", &close_done, left, g_scale)) g_close_on_done.store(close_done);
+    if (CometUi::Toggle("Close when ready", &close_done, left, g_scale)) g_close_on_done.store(close_done);
     ImGui::SetCursorPos(ImVec2(margin, ws.y - S(42)));
     if (ImGui::Button("Open folder", ImVec2(S(122), S(28)))) { std::wstring dir = SelfDir(); ShellExecuteW(nullptr, L"open", dir.c_str(), nullptr, nullptr, SW_SHOWNORMAL); }
     ImGui::SetCursorPos(ImVec2(right_x, S(58)));
-    ImGui::PushStyleColor(ImGuiCol_ChildBg, ImGui::ColorConvertU32ToFloat4(CiyEUi::Surface));
+    ImGui::PushStyleColor(ImGuiCol_ChildBg, ImGui::ColorConvertU32ToFloat4(CometUi::Surface));
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(S(20), S(18)));
     ImGui::BeginChild("startup", ImVec2(ws.x - right_x - S(16), ws.y - S(74)), ImGuiChildFlags_Borders);
     ImGui::PushFont(g_font_med, S(14));
@@ -933,11 +933,11 @@ void RenderUI() {
         ImVec2 pos = ImGui::GetCursorScreenPos();
         dl = ImGui::GetWindowDrawList();
         const ImVec2 center(pos.x + S(9), pos.y + S(9));
-        if (!last) dl->AddLine(ImVec2(center.x, center.y + S(13)), ImVec2(center.x, center.y + S(59)), CiyEUi::Border, S(1));
+        if (!last) dl->AddLine(ImVec2(center.x, center.y + S(13)), ImVec2(center.x, center.y + S(59)), CometUi::Border, S(1));
         if (color == kSuccess) {
             dl->AddCircleFilled(center, S(9), color);
-            dl->AddLine(ImVec2(center.x-S(3),center.y),ImVec2(center.x-S(1),center.y+S(2)),CiyEUi::Ground,S(1.5f));
-            dl->AddLine(ImVec2(center.x-S(1),center.y+S(2)),ImVec2(center.x+S(4),center.y-S(3)),CiyEUi::Ground,S(1.5f));
+            dl->AddLine(ImVec2(center.x-S(3),center.y),ImVec2(center.x-S(1),center.y+S(2)),CometUi::Ground,S(1.5f));
+            dl->AddLine(ImVec2(center.x-S(1),center.y+S(2)),ImVec2(center.x+S(4),center.y-S(3)),CometUi::Ground,S(1.5f));
         } else dl->AddCircle(center, S(8), color, 24, S(1.5f));
         ImGui::SetCursorPosX(ImGui::GetCursorPosX() + S(34)); ImGui::BeginGroup();
         ImGui::PushFont(g_font_med, S(13)); ImGui::TextUnformatted(label); ImGui::PopFont();
@@ -990,7 +990,7 @@ void LoadFonts() {
     if (!g_font_mono) g_font_mono = g_font;
 }
 
-void ApplyStyle() { CiyEUi::ApplyStyle(g_scale); ImGui::GetStyle().WindowRounding = 0; ImGui::GetStyle().WindowBorderSize = 0; }
+void ApplyStyle() { CometUi::ApplyStyle(g_scale); ImGui::GetStyle().WindowRounding = 0; ImGui::GetStyle().WindowBorderSize = 0; }
 
 void ApplyDarkTitleBar(HWND hwnd) {
     BOOL dark = TRUE;
@@ -1050,7 +1050,7 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR, int) {
     wc.lpfnWndProc = WndProc;
     wc.hInstance = instance;
     wc.hCursor = LoadCursor(nullptr, IDC_ARROW);
-    wc.lpszClassName = L"CiyELoaderWindow";
+    wc.lpszClassName = L"CometLoaderWindow";
     RegisterClassExW(&wc);
 
     int win_w = (int)S(680);
@@ -1060,7 +1060,7 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR, int) {
     int pos_x = (screen_w - win_w) / 2;
     int pos_y = (screen_h - win_h) / 2;
 
-    g_hwnd = CreateWindowExW(0, wc.lpszClassName, L"CiyE Loader", WS_OVERLAPPED | WS_CAPTION |
+    g_hwnd = CreateWindowExW(0, wc.lpszClassName, L"Comet Loader", WS_OVERLAPPED | WS_CAPTION |
                                  WS_SYSMENU | WS_MINIMIZEBOX,
                              pos_x, pos_y, win_w, win_h, nullptr, nullptr, instance, nullptr);
     if (!g_hwnd) return 1;
@@ -1087,7 +1087,7 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR, int) {
     ImGui_ImplWin32_Init(g_hwnd);
     ImGui_ImplDX11_Init(g_device, g_context);
 
-    Log("CiyE loader ready.");
+    Log("Comet loader ready.");
     Log("select mode and press INJECT.");
 
     while (g_running) {

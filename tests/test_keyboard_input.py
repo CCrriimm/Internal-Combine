@@ -7,9 +7,9 @@ import unittest
 class KeyboardInputTests(unittest.TestCase):
     def test_game_keyboard_survives_menu_transitions(self):
         project = Path(__file__).resolve().parents[1]
-        executable = project / 'build/Release/bs_menu_preview.exe'
+        executable = project / 'build/Release/comet_menu_preview.exe'
         if not executable.is_file():
-            self.skipTest('Build bs_menu_preview with BS_MENU_PREVIEW=ON first')
+            self.skipTest('Build comet_menu_preview with COMET_MENU_PREVIEW=ON first')
         result = subprocess.run([str(executable), '--check-keyboard'], cwd=project,
                                 capture_output=True, text=True, timeout=30)
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)

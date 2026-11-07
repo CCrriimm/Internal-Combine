@@ -56,7 +56,7 @@ with open(OUTPUT, 'w', encoding='utf-8') as handle:
     # A separate globals dictionary leaves the game's module globals untouched.
     guarded = ('try:\n' + '\n'.join('    ' + line for line in probe.splitlines()) +
                '\nexcept BaseException:\n    import traceback\n    with open(%r, "w", encoding="utf-8") as error_file:\n        error_file.write(traceback.format_exc())\n    raise\n' % str(output.with_suffix('.error.txt')))
-    source = 'exec(compile(%r, "<ciye-aim-contract-probe>", "exec"), {"__name__": "__ciye_probe__"})' % guarded
+    source = 'exec(compile(%r, "<comet-aim-contract-probe>", "exec"), {"__name__": "__comet_probe__"})' % guarded
     js = '''
 const base = Process.getModuleByName('BloodStrike.exe').base;
 const specs = [
@@ -114,11 +114,11 @@ def trace(worker, shoot_pos):
         pass
     return result
 cls.GetShootDir = trace
-builtins._ciye_shot_contract_trace = (cls, original, trace, events)
+builtins._comet_shot_contract_trace = (cls, original, trace, events)
 '''
             cleanup = '''
 import builtins, json
-state = getattr(builtins, '_ciye_shot_contract_trace', None)
+state = getattr(builtins, '_comet_shot_contract_trace', None)
 if state is not None:
     cls, original, trace, events = state
     restored = cls.GetShootDir is trace
@@ -126,10 +126,10 @@ if state is not None:
         cls.GetShootDir = original
     with open(OUTPUT, 'w', encoding='utf-8') as handle:
         json.dump({'events': events, 'restored': restored}, handle)
-    del builtins._ciye_shot_contract_trace
+    del builtins._comet_shot_contract_trace
 '''.replace('OUTPUT', repr(str(output.with_suffix('.trace.json'))))
             def execute(code):
-                result = script.exports_sync.collect('exec(%r, {"__name__": "__ciye_trace__"})' % code)
+                result = script.exports_sync.collect('exec(%r, {"__name__": "__comet_trace__"})' % code)
                 if result:
                     raise RuntimeError('Shot trace Python call failed: %d' % result)
             try:

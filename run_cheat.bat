@@ -11,9 +11,9 @@ if errorlevel 1 (
 
 set ROOT=%~dp0
 set INJ=%ROOT%build\Release\injector.exe
-set BSMAP=%ROOT%build\Release\bsmap.exe
-set PYEXEC=%ROOT%build\Release\bs_pyexec.dll
-set OVERLAY=%ROOT%build\Release\bs_overlay.dll
+set COMETMAP=%ROOT%build\Release\cometmap.exe
+set PYEXEC=%ROOT%build\Release\comet_pyexec.dll
+set OVERLAY=%ROOT%build\Release\comet_overlay.dll
 set INJLOG=%ROOT%build\Release\inject_log.txt
 
 if not exist "%PYEXEC%" goto missing
@@ -22,7 +22,7 @@ if not exist "%ROOT%pyexec\cmd.py" goto missing
 if not exist "%ROOT%pyexec\bs_runtime.py" goto missing
 
 set DRIVERMODE=0
-if exist "%ROOT%driver\kdmapper.exe" if exist "%ROOT%driver\bskdrv.sys" if exist "%BSMAP%" set DRIVERMODE=1
+if exist "%ROOT%driver\kdmapper.exe" if exist "%ROOT%driver\bskdrv.sys" if exist "%COMETMAP%" set DRIVERMODE=1
 
 echo [0/4] waiting for BloodStrike.exe...
 set GAMEFOUND=0
@@ -49,12 +49,12 @@ call "%ROOT%driver\load_driver.bat"
 if errorlevel 1 goto driverfailed
 
 echo [2/4] mapping python bridge...
-"%BSMAP%" BloodStrike.exe "%PYEXEC%"
+"%COMETMAP%" BloodStrike.exe "%PYEXEC%"
 if errorlevel 1 goto driverfailed
 timeout /t 2 /nobreak >nul
 
 echo [3/4] mapping overlay...
-"%BSMAP%" BloodStrike.exe "%OVERLAY%"
+"%COMETMAP%" BloodStrike.exe "%OVERLAY%"
 if errorlevel 1 (
   echo [!] Overlay mapping failed. The python bridge is already loaded;
   echo     close the game before retrying.

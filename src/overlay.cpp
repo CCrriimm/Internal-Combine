@@ -20,6 +20,8 @@
 
 #include <cstdint>
 
+#include <cstddef>
+
 #include <cstdio>
 
 #include <cstdarg>
@@ -35,6 +37,8 @@
 #include <vector>
 
 #include <unordered_map>
+
+#include <unordered_set>
 
 #include <algorithm>
 
@@ -53,6 +57,9 @@
 #include "bs_cfg.hpp"
 #include "esp_geometry.hpp"
 #include "radar_geometry.hpp"
+#include "esp_team.hpp"
+#include "esp_armor_tier.hpp"
+#include "capture_guard.hpp"
 
 
 
@@ -102,9 +109,13 @@ struct Ent {
 
     float bones[16][2]; // 16 bones in normalized screen coords [0..1]
 
+    // Comet additions. Appended at the tail so every earlier offset in the
+    // serialized record - and therefore every existing reader - is unchanged.
+    uint32_t hero_id;   // replicated hero_id, 0 when unknown
+    uint32_t is_dying;  // runtime DYING/downed state, published for diagnostics;
+                        // the KNOCKED label still uses is_knocked above.
+
 };
-
-
 
 struct State {
 
@@ -176,9 +187,16 @@ struct CatEntry {
 
 
 
-static_assert(sizeof(Cfg) == 160, "Cfg size");
+static_assert(sizeof(Cfg) == 228, "Cfg size");
 
-static_assert(sizeof(Ent) == 280, "Ent size");
+// The migrations in LoadCfg() hard-code these boundaries. Pin them so a future
+// layout edit cannot silently corrupt an old config instead of failing the
+// build.
+static_assert(offsetof(Cfg, col_team_box) == 148, "v7 legacy prefix changed");
+static_assert(offsetof(Cfg, aim_key2) == 224, "v8 layout changed");
+
+static_assert(sizeof(Ent) == 288, "Ent size");
+
 
 static_assert(sizeof(State) == 84, "State size");
 
@@ -194,7 +212,7 @@ static const uint32_t STATE_MAGIC = 0x42535331;
 
 static const uint32_t CATALOG_MAGIC = 0x42534354;
 
-static const uint32_t VERSION = 7;
+static const uint32_t VERSION = 9;
 
 
 
@@ -204,7 +222,7 @@ static bool ReadOverlayRootHint(std::wstring& root) {
 
     if (!GetTempPathW(MAX_PATH, tmp)) return false;
 
-    std::wstring path = std::wstring(tmp) + L"CiyE_BSLoader\\root.txt";
+    std::wstring path = std::wstring(tmp) + L"Comet_BSLoader\\root.txt";
 
     HANDLE h = CreateFileW(path.c_str(), GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE,
                            nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
@@ -307,7 +325,7 @@ static const std::wstring& SavedCfgPath() {
         wchar_t local[32768]{};
         const DWORD size = GetEnvironmentVariableW(L"LOCALAPPDATA", local, 32768);
         if (!size || size >= 32768) return IpcDir() + L"\\settings.bin";
-        std::wstring dir = std::wstring(local) + L"\\CiyE";
+        std::wstring dir = std::wstring(local) + L"\\Comet";
         CreateDirectoryW(dir.c_str(), nullptr);
         dir += L"\\BloodStrike";
         CreateDirectoryW(dir.c_str(), nullptr);
@@ -363,6 +381,7 @@ static bool g_unloading = false;
 static PresentFn g_present = nullptr;
 
 static Present1Fn g_present1 = nullptr;
+static bool g_imgui_ready = false;
 static thread_local bool g_inside_present = false;
 struct PresentScope {
     PresentScope() {g_inside_present=true;}
@@ -377,7 +396,7 @@ static HWND g_hwnd = nullptr;
 static bool g_input_attached=false;
 static bool g_menu_owns_capture=false;
 static UINT MenuInputCloseMessage() {
-    static const UINT message=RegisterWindowMessageW(L"CiyE.MenuInput.Close");
+    static const UINT message=RegisterWindowMessageW(L"Comet.MenuInput.Close");
     return message;
 }
 
@@ -401,7 +420,13 @@ static ID3D11Device* g_device = nullptr;
 
 static ID3D11DeviceContext* g_context = nullptr;
 
-static ID3D11RenderTargetView* g_rtv = nullptr;
+// NOT a held reference. Holding a render-target view on buffer 0 keeps that
+// back buffer un-releasable for the swapchain, so the game's own wait for the
+// previous buffer can never complete: frames keep being produced (the FPS
+// counter climbs, a swapchain capture still sees them) while the display stops
+// advancing. This is a capability flag only - the view is opened for the
+// duration of one ImGui draw and released immediately (see RenderFrame).
+static bool g_rtv_live = false;
 
 static UINT g_width = 0;
 
@@ -415,7 +440,6 @@ static bool g_display_dirty = false;
 
 static bool g_reset_menu_pos = false;
 
-static bool g_imgui_ready = false;
 
 
 static bool g_init_failed = false;
@@ -479,6 +503,10 @@ static ULONGLONG g_last_cfg_save = 0;
 static State g_state{};
 
 static std::vector<Ent> g_ents;
+
+static teamtint::Labels g_team_labels;
+
+static comet_capture::Blackout g_obs{};
 
 static FILETIME g_state_write{};
 
@@ -568,6 +596,64 @@ static void Log(const char* fmt, ...) {
     }
 
 }
+
+// ---------------------------------------------------------------------------
+// Fault containment.
+//
+// Every hook body runs on the game's render thread, inside the game's own
+// Present call. An exception that escapes here is not "an overlay bug" - it is
+// an unhandled exception inside the game process, which terminates it. So each
+// hook body is wrapped in SEH: the frame is skipped, the fault is logged, and
+// after a few faults the overlay disables itself and passes Present straight
+// through. A broken overlay should cost the ESP, never the game.
+static int g_fault_count = 0;
+static volatile bool g_render_disabled = false;
+
+static void NoteFault(const char* where, unsigned code) {
+    if (g_fault_count < 5) Log("%s fault code=%08x (fault %d)", where, code, g_fault_count + 1);
+    if (++g_fault_count >= 4) {
+        if (!g_render_disabled) Log("%s: repeated faults, overlay drawing disabled", where);
+        g_render_disabled = true;
+    }
+}
+
+// SEH on MSVC; off Windows the same bodies are type-checked with no-op macros,
+// so the g++ syntax pass and the menu preview keep working and the non-Windows
+// build never swallows an exception it does not understand.
+#if defined(_MSC_VER)
+  #define COMET_TRY __try
+  #define COMET_EXCEPT(filter) __except (filter)
+#else
+  #define COMET_TRY {
+  #define COMET_EXCEPT(filter) }
+  #define GetExceptionCode() 0u
+#endif
+
+
+// Defined much later, next to the rest of the render path; declared here so the
+// guarded wrapper below can call them.
+static bool InitOverlay(IDXGISwapChain* sc);
+static void RenderFrame(IDXGISwapChain* sc);
+
+// Note on the wrappers below: MSVC refuses __try/__except in any function that
+// needs C++ object unwinding (error C2712), which rules out RAII locals and
+// std::string in the same body. These two wrappers therefore keep *no*
+// destructible locals - just the call and the exception code - and every caller
+// keeps its own RAII scope and does its logging outside.
+static unsigned RenderFrameGuarded(IDXGISwapChain* sc) {
+    unsigned code = 0;
+    COMET_TRY {
+        if (!g_imgui_ready) InitOverlay(sc);
+        RenderFrame(sc);
+    }
+    COMET_EXCEPT(EXCEPTION_EXECUTE_HANDLER) {
+        code = (unsigned)GetExceptionCode();
+    }
+    return code;
+}
+
+
+
 
 
 
@@ -685,6 +771,15 @@ static bool WriteAll(const wchar_t* path, const void* data, size_t size) {
 
 
 
+// Derived from the tier palette in esp_armor_tier.hpp (the anchors 50/75/100/125
+// with 245 alpha), so the defaults and the tier maths share one definition.
+static constexpr uint32_t kDefaultArmorTier[4] = {
+    (armortier::Packed(50.0f) & 0x00FFFFFFu) | (245u << 24),
+    (armortier::Packed(75.0f) & 0x00FFFFFFu) | (245u << 24),
+    (armortier::Packed(100.0f) & 0x00FFFFFFu) | (245u << 24),
+    (armortier::Packed(125.0f) & 0x00FFFFFFu) | (245u << 24),
+};
+
 static void DefaultCfg() {
 
     ZeroMemory(&g_cfg, sizeof(g_cfg));
@@ -702,6 +797,8 @@ static void DefaultCfg() {
                  F_RECOIL | F_ESP_COUNT | F_ESP_OUTLINE | F_ESP_GRADIENT | F_ESP_SHADOW;
 
     g_cfg.aim_key = VK_RBUTTON;
+
+    g_cfg.aim_key2 = 0; // unbound by default
 
     g_cfg.col_fov = IM_COL32(89,162,255,180);
 
@@ -762,6 +859,18 @@ static void DefaultCfg() {
 
     g_cfg.auto_skin = 1;
 
+    // Armor tiers (50 grey, 75 blue, 100 purple, 125 gold). Shared with the
+    // v7 -> v8 migration above. col_loot / loot_max_dist stay in the struct only
+    // so the byte layout - and every migration anchor - stays put; nothing reads
+    // or writes them any more.
+    for (int i = 0; i < 4; ++i) {
+        g_cfg.col_armor_tier[i] = kDefaultArmorTier[i];
+    }
+
+    g_cfg.opts = OPT2_OBS_PROTECT;
+
+    g_cfg.noise_strength = 0.0016f;
+
 }
 
 
@@ -773,6 +882,49 @@ static bool LoadCfg() {
     const DWORD error = attributes == INVALID_FILE_ATTRIBUTES ? GetLastError() : ERROR_SUCCESS;
     const bool missing = attributes == INVALID_FILE_ATTRIBUTES && (error == ERROR_FILE_NOT_FOUND || error == ERROR_PATH_NOT_FOUND);
     const bool read = ReadAll((missing ? CfgPath() : SavedCfgPath()).c_str(), buf);
+    // v7 -> v8 migration. The Comet tail was appended after col_armor, so the
+    // first 148 bytes of a v7 file are byte-identical to the new layout and the
+    // old pad[3] simply moves to the end. Without this, growing Cfg would throw
+    // away every saved preference once - including the user's keybinds and
+    // colours - which is not an acceptable cost for adding features.
+    bool migrated = false;
+    if (read && buf.size() == 224) {
+        // v8 -> v9: only aim_key2 was appended. Everything else is identical.
+        uint32_t old_magic = 0, old_version = 0;
+        memcpy(&old_magic, buf.data(), sizeof(old_magic));
+        memcpy(&old_version, buf.data() + sizeof(old_magic), sizeof(old_version));
+        if (old_magic == CFG_MAGIC && old_version == 8) {
+            Cfg m{};
+            memcpy(&m, buf.data(), 224);
+            m.version = VERSION;
+            buf.assign(reinterpret_cast<const uint8_t*>(&m),
+                       reinterpret_cast<const uint8_t*>(&m) + sizeof(m));
+            migrated = true;
+        }
+    }
+    if (read && buf.size() == 160) {
+        uint32_t old_magic = 0, old_version = 0;
+        memcpy(&old_magic, buf.data(), sizeof(old_magic));
+        memcpy(&old_version, buf.data() + sizeof(old_magic), sizeof(old_version));
+        if (old_magic == CFG_MAGIC && old_version == 7) {
+            constexpr size_t kV7LegacyBytes = 148; // everything up to col_armor
+            Cfg m{};
+            memcpy(&m, buf.data(), kV7LegacyBytes);
+            // v7's trailing pad[3] (UI tag / theme / reduced motion) is at 148.
+            memcpy(m.pad, buf.data() + kV7LegacyBytes, sizeof(m.pad));
+            // The new tail keeps the same defaults a fresh install would get, so
+            // a migrated config cannot end up with colours switched off.
+            for (int i = 0; i < 4; ++i) {
+                m.col_armor_tier[i] = kDefaultArmorTier[i];
+            }
+            m.opts = OPT2_OBS_PROTECT;
+            m.noise_strength = 0.0016f;
+            m.version = VERSION;
+            buf.assign(reinterpret_cast<const uint8_t*>(&m),
+                       reinterpret_cast<const uint8_t*>(&m) + sizeof(m));
+            migrated = true;
+        }
+    }
     if (!read || buf.size() != sizeof(Cfg)) {
         DefaultCfg();
         g_cfg_ready = g_cfg_dirty = true;
@@ -827,9 +979,19 @@ static bool LoadCfg() {
 
     if (c.col_count == 0) c.col_count = IM_COL32(96, 235, 155, 255);
 
+    // Only the armor tier palette is user data now; team tint colours are
+    // generated per team at runtime (src/esp_team.hpp).
+    for (int i = 0; i < 4; ++i) {
+        if (c.col_armor_tier[i] == 0) c.col_armor_tier[i] = kDefaultArmorTier[i];
+    }
+    if (!std::isfinite(c.noise_strength) || c.noise_strength < 0.0f || c.noise_strength > 0.02f) c.noise_strength = 0.0016f;
+
     if (c.aim_bone < 0 || c.aim_bone > 4) c.aim_bone = 0;
 
     if (c.aim_key < 0 || c.aim_key > 255) c.aim_key = VK_RBUTTON;
+
+    // 0 means "no second key", which is a valid state (unlike aim_key).
+    if (c.aim_key2 < 0 || c.aim_key2 > 255) c.aim_key2 = 0;
 
     if (c.menu_key < 0 || c.menu_key > 255) c.menu_key = VK_INSERT;
 
@@ -852,7 +1014,10 @@ static bool LoadCfg() {
     c.flags = (c.flags & ~F_EXIT_CHEAT) | F_MENU_OPEN;
     c.apply_seq = c.apply_item = 0; c.apply_type = 0;
     g_cfg = c;
+    // Loaded configs stay dirty so the next autosave rewrites them in the
+    // current layout; that is also what flushes a v7 -> v8 migration to disk.
     g_cfg_ready = g_cfg_dirty = g_cfg_writable = true;
+    if (migrated) Log("config migrated from layout v7 (settings preserved)");
     return true;
 }
 
@@ -892,9 +1057,9 @@ const char* ConfigurationStatus() {
 
 static void ApplyMenuPreferences() {
     const bool valid = g_cfg.pad[0] == CFG_UI_TAG && g_cfg.pad[1] <= 4;
-    CiyEUi::SetTheme(valid ? g_cfg.pad[1] : 2);
-    CiyEUi::ReducedMotion = valid && g_cfg.pad[2] != 0;
-    CiyEUi::ApplyStyle();
+    CometUi::SetTheme(valid ? g_cfg.pad[1] : 2);
+    CometUi::ReducedMotion = valid && g_cfg.pad[2] != 0;
+    CometUi::ApplyStyle();
 }
 
 static void ResetCfg() {
@@ -944,6 +1109,40 @@ static void SetOptAimToggle(bool on) {
 
 
 
+
+
+// Keeps SetWindowDisplayAffinity(WDA_EXCLUDEFROMCAPTURE) in force while the
+// Settings toggle is on. The guard re-asserts the affinity if the game clears
+// it and backs off after an API failure instead of retrying every frame.
+// A file next to the DLL disables capture protection for the whole session.
+// Deliberately not an environment variable and not a config field: it has to
+// work before the config is read and without the loader re-packaging anything,
+// so a build can always be recovered when the protected window is invisible to
+// screen capture.
+static bool CaptureProtectionKilled() {
+    static const bool killed = [] {
+        const std::wstring flag = PathBase() + L"\\no_capture_guard.txt";
+        return GetFileAttributesW(flag.c_str()) != INVALID_FILE_ATTRIBUTES;
+    }();
+    return killed;
+}
+
+static void ApplyObsProtection() {
+    if (!g_hwnd) {
+        comet_capture::Apply(nullptr, false, g_obs, GetTickCount64());
+        return;
+    }
+    const comet_capture::Status before = g_obs.status;
+    const bool want = HasOpt2(OPT2_OBS_PROTECT) && !CaptureProtectionKilled();
+    comet_capture::Apply(g_hwnd, want, g_obs, GetTickCount64());
+    if (g_obs.status != before) {
+        if (g_obs.status == comet_capture::Status::Denied)
+            Log("obs protection denied (win32 error %lu)", g_obs.error);
+        else
+            Log("obs protection %s", comet_capture::Describe(g_obs));
+    }
+}
+
 static bool LoadState() {
 
     // 1. Try shared memory first (sub-microsecond memory copy, zero disk lag)
@@ -971,7 +1170,6 @@ static bool LoadState() {
                     memcpy(g_ents.data(), src, count * sizeof(Ent));
 
                 }
-
             }
 
             return true;
@@ -1125,6 +1323,59 @@ static std::string HeroLabel(uint32_t id, const CatEntry* e) {
     snprintf(buf, sizeof(buf), "Hero %u", id);
 
     return std::string(buf);
+
+}
+
+
+// Hero name for an ESP chip. Unknown/missing replicated ids print nothing rather
+// than "Hero 0": a target without hero data must not gain a fake label.
+static std::string EnemyHeroLabel(uint32_t hero_id) {
+
+    if (!hero_id) return std::string();
+
+    const char* known = HeroNameById(hero_id);
+
+    if (known) return std::string(known);
+
+    char buf[24];
+
+    snprintf(buf, sizeof(buf), "Hero %u", hero_id);
+
+    return std::string(buf);
+
+}
+
+
+// Per-team tint for a raw team id. The colour is generated once per match and
+// held (see teamtint::Labels), so boxes and snaplines never flicker while you
+// look around. `reserved` holds the user's own enemy/teammate colours, which the
+// generated palette must not reuse, so a tinted team never looks untinted.
+// Returns 0 when the team is unknown; callers keep their base colour.
+// The set of colours the user already uses for enemies / teammates / monsters.
+// Built once per frame: TeamTint is called per target, and a fresh hash set per
+// call was a heap allocation inside the present hook.
+struct ReservedColours {
+    uint32_t values[3];
+    bool count(uint32_t colour) const {
+        return values[0] == colour || values[1] == colour || values[2] == colour;
+    }
+};
+
+static ReservedColours BuildReservedColours() {
+    return {{g_cfg.col_box & 0x00FFFFFFu, g_cfg.col_team & 0x00FFFFFFu,
+             g_cfg.col_monster & 0x00FFFFFFu}};
+}
+
+static ImU32 TeamTint(int team, const ReservedColours& reserved) {
+
+    if (team <= 0) return 0;
+
+    // Alpha comes from the user's own enemy colour so a team tint reads at the
+    // same weight as every other box.
+
+    const uint32_t alpha = g_cfg.col_box & 0xFF000000u;
+
+    return (g_team_labels.ColourFor(team, reserved) & 0x00FFFFFFu) | alpha;
 
 }
 
@@ -1372,6 +1623,8 @@ static void CaptureBind(int vk) {
 
     if (g_bind_slot == 1) g_cfg.aim_key = vk;
 
+    else if (g_bind_slot == 2) g_cfg.aim_key2 = vk;
+
     else if (g_bind_slot == 3) g_cfg.menu_key = vk;
 
     g_bind_slot = 0;
@@ -1422,7 +1675,7 @@ static bool CheckU8(const char* label, uint8_t& v) {
 
     bool b = v != 0;
 
-    if (CiyEUi::Toggle(label, &b, ImGui::GetContentRegionAvail().x)) {
+    if (CometUi::Toggle(label, &b, ImGui::GetContentRegionAvail().x)) {
 
         v = b ? 1 : 0;
 
@@ -1442,7 +1695,7 @@ static bool FlagCheck(const char* label, uint32_t flag) {
 
     bool b = Has(flag);
 
-    if (CiyEUi::Toggle(label, &b, ImGui::GetContentRegionAvail().x)) {
+    if (CometUi::Toggle(label, &b, ImGui::GetContentRegionAvail().x)) {
 
         SetF(flag, b);
 
@@ -1460,7 +1713,7 @@ static bool SliderI32(const char* label, int32_t& v, int32_t lo, int32_t hi) {
 
     int tmp = v;
 
-    if (CiyEUi::Slider(label, &tmp, lo, hi, "%d")) {
+    if (CometUi::Slider(label, &tmp, lo, hi, "%d")) {
 
         v = tmp;
 
@@ -1480,7 +1733,7 @@ static bool SliderF32(const char* label, float& v, float lo, float hi, const cha
 
     float tmp = v;
 
-    if (CiyEUi::Slider(label, &tmp, lo, hi, fmt)) {
+    if (CometUi::Slider(label, &tmp, lo, hi, fmt)) {
 
         v = tmp;
 
@@ -1511,7 +1764,7 @@ static const std::wstring& SkinInventoryPath() {
         wchar_t local[32768]{};
         DWORD count = GetEnvironmentVariableW(L"LOCALAPPDATA", local, 32768);
         if (!count || count >= 32768) return IpcDir() + L"\\skin_inventory.bin";
-        std::wstring folder = std::wstring(local) + L"\\CiyE";
+        std::wstring folder = std::wstring(local) + L"\\Comet";
         CreateDirectoryW(folder.c_str(), nullptr);
         folder += L"\\BloodStrike";
         CreateDirectoryW(folder.c_str(), nullptr);
@@ -1673,7 +1926,7 @@ static bool BeginCard(const char* id, const ImVec2& size) {
 
     ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(.082f,.106f,.145f,1));
 
-    ImGui::PushStyleColor(ImGuiCol_Border, ImGui::ColorConvertU32ToFloat4(CiyEUi::Border));
+    ImGui::PushStyleColor(ImGuiCol_Border, ImGui::ColorConvertU32ToFloat4(CometUi::Border));
 
     ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 8.0f);
 
@@ -1704,12 +1957,12 @@ static void EndCard() {
 static bool TabButton(const char* label, bool active, float width) {
     const ImVec2 p=ImGui::GetCursorScreenPos();
     ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0,0,0,0));
-    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImGui::ColorConvertU32ToFloat4(CiyEUi::Elevated));
-    ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImGui::ColorConvertU32ToFloat4(CiyEUi::Elevated));
-    ImGui::PushStyleColor(ImGuiCol_Text, ImGui::ColorConvertU32ToFloat4(active?CiyEUi::Text:CiyEUi::Muted));
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImGui::ColorConvertU32ToFloat4(CometUi::Elevated));
+    ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImGui::ColorConvertU32ToFloat4(CometUi::Elevated));
+    ImGui::PushStyleColor(ImGuiCol_Text, ImGui::ColorConvertU32ToFloat4(active?CometUi::Text:CometUi::Muted));
     const bool pressed=ImGui::Button(label,ImVec2(width,30));
     ImGui::PopStyleColor(4);
-    if(active) ImGui::GetWindowDrawList()->AddRectFilled(ImVec2(p.x,p.y+32),ImVec2(p.x+width,p.y+34),CiyEUi::Accent);
+    if(active) ImGui::GetWindowDrawList()->AddRectFilled(ImVec2(p.x,p.y+32),ImVec2(p.x+width,p.y+34),CometUi::Accent);
     return pressed;
 }
 
@@ -1778,6 +2031,8 @@ static bool ColorRow(const char* label, uint32_t& v) {
 
 
 
+
+
 static void DrawESP() {
     if (!Has(F_ESP) || !g_state.in_match) return;
     ImDrawList* dl = ImGui::GetForegroundDrawList();
@@ -1785,6 +2040,22 @@ static void DrawESP() {
     if (ds.x <= 1.0f || ds.y <= 1.0f) return;
     float W = ds.x;
     float H = ds.y;
+
+    // Read the per-frame settings once. Has() is cheap, but it is called per
+    // target per element, and the branch-heavy reads were measurably worse than
+    // a handful of locals.
+    const uint32_t flags = g_cfg.flags;
+    const uint32_t opts = g_cfg.opts;
+    const bool esp_show_visible = (flags & F_ESP_VISIBLE) != 0;
+    const bool shadow = (flags & F_ESP_SHADOW) != 0;
+    const bool team_colors_on = (opts & OPT2_TEAM_COLORS) != 0;
+    const bool team_label_on = (opts & OPT2_TEAM_LABEL) != 0;
+    const bool hero_label_on = (opts & OPT2_ESP_HERO) != 0;
+    const float max_dist = (float)g_cfg.esp_max_dist;
+
+    // Team tints are generated per team, but the "do not reuse these" set only
+    // changes when the user edits a colour, so build it once per frame.
+    ReservedColours reserved_cols = BuildReservedColours();
 
     if (Has(F_ESP_COUNT)) {
         int enemies = 0, knocked = 0, bots = 0, mates = 0;
@@ -1825,8 +2096,8 @@ static void DrawESP() {
 
     for (auto it = g_ents.rbegin(); it != g_ents.rend(); ++it) {
         const auto& e = *it;
-        if (e.distance > (float)g_cfg.esp_max_dist) continue;
-        if (e.is_team && !Has(F_ESP_TEAM)) continue;
+        if (e.distance > max_dist) continue;
+        if (e.is_team && !(flags & F_ESP_TEAM)) continue;
 
         auto ok = [](const float* s) {
             return std::isfinite(s[0]) && std::isfinite(s[1]) && !(s[0] == -1.f && s[1] == -1.f);
@@ -1883,6 +2154,10 @@ static void DrawESP() {
 
         if ((hx < 0 && fx < 0) || (hx > W && fx > W)) continue;
         if (fy < hy) std::swap(hy, fy);
+        // Fully above or below the viewport: nothing of this target can be seen,
+        // so skip all of its chip/bar/box work. This is the common case with a
+        // wide ESP distance and a camera looking at the sky.
+        if (fy < 0.0f || hy > H) continue;
         float h = fy - hy;
 
         // Dynamic minimum box height to guarantee visibility at 150m-200m+
@@ -1896,7 +2171,7 @@ static void DrawESP() {
         float cx = (hx + fx) * 0.5f;
         float w = std::max(6.0f, std::min(300.0f, h * (is_knocked ? 0.70f : 0.42f)));
 
-        bool hidden = Has(F_ESP_VISIBLE) && !e.visible;
+        bool hidden = esp_show_visible && !e.visible;
         ImU32 col = hidden ? g_cfg.col_box_hidden : g_cfg.col_box;
         ImU32 scol = hidden ? g_cfg.col_box_hidden : g_cfg.col_skel;
 
@@ -1911,8 +2186,17 @@ static void DrawESP() {
             scol = g_cfg.col_monster;
         }
 
+        // Per-team tints (Comet port). Knocked, teammate and monster colours
+        // keep priority, and a hidden-by-visibility entity keeps the hidden
+        // colour, so the tint only ever presents a living, visible enemy.
+        const bool team_tint = team_colors_on && !is_knocked && !e.is_team &&
+                               !e.is_monster && !hidden && e.team > 0;
+        if (team_tint) {
+            col = TeamTint(e.team, reserved_cols);
+            scol = col;
+        }
+
         float th = g_cfg.box_thickness;
-        bool shadow = Has(F_ESP_SHADOW);
         ImVec2 tl(cx - w * 0.5f, hy);
         ImVec2 br(cx + w * 0.5f, fy);
 
@@ -1929,18 +2213,14 @@ static void DrawESP() {
             return esp_font->CalcTextSizeA(esp_font_sz, FLT_MAX, 0.0f, s);
         };
 
+        // Two draws, not nine. The old version stamped the glyph eight times for
+        // an outline; at 10 targets x 4 chips that is ~320 extra text draw calls
+        // per frame for a difference nobody can see at 18 px.
         auto txt = [&](ImVec2 p, ImU32 c, const char* s) {
             if (!s || !*s) return;
             if (shadow) {
-                const ImU32 out_col = IM_COL32(0, 0, 0, 240);
-                dl->AddText(esp_font, esp_font_sz, ImVec2(p.x - 1.0f, p.y), out_col, s);
-                dl->AddText(esp_font, esp_font_sz, ImVec2(p.x + 1.0f, p.y), out_col, s);
-                dl->AddText(esp_font, esp_font_sz, ImVec2(p.x, p.y - 1.0f), out_col, s);
-                dl->AddText(esp_font, esp_font_sz, ImVec2(p.x, p.y + 1.0f), out_col, s);
-                dl->AddText(esp_font, esp_font_sz, ImVec2(p.x - 1.0f, p.y - 1.0f), out_col, s);
-                dl->AddText(esp_font, esp_font_sz, ImVec2(p.x + 1.0f, p.y - 1.0f), out_col, s);
-                dl->AddText(esp_font, esp_font_sz, ImVec2(p.x - 1.0f, p.y + 1.0f), out_col, s);
-                dl->AddText(esp_font, esp_font_sz, ImVec2(p.x + 1.0f, p.y + 1.0f), out_col, s);
+                dl->AddText(esp_font, esp_font_sz, ImVec2(p.x + 1.0f, p.y + 1.0f),
+                            IM_COL32(0, 0, 0, 235), s);
             }
             dl->AddText(esp_font, esp_font_sz, p, c, s);
         };
@@ -1965,8 +2245,13 @@ static void DrawESP() {
             auto target = esp::LineTarget(cx,tl.y,br.y,mode);
             ImVec2 pa(origin.x,origin.y), pb(target.x,target.y);
             auto* front = ImGui::GetForegroundDrawList();
+            // Snapline alpha is its own (usually softer) setting.
+            const ImU32 team_line_alpha = g_cfg.col_line & 0xFF000000u;
+            const ImU32 line_col = team_tint
+                ? (TeamTint(e.team, reserved_cols) & 0x00FFFFFFu) | team_line_alpha
+                : g_cfg.col_line;
             front->AddLine(pa,pb,IM_COL32(0,0,0,200),3.0f);
-            front->AddLine(pa,pb,g_cfg.col_line,1.5f);
+            front->AddLine(pa,pb,line_col,1.5f);
         }
 
         if (Has(F_ESP_BOX)) {
@@ -2061,16 +2346,32 @@ static void DrawESP() {
         if (is_knocked) {
             y -= chip(cx, y, "[KNOCKED]", IM_COL32(255, 175, 45, 255));
         }
+        if (team_label_on && !e.is_team && !e.is_monster) {
+            const int number = g_team_labels.NumberFor(e.team);
+            if (number > 0) {
+                char tbuf[24];
+                snprintf(tbuf, sizeof(tbuf), "Team %d", number);
+                y -= chip(cx, y, tbuf, team_tint ? col : g_cfg.col_team);
+            }
+        }
+        // The header above the box carries at most the knock state, the team and
+        // the player name: stacking weapon + hero + name there buried the target.
         if (Has(F_ESP_NAME) && e.name[0]) {
             y -= chip(cx, y, e.name, g_cfg.col_name);
         }
         if (Has(F_ESP_GUN) && e.gun[0]) {
             y -= chip(cx, y, e.gun, g_cfg.col_gun);
         }
+        // Feet row, top to bottom: distance, then hero name.
+        float foot_y = fy + 6.0f;
         if (Has(F_ESP_DISTANCE)) {
             char dbuf[24];
             snprintf(dbuf, sizeof(dbuf), "%.0f m", e.distance);
-            chip(cx, fy + 6.0f, dbuf, g_cfg.col_dist);
+            foot_y += chip(cx, foot_y, dbuf, g_cfg.col_dist);
+        }
+        if (hero_label_on && !e.is_team) {
+            const std::string hero = EnemyHeroLabel(e.hero_id);
+            if (!hero.empty()) foot_y += chip(cx, foot_y, hero.c_str(), g_cfg.col_name);
         }
 
         bool has_hp = Has(F_ESP_HEALTH) && e.max_hp > 0.0f;
@@ -2128,7 +2429,13 @@ static void DrawESP() {
         }
         if (has_armor) {
             float ratio = e.armor / e.max_armor;
-            ImU32 arm_color = is_knocked ? IM_COL32(120, 140, 180, 240) : g_cfg.col_armor;
+            // The bar is coloured by the target's maximum armor tier, not by a
+            // number next to it: 50 grey, 75 blue, 100 purple, 125 gold. This is
+            // automatic whenever the armor bar is on - there is nothing to turn
+            // on and nothing to type.
+            const ImU32 arm_color = is_knocked
+                ? IM_COL32(120, 140, 180, 240)
+                : armortier::Packed(e.max_armor);
             float bx = has_hp ? (first_x + bar_w + bar_gap) : first_x;
             draw_bar(bx, ratio, arm_color, true);
         }
@@ -2201,7 +2508,7 @@ static void DrawESPTab() {
     Section("Player overlay");
     FlagCheck("Enable ESP",F_ESP);
     bool radar_on = (g_cfg.reserved & OPT_ESP_RADAR) != 0;
-    if (CiyEUi::Toggle("2D radar (100 m)",&radar_on,ImGui::GetContentRegionAvail().x)) {
+    if (CometUi::Toggle("2D radar (100 m)",&radar_on,ImGui::GetContentRegionAvail().x)) {
         g_cfg.reserved = radar_on ? g_cfg.reserved | OPT_ESP_RADAR : g_cfg.reserved & ~OPT_ESP_RADAR;
         g_cfg_dirty = true;
     }
@@ -2218,7 +2525,7 @@ static void DrawESPTab() {
         g_cfg_dirty = true;
     }
     bool arrows = (g_cfg.esp_style & ESP_OFFSCREEN_ARROW) != 0;
-    if (CiyEUi::Toggle("Offscreen arrows",&arrows,ImGui::GetContentRegionAvail().x)) {
+    if (CometUi::Toggle("Offscreen arrows",&arrows,ImGui::GetContentRegionAvail().x)) {
         g_cfg.esp_style = arrows ? g_cfg.esp_style | ESP_OFFSCREEN_ARROW : g_cfg.esp_style & ~ESP_OFFSCREEN_ARROW;
         g_cfg_dirty = true;
     }
@@ -2229,6 +2536,19 @@ static void DrawESPTab() {
     FlagCheck("Armor bar",F_ESP_ARMOR);
     FlagCheck("Head marker",F_ESP_HEADDOT);
     FlagCheck("Enemy counter",F_ESP_COUNT);
+    EndCard();
+    ImGui::Dummy(ImVec2(0,12));
+    BeginCard("visuals_extras",ImVec2(0,0));
+    Section("ESP extras");
+    bool hero = HasOpt2(OPT2_ESP_HERO);
+    if (CometUi::Toggle("Enemy hero name",&hero,ImGui::GetContentRegionAvail().x)) SetOpt2(OPT2_ESP_HERO,hero);
+    bool team_label = HasOpt2(OPT2_TEAM_LABEL);
+    if (CometUi::Toggle("Team label",&team_label,ImGui::GetContentRegionAvail().x)) SetOpt2(OPT2_TEAM_LABEL,team_label);
+    bool team_colors = HasOpt2(OPT2_TEAM_COLORS);
+    if (CometUi::Toggle("Team box + line colors",&team_colors,ImGui::GetContentRegionAvail().x)) SetOpt2(OPT2_TEAM_COLORS,team_colors);
+    ImGui::TextDisabled("Team colours are assigned per team, automatically.");
+    ImGui::TextDisabled("Armor bar colour follows max armor: 50 / 75 / 100 / 125.");
+    ImGui::TextDisabled("Armour colour is automatic; there is no colour picker.");
     EndCard();
     ImGui::TableNextColumn();
     BeginCard("visuals_filters",ImVec2(0,0));
@@ -2254,7 +2574,7 @@ static void DrawESPTab() {
         ColorRow("Skeleton",g_cfg.col_skel); ColorRow("Snapline",g_cfg.col_line);
         ColorRow("Player name",g_cfg.col_name); ColorRow("Weapon name",g_cfg.col_gun);
         ColorRow("Distance",g_cfg.col_dist); ColorRow("Health",g_cfg.col_health);
-        ColorRow("Armor",g_cfg.col_armor); ColorRow("Head marker",g_cfg.col_headdot);
+        ColorRow("Head marker",g_cfg.col_headdot);
         ColorRow("Teammates",g_cfg.col_team); ColorRow("Bots",g_cfg.col_monster);
         ColorRow("Counter",g_cfg.col_count);
     if (ImGui::Button("Reset colors", ImVec2(150, 26))) {
@@ -2278,8 +2598,6 @@ static void DrawESPTab() {
         g_cfg.col_dist = IM_COL32(200, 205, 215, 240);
 
         g_cfg.col_health = IM_COL32(96, 235, 155, 240);
-
-        g_cfg.col_armor = IM_COL32(80, 180, 255, 240);
 
         g_cfg.col_headdot = IM_COL32(255, 255, 255, 235);
 
@@ -2337,7 +2655,7 @@ static void DrawAimTab() {
     FlagCheck("Visible targets only",F_AIM_VISIBLE);
     FlagCheck("Allow teammates",F_AIM_TEAM);
     bool skip=(g_cfg.reserved&OPT_AIM_IGNORE_KNOCKED)!=0;
-    if(CiyEUi::Toggle("Ignore knocked targets",&skip,ImGui::GetContentRegionAvail().x)) {
+    if(CometUi::Toggle("Ignore knocked targets",&skip,ImGui::GetContentRegionAvail().x)) {
         if(skip) g_cfg.reserved|=OPT_AIM_IGNORE_KNOCKED; else g_cfg.reserved&=~OPT_AIM_IGNORE_KNOCKED;
         g_cfg_dirty=true;
     }
@@ -2348,9 +2666,18 @@ static void DrawAimTab() {
     BeginCard("aim_activation",ImVec2(0,0));
     Section("Activation");
     BindRow("Aim key",g_cfg.aim_key,1);
+    // Optional second key: either one activates the aimbot, so a user can keep
+    // the mouse bind and add a keyboard bind (or the other way round).
+    BindRow("Aim key 2",g_cfg.aim_key2,2);
+    if (g_cfg.aim_key2 != 0) {
+        ImGui::SameLine();
+        if (ImGui::SmallButton("Clear##aim2")) { g_cfg.aim_key2 = 0; g_cfg_dirty = true; }
+    } else {
+        ImGui::TextDisabled("Unbound - either key activates the aimbot.");
+    }
     bool toggle=OptAimToggle();
-    if(CiyEUi::Toggle("Toggle activation",&toggle,ImGui::GetContentRegionAvail().x)) SetOptAimToggle(toggle);
-    if(g_bind_slot==1) ImGui::TextDisabled("Press a key to assign...");
+    if(CometUi::Toggle("Toggle activation",&toggle,ImGui::GetContentRegionAvail().x)) SetOptAimToggle(toggle);
+    if(g_bind_slot==1||g_bind_slot==2) ImGui::TextDisabled("Press a key to assign...");
     EndCard();
     ImGui::TableNextColumn();
     BeginCard("aim_tracking",ImVec2(0,0));
@@ -2367,13 +2694,26 @@ static void DrawAimTab() {
     FlagCheck("Movement prediction",F_AIM_PREDICT);
     EndCard();
     ImGui::Dummy(ImVec2(0,12));
+    BeginCard("aim_input",ImVec2(0,0));
+    Section("Input");
+    // Input noise is applied inside the aimbot's mouse path only. It never
+    // reaches the trigger, the menu, or any other input the user sends.
+    bool noise = HasOpt2(OPT2_AIM_NOISE);
+    if (CometUi::Toggle("Input noise (aim only)",&noise,ImGui::GetContentRegionAvail().x)) SetOpt2(OPT2_AIM_NOISE,noise);
+    ImGui::BeginDisabled(!HasOpt2(OPT2_AIM_NOISE));
+    SliderF32("Noise amount",g_cfg.noise_strength,0.0002f,0.008f,"%.4f");
+    ImGui::EndDisabled();
+    ImGui::TextDisabled("Input method: SendInput");
+    ImGui::TextWrapped("Mouse corrections are sent with SendInput only. The noise offset is bounded per correction and fades out at the aim point.");
+    EndCard();
+    ImGui::Dummy(ImVec2(0,12));
     BeginCard("aim_recoil",ImVec2(0,0));
     Section("NO RECOIL");
     FlagCheck("Enable",F_RECOIL);
     Section("RCS");
     {
         bool rcs = g_cfg.humanize > 0.0f;
-        if (CiyEUi::Toggle("Enable##rcs", &rcs, ImGui::GetContentRegionAvail().x)) {
+        if (CometUi::Toggle("Enable##rcs", &rcs, ImGui::GetContentRegionAvail().x)) {
             g_cfg.humanize = rcs ? 1.0f : 0.0f;
             g_cfg_dirty = true;
         }
@@ -2626,10 +2966,10 @@ static void DrawSkinTab() {
     ImGui::SameLine();
     if (ImGui::Button("Reload catalog", ImVec2(122, 0))) LoadCatalog();
     bool only = Has(F_SKIN_CURRENT);
-    if (CiyEUi::Toggle("Current hero only", &only)) SetF(F_SKIN_CURRENT, only);
+    if (CometUi::Toggle("Current hero only", &only)) SetF(F_SKIN_CURRENT, only);
     ImGui::SameLine();
     bool auto_apply = g_cfg.auto_skin != 0;
-    if (CiyEUi::Toggle("Auto apply saved skins", &auto_apply)) { g_cfg.auto_skin = auto_apply ? 1u : 0u; g_cfg_dirty = true; SaveCfg(); }
+    if (CometUi::Toggle("Auto apply saved skins", &auto_apply)) { g_cfg.auto_skin = auto_apply ? 1u : 0u; g_cfg_dirty = true; SaveCfg(); }
     if (!g_inventory_error.empty()) {
         ImGui::TextWrapped("%s", g_inventory_error.c_str());
         if (ImGui::Button("Retry Inventory load")) LoadSkinInventory(true);
@@ -2927,6 +3267,8 @@ static DWORD WINAPI UnloadWorker(LPVOID) {
 
     Sleep(100);
 
+    comet_capture::Restore(g_hwnd, g_obs);
+
     if (g_hwnd && g_wndproc) {
 
         SetWindowLongPtrW(g_hwnd, GWLP_WNDPROC, (LONG_PTR)g_wndproc);
@@ -2951,7 +3293,7 @@ static DWORD WINAPI UnloadWorker(LPVOID) {
 
     }
 
-    if (g_rtv) { g_rtv->Release(); g_rtv = nullptr; }
+    g_rtv_live = false;
 
     if (g_context) { g_context->Release(); g_context = nullptr; }
 
@@ -2987,6 +3329,7 @@ static DWORD WINAPI UnloadWorker(LPVOID) {
 
 static void SafeExitCheatAndGame() {
     g_unloading=true;
+    comet_capture::Restore(g_hwnd, g_obs);
     if (g_hwnd && g_wndproc) {
         SetWindowLongPtrW(g_hwnd, GWLP_WNDPROC, (LONG_PTR)g_wndproc);
         g_wndproc = nullptr;
@@ -3000,7 +3343,7 @@ static void SafeExitCheatAndGame() {
         ImGui::DestroyContext();
         g_imgui_ready = false;
     }
-    if (g_rtv) { g_rtv->Release(); g_rtv = nullptr; }
+    g_rtv_live = false;
     if (g_context) { g_context->Release(); g_context = nullptr; }
     if (g_device) { g_device->Release(); g_device = nullptr; }
 
@@ -3060,7 +3403,7 @@ static void DrawSettingsTab() {
         g_cfg.pad[0]=CFG_UI_TAG;g_cfg.pad[1]=theme;g_cfg_dirty=true;ApplyMenuPreferences();
     }
     bool reduced=g_cfg.pad[0]==CFG_UI_TAG&&g_cfg.pad[2]!=0;
-    if(CiyEUi::Toggle("Reduced motion",&reduced,ImGui::GetContentRegionAvail().x)) {
+    if(CometUi::Toggle("Reduced motion",&reduced,ImGui::GetContentRegionAvail().x)) {
         g_cfg.pad[0]=CFG_UI_TAG;g_cfg.pad[1]=theme;g_cfg.pad[2]=reduced?1u:0u;
         g_cfg_dirty=true;ApplyMenuPreferences();
     }
@@ -3068,6 +3411,17 @@ static void DrawSettingsTab() {
     ImGui::TableNextColumn();
     BeginCard("settings_protection",ImVec2(0,0));
     Section("Protection");
+    bool obs = HasOpt2(OPT2_OBS_PROTECT);
+    if (CometUi::Toggle("Windows capture exclusion",&obs,ImGui::GetContentRegionAvail().x)) {
+        SetOpt2(OPT2_OBS_PROTECT,obs);
+        // Re-apply immediately so the toggle is honest in the same frame.
+        g_obs = comet_capture::Blackout{};
+        ApplyObsProtection();
+    }
+    ImGui::TextDisabled("%s",comet_capture::Describe(g_obs));
+    if (g_obs.status==comet_capture::Status::Denied)
+        ImGui::TextDisabled("SetWindowDisplayAffinity failed (%lu); the last affinity is unchanged.",g_obs.error);
+    ImGui::TextWrapped("Windows capture exclusion is best effort. OBS Game Capture and Steam can still capture the overlay because it is drawn into the game. Do not rely on this to hide it.");
     FlagCheck("Block reports",F_BLOCK_REPORT);
     FlagCheck("Unlock effects",F_UNLOCK_EFFECTS);
     FlagCheck("Force killfx",F_FORCE_KILLFX);
@@ -3077,7 +3431,7 @@ static void DrawSettingsTab() {
     Section("Session controls");
     if(ImGui::Button("Unload overlay",ImVec2(-1,34))) UnloadOverlay();
     ImGui::Dummy(ImVec2(0,8));
-    ImGui::PushStyleColor(ImGuiCol_Text,ImGui::ColorConvertU32ToFloat4(CiyEUi::Danger));
+    ImGui::PushStyleColor(ImGuiCol_Text,ImGui::ColorConvertU32ToFloat4(CometUi::Danger));
     if(ImGui::Button("Safe exit",ImVec2(-1,34))) SafeExitCheatAndGame();
     ImGui::PopStyleColor();
     EndCard();
@@ -3086,14 +3440,19 @@ static void DrawSettingsTab() {
 
 static void DrawMenu() {
     if (!Has(F_MENU_OPEN)) return;
-    static double next_catalog_check = 0;
+    // Catalog hot-reload. This is a synchronous file read plus a rebuild of the
+    // skin index, so it runs on a 2 s timer and only when the file really
+    // changed - not once per frame while the menu is open.
+    static ULONGLONG next_catalog_check = 0;
     static FILETIME last_catalog_write{};
-    if (ImGui::GetTime() >= next_catalog_check) {
-        next_catalog_check = ImGui::GetTime() + 1;
+    const ULONGLONG now_tick = GetTickCount64();
+    if (now_tick >= next_catalog_check) {
+        next_catalog_check = now_tick + 2000;
         WIN32_FILE_ATTRIBUTE_DATA attr{};
         if (GetFileAttributesExW(CatalogPath().c_str(), GetFileExInfoStandard, &attr) &&
             (!g_catalog_ready || CompareFileTime(&last_catalog_write, &attr.ftLastWriteTime) != 0)) {
-            LoadCatalog(); last_catalog_write = attr.ftLastWriteTime;
+            LoadCatalog();
+            last_catalog_write = attr.ftLastWriteTime;
         }
     }
     ProcessBind();
@@ -3110,25 +3469,25 @@ static void DrawMenu() {
         g_reset_menu_pos = false;
     } else ImGui::SetNextWindowPos(ImVec2(60, 30), ImGuiCond_FirstUseEver);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
-    ImGui::Begin("##ciye_main", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse |
+    ImGui::Begin("##comet_main", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse |
                  ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoSavedSettings);
     auto* dl = ImGui::GetWindowDrawList();
     const ImVec2 wp = ImGui::GetWindowPos(), ws = ImGui::GetWindowSize();
-    CiyEUi::Shadow(ImGui::GetBackgroundDrawList(),wp,ws);
+    CometUi::Shadow(ImGui::GetBackgroundDrawList(),wp,ws);
     constexpr float rail = 188;
-    dl->AddRectFilled(wp, ImVec2(wp.x + rail, wp.y + ws.y), CiyEUi::Ground, 12, ImDrawFlags_RoundCornersLeft);
-    dl->AddLine(ImVec2(wp.x + rail, wp.y), ImVec2(wp.x + rail, wp.y + ws.y), CiyEUi::Border);
-    CiyEUi::Logo(dl,ImVec2(wp.x+22,wp.y+26),30);
-    if(g_font_big) dl->AddText(g_font_big,20,ImVec2(wp.x+64,wp.y+24),CiyEUi::Text,"CiyE");
-    else dl->AddText(ImVec2(wp.x+64,wp.y+24),CiyEUi::Text,"CiyE");
+    dl->AddRectFilled(wp, ImVec2(wp.x + rail, wp.y + ws.y), CometUi::Ground, 12, ImDrawFlags_RoundCornersLeft);
+    dl->AddLine(ImVec2(wp.x + rail, wp.y), ImVec2(wp.x + rail, wp.y + ws.y), CometUi::Border);
+    CometUi::Logo(dl,ImVec2(wp.x+22,wp.y+26),30);
+    if(g_font_big) dl->AddText(g_font_big,20,ImVec2(wp.x+64,wp.y+24),CometUi::Text,"Comet");
+    else dl->AddText(ImVec2(wp.x+64,wp.y+24),CometUi::Text,"Comet");
     ImGui::SetCursorPos(ImVec2(12,100));
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 6));
     ImGui::BeginChild("navigation", ImVec2(rail - 24, ws.y - 120), ImGuiChildFlags_None);
     const char* labels[] = {"Visuals", "Aim", "Skins", "Settings"};
-    const CiyEUi::Icon icons[] = {CiyEUi::Icon::Eye, CiyEUi::Icon::Target, CiyEUi::Icon::Skins, CiyEUi::Icon::Settings};
-    CiyEUi::NavIndicator(g_tab, rail - 24);
+    const CometUi::Icon icons[] = {CometUi::Icon::Eye, CometUi::Icon::Target, CometUi::Icon::Skins, CometUi::Icon::Settings};
+    CometUi::NavIndicator(g_tab, rail - 24);
     for (int i = 0; i < 4; ++i) {
-        if (CiyEUi::NavItem(labels[i], icons[i], g_tab == i, rail - 24)) g_tab = i;
+        if (CometUi::NavItem(labels[i], icons[i], g_tab == i, rail - 24)) g_tab = i;
     }
     ImGui::EndChild();
     ImGui::PopStyleVar();
@@ -3139,8 +3498,8 @@ static void DrawMenu() {
     ImGui::SetCursorPos(ImVec2(ws.x-178,26));
     if(ImGui::Button("Save config",ImVec2(112,32))) SaveConfiguration();
     ImGui::SetCursorPos(ImVec2(ws.x-46,28));
-    if(CiyEUi::CloseButton("##close",ImVec2(28,28))) SetF(F_MENU_OPEN,false);
-    dl->AddLine(ImVec2(wp.x+rail+26,wp.y+70),ImVec2(wp.x+ws.x-26,wp.y+70),CiyEUi::Border);
+    if(CometUi::CloseButton("##close",ImVec2(28,28))) SetF(F_MENU_OPEN,false);
+    dl->AddLine(ImVec2(wp.x+rail+26,wp.y+70),ImVec2(wp.x+ws.x-26,wp.y+70),CometUi::Border);
     ImGui::SetCursorPos(ImVec2(rail+26,86));
     ImGui::PushID(g_tab);
     ImGui::BeginChild("content", ImVec2(ws.x - rail - 52, ws.y - 104), ImGuiChildFlags_None);
@@ -3175,17 +3534,15 @@ static void HandleToggle() {
 
 
 
+// Confirms buffer 0 can be turned into a render target and records the current
+// size, then releases the view immediately. Nothing here is kept: see the note
+// on g_rtv_live. If this fails, drawing is skipped for the frame rather than
+// leaving a held reference behind.
 static void CreateRTV() {
 
+    g_rtv_live = false;
+
     if (!g_swapchain || !g_device) return;
-
-    if (g_rtv) {
-
-        g_rtv->Release();
-
-        g_rtv = nullptr;
-
-    }
 
     ID3D11Texture2D* back = nullptr;
 
@@ -3203,11 +3560,20 @@ static void CreateRTV() {
 
     }
 
-    g_device->CreateRenderTargetView(back, nullptr, &g_rtv);
+    ID3D11RenderTargetView* probe = nullptr;
+
+    if (SUCCEEDED(g_device->CreateRenderTargetView(back, nullptr, &probe)) && probe) {
+
+        g_rtv_live = true;
+
+        probe->Release();
+
+    }
 
     back->Release();
 
 }
+
 
 
 
@@ -3217,15 +3583,36 @@ static bool BindSwapchain(IDXGISwapChain* sc) {
 
     if (sc == g_swapchain) return true;
 
+    // Rejection cache. Present runs at the refresh rate; a swapchain we already
+    // refused (another window, another device) must not be re-interrogated, and
+    // above all must not log: Log() opens, writes and closes the log file, which
+    // is a synchronous disk write inside Present. Re-logging every present of a
+    // non-selected swapchain was a direct source of frame drops.
+    static IDXGISwapChain* rejected[8]{};
+    static int rejected_count = 0;
+    for (int i = 0; i < rejected_count; ++i) {
+
+        if (rejected[i] == sc) return false;
+
+    }
+
+    auto reject = [&]() {
+
+        if (rejected_count < (int)(sizeof(rejected) / sizeof(rejected[0]))) rejected[rejected_count++] = sc;
+
+        return false;
+
+    };
+
     DXGI_SWAP_CHAIN_DESC desc{};
 
-    if (FAILED(sc->GetDesc(&desc))) return false;
+    if (FAILED(sc->GetDesc(&desc))) return reject();
 
     if (g_hwnd && desc.OutputWindow && desc.OutputWindow != g_hwnd) {
 
         Log("swapchain skip other hwnd=%p", desc.OutputWindow);
 
-        return false;
+        return reject();
 
     }
 
@@ -3235,7 +3622,7 @@ static bool BindSwapchain(IDXGISwapChain* sc) {
 
         Log("swapchain skip no device %p", sc);
 
-        return false;
+        return reject();
 
     }
 
@@ -3247,17 +3634,11 @@ static bool BindSwapchain(IDXGISwapChain* sc) {
 
         Log("swapchain skip other device %p", sc);
 
-        return false;
+        return reject();
 
     }
 
-    if (g_rtv) {
-
-        g_rtv->Release();
-
-        g_rtv = nullptr;
-
-    }
+    g_rtv_live = false;
 
     g_swapchain = sc;
 
@@ -3340,7 +3721,7 @@ static void InitFonts() {
 
         cfg.PixelSnapH = true;
 
-        ImFont* f = io.Fonts->AddFontFromFileTTF(path, 16.0f, &cfg, io.Fonts->GetGlyphRangesChineseFull());
+        ImFont* f = io.Fonts->AddFontFromFileTTF(path, 16.0f, &cfg, io.Fonts->GetGlyphRangesDefault());
 
         if (f) {
 
@@ -3368,7 +3749,7 @@ static void InitFonts() {
 
         cfg.PixelSnapH = true;
 
-        ImFont* f = io.Fonts->AddFontFromFileTTF(path, 21.0f, &cfg, io.Fonts->GetGlyphRangesChineseFull());
+        ImFont* f = io.Fonts->AddFontFromFileTTF(path, 21.0f, &cfg, io.Fonts->GetGlyphRangesDefault());
 
         if (f) {
 
@@ -3396,7 +3777,7 @@ static void InitFonts() {
 
         cfg.PixelSnapH = true;
 
-        ImFont* f = io.Fonts->AddFontFromFileTTF(path, 18.0f, &cfg, io.Fonts->GetGlyphRangesChineseFull());
+        ImFont* f = io.Fonts->AddFontFromFileTTF(path, 18.0f, &cfg, io.Fonts->GetGlyphRangesDefault());
 
         if (f) {
 
@@ -3572,10 +3953,19 @@ static bool InitOverlay(IDXGISwapChain* sc) {
 
     }
 
+    // This is the game's actual swap chain, not the hidden probe created by
+    // InstallHook. Record its settings rather than assuming a presentation mode.
+    Log("game swapchain effect=%u buffers=%u windowed=%d flags=0x%08x size=%ux%u hwnd=%p",
+        (unsigned)desc.SwapEffect, (unsigned)desc.BufferCount, (int)desc.Windowed,
+        (unsigned)desc.Flags, (unsigned)desc.BufferDesc.Width,
+        (unsigned)desc.BufferDesc.Height, desc.OutputWindow);
+
     g_swapchain = sc;
 
     g_hwnd = desc.OutputWindow;
-    SetWindowDisplayAffinity(g_hwnd,WDA_NONE);
+    // Display affinity belongs to capture_guard now: it applies the saved
+    // OBS-protection setting instead of unconditionally clearing it, and
+    // re-asserts it if the game drops it (see ApplyObsProtection).
 
     if (FAILED(sc->GetDevice(__uuidof(ID3D11Device), (void**)&g_device)) || !g_device) {
 
@@ -3601,7 +3991,7 @@ static bool InitOverlay(IDXGISwapChain* sc) {
 
     CreateRTV();
 
-    if (!g_rtv) {
+    if (!g_rtv_live) {
 
         g_init_failed = true;
 
@@ -3623,7 +4013,7 @@ static bool InitOverlay(IDXGISwapChain* sc) {
 
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
 
-    CiyEUi::ApplyStyle();
+    CometUi::ApplyStyle();
 
     InitFonts();
 
@@ -3654,7 +4044,7 @@ static bool InitOverlay(IDXGISwapChain* sc) {
 
     g_imgui_ready = true;
 
-    Log("overlay ready hwnd=%p device=%p rtv=%p size=%ux%u", g_hwnd, g_device, g_rtv, g_width, g_height);
+    Log("overlay ready hwnd=%p device=%p rtv=%d size=%ux%u", g_hwnd, g_device, g_rtv_live ? 1 : 0, g_width, g_height);
 
     return true;
 
@@ -3686,7 +4076,10 @@ static void RenderFrame(IDXGISwapChain* sc) {
 
     }
 
-    if (g_cfg_dirty && tick - g_last_cfg_save >= (menu ? 60 : 250)) {
+    // One save path, one cadence. A slider drag used to rewrite both config files
+    // (IPC + LOCALAPPDATA) on the render thread while the menu was open, which is
+    // a synchronous disk write inside Present - visible as a periodic hitch.
+    if (g_cfg_dirty && tick - g_last_cfg_save >= 250) {
 
         g_last_cfg_save = tick;
 
@@ -3695,38 +4088,43 @@ static void RenderFrame(IDXGISwapChain* sc) {
     }
 
     EnsureWndProc();
+    ApplyObsProtection();
 
-    bool need = menu || (g_state.in_match && (Has(F_ESP) || Has(F_AIM_FOV_CIRCLE)));
+    // Leaving the match is the reliable boundary for a new "Team 1": the label
+    // cache is per-match, so it is cleared here as well as after a long empty
+    // stretch (Frame() below), which covers wiping back to spectate.
+    if (!g_state.in_match) g_team_labels.Reset();
+
+    bool need = menu || (g_state.in_match &&
+                         (Has(F_ESP) || Has(F_AIM_FOV_CIRCLE)));
 
     if (!need) return;
 
     if (!BindSwapchain(sc)) return;
 
-    if (!g_rtv) CreateRTV();
+    if (!g_rtv_live) CreateRTV();
 
-    if (!g_rtv) return;
+    if (!g_rtv_live) return;
 
-    if (g_display_dirty) {
-
-        g_display_dirty = false;
-
-        ImGui_ImplDX11_InvalidateDeviceObjects();
-
-        CreateRTV();
-
-        ImGui_ImplDX11_CreateDeviceObjects();
-
-    }
-
-    if (g_display_dirty || g_width == 0 || g_height == 0) {
+    // Back-buffer size change -> rebuild the RTV and the ImGui device objects.
+    // This must run *before* NewFrame: NewFrame uploads the font atlas using the
+    // texture handle stored in io.Fonts->TexID, so starting a frame after
+    // invalidating and before re-creating leaves that pointer dangling - a crash
+    // or a blank atlas on a window resize or DPI change.
+    {
         DXGI_SWAP_CHAIN_DESC desc{};
-        if (SUCCEEDED(sc->GetDesc(&desc))) {
-            UINT w = desc.BufferDesc.Width;
-            UINT h = desc.BufferDesc.Height;
-            if (w > 0 && h > 0 && (w != g_width || h != g_height)) {
-                ImGui_ImplDX11_InvalidateDeviceObjects();
-                CreateRTV();
-                ImGui_ImplDX11_CreateDeviceObjects();
+        const bool sized = SUCCEEDED(sc->GetDesc(&desc)) &&
+                           desc.BufferDesc.Width > 0 && desc.BufferDesc.Height > 0;
+        const bool resized = sized && (desc.BufferDesc.Width != g_width ||
+                                       desc.BufferDesc.Height != g_height);
+        if (resized || g_display_dirty) {
+            g_display_dirty = false;
+            ImGui_ImplDX11_InvalidateDeviceObjects();
+            CreateRTV();
+            ImGui_ImplDX11_CreateDeviceObjects();
+            if (sized) {
+                g_width = desc.BufferDesc.Width;
+                g_height = desc.BufferDesc.Height;
             }
         }
     }
@@ -3772,60 +4170,187 @@ static void RenderFrame(IDXGISwapChain* sc) {
     DrawMenu();
     EnsureWndProc();
     background->ChannelsSetCurrent(0);
+    // Team numbering advances on every frame (not just when the ESP draws) so a
+    // finished match clears the cache even if the ESP was off the whole time.
+    g_team_labels.Frame(g_state.in_match && !g_ents.empty());
     DrawESP();DrawFOV();DrawRadar();
     background->ChannelsMerge();
     if(g_unloading) {ImGui::EndFrame();return;}
 
     ImGui::Render();
 
-    g_context->OMSetRenderTargets(1, &g_rtv, nullptr);
-    ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+    // Save the game's pipeline state and put it back afterwards. Binding our RTV
+    // without restoring the previous render target leaves the game drawing into
+    // the wrong target with the wrong viewport on the next frame, which presents
+    // as a frozen picture while the window still processes input.
+    // Restore *exactly* what the game had bound. Asking for the full MRT set
+    // matters: reading one target and rebinding one target would quietly drop
+    // the rest of a multi-target set, and the count matters too - if the game
+    // had nothing bound, rebinding "one target" is already wrong.
+    constexpr UINT kMaxTargets = D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT;
+    ID3D11RenderTargetView* prev_rtvs[kMaxTargets]{};
+    ID3D11DepthStencilView* prev_dsv = nullptr;
+    g_context->OMGetRenderTargets(kMaxTargets, prev_rtvs, &prev_dsv);
+    UINT prev_rtv_count = 0;
+    while (prev_rtv_count < kMaxTargets && prev_rtvs[prev_rtv_count]) ++prev_rtv_count;
 
-    if (g_cfg_dirty && tick - g_last_cfg_save >= 60) {
+    D3D11_VIEWPORT prev_vp[D3D11_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE]{};
+    UINT vp_count = (UINT)(sizeof(prev_vp) / sizeof(prev_vp[0]));
+    g_context->RSGetViewports(&vp_count, prev_vp);
 
-        g_last_cfg_save = tick;
-
-        SaveCfg();
-
+    // Open a view on the back buffer for this draw only and release it before
+    // Present. A render-target view left outstanding on buffer 0 keeps that
+    // buffer un-releasable, so the game's wait for the previous buffer never
+    // completes and the display stops advancing while frames keep being
+    // produced. Unbind first, then release: the context holds its own reference
+    // while a target is bound.
+    ID3D11Texture2D* back = nullptr;
+    ID3D11RenderTargetView* rtv = nullptr;
+    const bool have_back =
+        SUCCEEDED(g_swapchain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&back)) && back;
+    if (have_back && SUCCEEDED(g_device->CreateRenderTargetView(back, nullptr, &rtv)) && rtv) {
+        g_context->OMSetRenderTargets(1, &rtv, nullptr);
+        ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+        g_context->OMSetRenderTargets(prev_rtv_count, prev_rtv_count ? prev_rtvs : nullptr, prev_dsv);
+        rtv->Release();
+    } else {
+        // Could not reach the back buffer this frame: put the game's binding
+        // back and draw nothing rather than leaving it changed.
+        g_context->OMSetRenderTargets(prev_rtv_count, prev_rtv_count ? prev_rtvs : nullptr, prev_dsv);
     }
+    if (back) back->Release();
 
+    if (vp_count) g_context->RSSetViewports(vp_count, prev_vp);
+    for (UINT i = 0; i < prev_rtv_count; ++i) prev_rtvs[i]->Release();
+    if (prev_dsv) prev_dsv->Release();
 }
 
 
 
-static HRESULT STDMETHODCALLTYPE HookPresent(IDXGISwapChain* sc, UINT sync, UINT flags) {
+// A swap chain whose Present starts failing produces exactly the symptom
+// "the game runs, the screen does not move": frames are rendered and counted,
+// but nothing is scanned out. Present's HRESULT used to be discarded here, so
+// that state was invisible in the log. Record it, rate-limited so a persistent
+// failure cannot flood the file.
+static void NotePresentResult(HRESULT hr, const char* which) {
+    static DWORD last_ms = 0;
+    static int fails = 0;
+    if (SUCCEEDED(hr)) return;
+    ++fails;
+    const DWORD now = GetTickCount();
+    if (fails > 5 && now - last_ms < 1000) return;
+    last_ms = now;
+    Log("%s FAILED hr=%08x (failure %d)", which, (unsigned)hr, fails);
+    if (hr == DXGI_ERROR_DEVICE_REMOVED || hr == DXGI_ERROR_DEVICE_RESET) {
+        Log("%s: device lost, overlay drawing disabled", which);
+        g_render_disabled = true;
+    }
+}
 
+// Measure CPU time spent in overlay work and in the game's Present separately.
+// This does not time GPU execution. Each presenting thread has its own sample;
+// only the selected swap chain is recorded, and the log is written once per 10s.
+struct PresentPerfSample {
+    IDXGISwapChain* swapchain = nullptr;
+    ULONGLONG started = 0;
+    unsigned frames = 0, sync_zero = 0, sync_one = 0, sync_other = 0;
+    double overlay_ms = 0.0, present_ms = 0.0, overlay_max_ms = 0.0;
+};
+
+static void NotePresentPerf(IDXGISwapChain* sc, const char* which, UINT sync,
+                            const LARGE_INTEGER& begin, const LARGE_INTEGER& before_present,
+                            const LARGE_INTEGER& after_present, const LARGE_INTEGER& frequency) {
+    if (sc != g_swapchain || frequency.QuadPart <= 0) return;
+    static thread_local PresentPerfSample sample;
+    const ULONGLONG now = GetTickCount64();
+    if (sample.swapchain != sc) {
+        sample = PresentPerfSample{};
+        sample.swapchain = sc;
+        sample.started = now;
+    }
+    const double scale = 1000.0 / (double)frequency.QuadPart;
+    const double render = (before_present.QuadPart - begin.QuadPart) * scale;
+    const double present = (after_present.QuadPart - before_present.QuadPart) * scale;
+    ++sample.frames;
+    if (sync == 0) ++sample.sync_zero;
+    else if (sync == 1) ++sample.sync_one;
+    else ++sample.sync_other;
+    sample.overlay_ms += render;
+    sample.present_ms += present;
+    if (render > sample.overlay_max_ms) sample.overlay_max_ms = render;
+    if (now - sample.started >= 10000) {
+        Log("perf %s frames=%u interval_ms=%llu sync0=%u sync1=%u sync_other=%u overlay_avg_ms=%.3f overlay_max_ms=%.3f present_avg_ms=%.3f",
+            which, sample.frames, (unsigned long long)(now - sample.started),
+            sample.sync_zero, sample.sync_one, sample.sync_other,
+            sample.overlay_ms / sample.frames, sample.overlay_max_ms, sample.present_ms / sample.frames);
+        sample = PresentPerfSample{};
+        sample.swapchain = sc;
+        sample.started = now;
+    }
+}
+
+static HRESULT STDMETHODCALLTYPE HookPresent(IDXGISwapChain* sc, UINT sync, UINT flags) {
     if(g_inside_present) return g_present(sc,sync,flags);
     PresentScope present_scope;
     if (g_unloading) return g_present ? g_present(sc, sync, flags) : sc->Present(sync, flags);
 
-    if (!g_imgui_ready) InitOverlay(sc);
-
-    RenderFrame(sc);
-
-    return g_present(sc, sync, flags);
-
+    LARGE_INTEGER perf_begin{}, perf_before{}, perf_after{};
+    static thread_local LARGE_INTEGER perf_freq{};
+    if (!perf_freq.QuadPart) QueryPerformanceFrequency(&perf_freq);
+    QueryPerformanceCounter(&perf_begin);
+    if (!g_render_disabled) {
+        const unsigned fault = RenderFrameGuarded(sc);
+        if (fault) NoteFault("present", fault);
+    }
+    // Log the game's requested sync interval once, without overriding it.
+    static volatile LONG logged_game_present = 0;
+    if (sc == g_swapchain && InterlockedCompareExchange(&logged_game_present, 1, 0) == 0) {
+        Log("game Present sync=%u flags=0x%08x", (unsigned)sync, (unsigned)flags);
+    }
+    // Always forward, whatever happened above: skipping the game's own Present
+    // is what turns an overlay fault into a frozen picture.
+    QueryPerformanceCounter(&perf_before);
+    const HRESULT hr = g_present(sc, sync, flags);
+    QueryPerformanceCounter(&perf_after);
+    NotePresentPerf(sc, "Present", sync, perf_begin, perf_before, perf_after, perf_freq);
+    NotePresentResult(hr, "Present");
+    return hr;
 }
+
+
 
 
 
 static HRESULT STDMETHODCALLTYPE HookPresent1(IDXGISwapChain1* sc, UINT sync, UINT flags, const DXGI_PRESENT_PARAMETERS* params) {
-
     if(g_inside_present) return g_present1(sc,sync,flags,params);
     PresentScope present_scope;
     if (g_unloading) return g_present1 ? g_present1(sc, sync, flags, params) : sc->Present1(sync, flags, params);
 
-    if (!g_imgui_ready) InitOverlay(sc);
-
-    RenderFrame(sc);
-
-    return g_present1(sc, sync, flags, params);
-
+    LARGE_INTEGER perf_begin{}, perf_before{}, perf_after{};
+    static thread_local LARGE_INTEGER perf_freq{};
+    if (!perf_freq.QuadPart) QueryPerformanceFrequency(&perf_freq);
+    QueryPerformanceCounter(&perf_begin);
+    if (!g_render_disabled) {
+        const unsigned fault = RenderFrameGuarded(sc);
+        if (fault) NoteFault("present1", fault);
+    }
+    static volatile LONG logged_game_present1 = 0;
+    if (sc == g_swapchain && InterlockedCompareExchange(&logged_game_present1, 1, 0) == 0) {
+        Log("game Present1 sync=%u flags=0x%08x", (unsigned)sync, (unsigned)flags);
+    }
+    QueryPerformanceCounter(&perf_before);
+    const HRESULT hr = g_present1(sc, sync, flags, params);
+    QueryPerformanceCounter(&perf_after);
+    NotePresentPerf(sc, "Present1", sync, perf_begin, perf_before, perf_after, perf_freq);
+    NotePresentResult(hr, "Present1");
+    return hr;
 }
 
 
 
-static HRESULT STDMETHODCALLTYPE HookResizeBuffers(IDXGISwapChain* sc, UINT count, UINT w, UINT h, DXGI_FORMAT fmt, UINT flags) {
+
+
+static HRESULT ResizeBuffersBody(IDXGISwapChain* sc, UINT count, UINT w, UINT h, DXGI_FORMAT fmt, UINT flags) {
 
     if (g_unloading) return g_resize ? g_resize(sc, count, w, h, fmt, flags) : sc->ResizeBuffers(count, w, h, fmt, flags);
 
@@ -3837,35 +4362,65 @@ static HRESULT STDMETHODCALLTYPE HookResizeBuffers(IDXGISwapChain* sc, UINT coun
 
     }
 
-    if (g_rtv) {
-
-        g_rtv->Release();
-
-        g_rtv = nullptr;
-
-    }
+    // ResizeBuffers fails with DXGI_ERROR_INVALID_CALL while any view on the
+    // back buffers is outstanding. Views are now per-frame and released before
+    // Present, so nothing should be held here; clear the flag defensively and
+    // re-probe below.
+    g_rtv_live = false;
 
     if (g_imgui_ready) ImGui_ImplDX11_InvalidateDeviceObjects();
 
     HRESULT hr = g_resize(sc, count, w, h, fmt, flags);
 
+    if (FAILED(hr)) Log("resize buffers failed %ux%u hr=%08x", w, h, (unsigned)hr);
+
     if (g_imgui_ready) {
 
         CreateRTV();
 
-        ImGui_ImplDX11_CreateDeviceObjects();
-
-        g_display_dirty = true;
-
-        g_reset_menu_pos = true;
+        // RenderFrame handles g_display_dirty before its next ImGui NewFrame.
+        // Recreating here as well would compile shaders and recreate resources
+        // twice for the same resize.
 
     }
+
+    g_display_dirty = true;
+
+    g_reset_menu_pos = true;
 
     Log("resize buffers %ux%u hr=%08x", w, h, (unsigned)hr);
 
     return hr;
 
 }
+
+// SEH wrapper: no destructible locals here (see the note above), so MSVC accepts
+// the __try. A fault inside the resize path must not propagate into the game's
+// ResizeBuffers caller, which usually aborts the process on failure.
+static unsigned ResizeBuffersGuarded(IDXGISwapChain* sc, UINT count, UINT w, UINT h,
+                                     DXGI_FORMAT fmt, UINT flags, HRESULT& hr) {
+    DWORD code = 0;
+    COMET_TRY {
+        hr = ResizeBuffersBody(sc, count, w, h, fmt, flags);
+    }
+    COMET_EXCEPT(EXCEPTION_EXECUTE_HANDLER) {
+        code = GetExceptionCode();
+    }
+    return (unsigned)code;
+}
+
+static HRESULT STDMETHODCALLTYPE HookResizeBuffers(IDXGISwapChain* sc, UINT count, UINT w, UINT h, DXGI_FORMAT fmt, UINT flags) {
+    HRESULT hr = S_OK;
+    const unsigned fault = ResizeBuffersGuarded(sc, count, w, h, fmt, flags, hr);
+    if (fault) {
+        NoteFault("resize", fault);
+        // Fall through to the original so the game still gets a well-formed
+        // result instead of a made-up one.
+        return g_resize ? g_resize(sc, count, w, h, fmt, flags) : hr;
+    }
+    return hr;
+}
+
 
 
 
@@ -4106,11 +4661,97 @@ static DWORD WINAPI RecoilControlSystemWorker(LPVOID) {
 
 
 #ifndef CIYE_MENU_PREVIEW
+// Set by CrashFilter install; see below.
+static LPTOP_LEVEL_EXCEPTION_FILTER g_prev_crash_filter = nullptr;
+// Pre-resolved in DllMain, before anything can fault. The crash path must not
+// touch the heap or the CRT file layer: if the fault happened with a heap or
+// stdio lock held by this same thread, logging through them would hang the
+// process instead of reporting the crash, and a hang looks exactly like the bug
+// being diagnosed.
+static wchar_t g_crash_log_path[MAX_PATH] = {};
+static void CrashWrite(const char* text) {
+    if (!g_crash_log_path[0] || !text || !*text) return;
+    wchar_t wide[900];
+    const int n = MultiByteToWideChar(CP_UTF8, 0, text, -1, wide, 900);
+    if (n <= 1) return;
+    HANDLE f = CreateFileW(g_crash_log_path, FILE_APPEND_DATA,
+                           FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr,
+                           OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
+    if (f == INVALID_HANDLE_VALUE) return;
+    DWORD written = 0;
+    WriteFile(f, wide, (DWORD)((n - 1) * sizeof(wchar_t)), &written, nullptr);
+    CloseHandle(f);
+}
+#define CRASHLOG(...) do { \
+    char _cl[800]; \
+    _snprintf_s(_cl, sizeof(_cl), _TRUNCATE, __VA_ARGS__); \
+    CrashWrite(_cl); \
+} while (0)
+// ---------------------------------------------------------------------------
+// Crash forensics.
+//
+// A process that dies inside injected code leaves nothing behind on its own, so
+// install a filter that records the exception before handing it on. That turns
+// "it crashes a few seconds into a match" into a faulting module, an offset and
+// a code - the difference between guessing and knowing.
+// ---------------------------------------------------------------------------
+static LONG WINAPI CrashFilter(EXCEPTION_POINTERS* info) {
+    if (!info || !info->ExceptionRecord) return EXCEPTION_EXECUTE_HANDLER;
+    const EXCEPTION_RECORD* rec = info->ExceptionRecord;
+    const void* where = rec->ExceptionAddress;
+    HMODULE owner = nullptr;
+    wchar_t owner_path[MAX_PATH]{};
+    const wchar_t* owner_name = L"unknown";
+    if (where && GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS |
+                                    GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+                                    reinterpret_cast<LPCWSTR>(where), &owner) && owner) {
+        if (GetModuleFileNameW(owner, owner_path, MAX_PATH)) {
+            const wchar_t* slash = wcsrchr(owner_path, L'\\');
+            owner_name = slash ? slash + 1 : owner_path;
+        }
+    }
+    char module_ansi[MAX_PATH]{};
+    WideCharToMultiByte(CP_ACP, 0, owner_name, -1, module_ansi, MAX_PATH, nullptr, nullptr);
+    const unsigned long long offset =
+        owner ? (unsigned long long)((uintptr_t)where - (uintptr_t)owner) : 0ull;
+    CRASHLOG("CRASH code=%08x addr=%p module=%s +0x%llx params=%lu\n",
+             (unsigned)rec->ExceptionCode, where, module_ansi, offset,
+             (unsigned long)rec->NumberParameters);
+    for (DWORD i = 0; i < rec->NumberParameters && i < 4; ++i) {
+        CRASHLOG("CRASH param[%lu]=%p\n", (unsigned long)i,
+                 reinterpret_cast<const void*>(rec->ExceptionInformation[i]));
+    }
+    CRASHLOG("CRASH state imgui=%d render_disabled=%d faults=%d in_present=%d\n",
+             g_imgui_ready ? 1 : 0, g_render_disabled ? 1 : 0, g_fault_count,
+             g_inside_present ? 1 : 0);
+    // An excluded window is invisible to screen capture; never leave one behind.
+    if (g_hwnd) SetWindowDisplayAffinity(g_hwnd, WDA_NONE);
+    g_obs.active = false;
+    g_obs.requested = false;
+    // Chain to whoever was installed before us (the engine's own reporter), so
+    // this is forensics, not a replacement. Returning EXECUTE_HANDLER here would
+    // suppress the game's crash dialog.
+    if (g_prev_crash_filter) return g_prev_crash_filter(info);
+    return EXCEPTION_EXECUTE_HANDLER;
+}
+
 BOOL APIENTRY DllMain(HMODULE module, DWORD reason, LPVOID) {
 
     if (reason == DLL_PROCESS_ATTACH) {
 
         g_hmodule = module;
+        // Resolve the log path now, while allocating is still safe: the filter
+        // must never allocate.
+        {
+            const std::wstring path = LogPath();
+            const std::wstring::size_type n =
+                path.size() < MAX_PATH - 1 ? path.size() : MAX_PATH - 1;
+            for (std::wstring::size_type i = 0; i < n; ++i) g_crash_log_path[i] = path[i];
+            g_crash_log_path[n] = L'\0';
+        }
+
+        // Must be armed before any other thread can fault.
+        g_prev_crash_filter = SetUnhandledExceptionFilter(CrashFilter);
 
         DisableThreadLibraryCalls(module);
 
