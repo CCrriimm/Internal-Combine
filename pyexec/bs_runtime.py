@@ -6,6 +6,7 @@ import time
 import math
 import random
 import traceback
+import threading
 
 try:
     import MUI
@@ -487,21 +488,16 @@ def _init_ctypes_shm():
     except Exception:
         pass
 
-def _write(path, data):
-    global _state_file_t
-    if path == STATE_PATH:
-        if _shm_state_p is None:
-            _init_ctypes_shm()
-        if _shm_state_p:
-            try:
-                import ctypes
-                ctypes.memmove(_shm_state_p, data, len(data))
-            except Exception:
-                pass
-            now = time.time()
-            if now - _state_file_t < 0.25:
-                return True
-            _state_file_t = now
+# Disk fallback must not block the engine tick: replace pending snapshots with
+# the newest one instead of queueing unbounded old frames. The worker only sees
+# immutable bytes and filesystem paths, never game/engine objects.
+_state_writer_event = threading.Event()
+_state_writer_lock = threading.Lock()
+_state_writer_pending = None
+_state_writer_thread = None
+
+
+def _write_file(path, data):
     tmp = path + '.tmp'
     try:
         with open(tmp, 'wb') as f:
@@ -520,6 +516,49 @@ def _write(path, data):
         return True
     except Exception:
         return False
+
+
+def _state_writer_loop():
+    global _state_writer_pending
+    while True:
+        _state_writer_event.wait()
+        with _state_writer_lock:
+            pending = _state_writer_pending
+            _state_writer_pending = None
+            _state_writer_event.clear()
+        if pending is not None:
+            _write_file(STATE_PATH, pending)
+
+
+def _write(path, data):
+    global _state_file_t, _state_writer_thread, _state_writer_pending
+    if path != STATE_PATH:
+        return _write_file(path, data)
+    if _shm_state_p is None:
+        _init_ctypes_shm()
+    shared = False
+    if _shm_state_p:
+        try:
+            import ctypes
+            ctypes.memmove(_shm_state_p, data, len(data))
+            shared = True
+        except Exception:
+            pass
+    now = time.time()
+    if shared and now - _state_file_t < 0.25:
+        return True
+    _state_file_t = now
+    try:
+        if _state_writer_thread is None or not _state_writer_thread.is_alive():
+            _state_writer_thread = threading.Thread(target=_state_writer_loop, name='Comet state writer', daemon=True)
+            _state_writer_thread.start()
+        with _state_writer_lock:
+            _state_writer_pending = bytes(data)
+            _state_writer_event.set()
+        return True
+    except Exception:
+        # Do not fall back to synchronous I/O on the game thread.
+        return shared
 
 
 def _read(path, size):
