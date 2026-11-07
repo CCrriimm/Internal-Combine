@@ -2377,7 +2377,9 @@ static void DrawESP() {
             if (HasOpt2(OPT2_ESP_ARMOR_MAX) && !is_knocked && h >= 26.0f) {
                 char abuf[16];
                 snprintf(abuf, sizeof(abuf), "%.0f", e.max_armor);
-                const float small = esp_font_sz * 0.78f;
+                // NB: `small` is a macro in rpcndr.h (#define small char), so it
+                // cannot be used as an identifier here - MSVC only.
+                const float tier_sz = esp_font_sz * 0.78f;
                 const ImU32 tier = armortier::Pack(armortier::Tier(
                     e.max_armor,
                     armortier::Unpack(g_cfg.col_armor_tier[0]),
@@ -2385,9 +2387,9 @@ static void DrawESP() {
                     armortier::Unpack(g_cfg.col_armor_tier[2]),
                     armortier::Unpack(g_cfg.col_armor_tier[3])));
                 const ImVec2 tp(bx + bar_w + 3.0f, hy);
-                dl->AddText(esp_font, small, ImVec2(tp.x + 1.0f, tp.y + 1.0f),
+                dl->AddText(esp_font, tier_sz, ImVec2(tp.x + 1.0f, tp.y + 1.0f),
                             IM_COL32(0, 0, 0, 210), abuf);
-                dl->AddText(esp_font, small, tp, tier, abuf);
+                dl->AddText(esp_font, tier_sz, tp, tier, abuf);
             }
         }
     }
