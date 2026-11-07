@@ -1,6 +1,5 @@
 import builtins
-import ctypes          # eager: the engine's importer is broken on some installs and a
-import os             # later `import ctypes` inside a try/except then fails silently
+import os
 import sys
 import struct
 import time
@@ -472,6 +471,22 @@ def _init_ctypes_shm():
     """
     global _shm_state_p, _shm_cfg_p, _shm_logged
     if _shm_state_p is not None and _shm_cfg_p is not None:
+        return
+    # Never a top-level import: the engine's importer rejects modules that are not
+    # already loaded on a damaged install, and a raise here at module scope takes
+    # the whole runtime down (no ESP, no hotkeys, no menu). Prefer whatever is
+    # already in sys.modules, and treat "no ctypes" as "no shared memory".
+    ctypes = sys.modules.get('ctypes')
+    if ctypes is None:
+        try:
+            import ctypes as _ct
+            ctypes = _ct
+        except Exception:
+            ctypes = None
+    if ctypes is None:
+        if _shm_logged != 'missing':
+            _shm_logged = 'missing'
+            _sys_log('[sys:ipc] ctypes unavailable - overlay reads state.bin (slower)')
         return
     try:
         k32 = ctypes.windll.kernel32
@@ -4963,3 +4978,12 @@ def status():
 def rebuild_catalog():
     _save_template_cache(True)
     return True
+
+# Boot marker. If this line is missing from runtime_err.txt, the module did not
+# finish importing and no feature (ESP, skins, aim) can work - the menu is drawn by
+# the native side and keeps working, which is exactly the "menu but no features"
+# state.
+try:
+    _sys_log('[sys:boot] runtime module loaded')
+except Exception:
+    pass

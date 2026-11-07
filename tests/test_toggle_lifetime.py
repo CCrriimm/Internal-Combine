@@ -64,7 +64,8 @@ class CaptureProtectionTests(unittest.TestCase):
     def test_get_buffer_answers_capture_modules_only(self):
         block = self.code('static HRESULT STDMETHODCALLTYPE HookGetBuffer',
                           'static bool CaptureProtectionKilled() {')
-        self.assertIn('CallerIsCaptureModule()', block)
+        self.assertIn('CallerIsCaptureModule(_ReturnAddress())', block,
+                      'the return address has to be read inside the hooked function')
         self.assertIn('CaptureProtectionOn()', block)
         self.assertIn('g_clean_tex', block)
         self.assertIn('g_get_buffer(sc, index, iid, out)', block,
@@ -75,11 +76,15 @@ class CaptureProtectionTests(unittest.TestCase):
         self.assertIn('MH_CreateHook(vt[9], (void*)&HookGetBuffer', self.text)
 
     def test_a_desktop_snip_suppresses_the_draw(self):
-        self.assertIn('comet_surface::SystemCaptureUiActive()) return;', self.text,
+        block = self.code('overlay hidden: capture UI active', 'if (!BindSwapchain(sc)) return;')
+        self.assertIn('SystemCaptureUiActive()', self.text,
                       'a window-based snip reads the window, so the overlay must not be drawn')
+        self.assertIn('now - snip_since < 5000', self.text,
+                      'a resident capture-UI process must not hide the overlay forever')
 
     def test_known_capture_modules_are_listed(self):
-        block = self.code('static bool CallerIsCaptureModule()', 'static HRESULT STDMETHODCALLTYPE HookGetBuffer')
+        block = self.code('static bool CallerIsCaptureModule(void* caller)',
+                          'static HRESULT STDMETHODCALLTYPE HookGetBuffer')
         for name in ('graphics-hook64.dll', 'GameOverlayRenderer64.dll'):
             self.assertIn(name, block)
 

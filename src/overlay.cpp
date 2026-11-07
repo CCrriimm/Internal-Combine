@@ -1278,11 +1278,13 @@ static void ReleaseCleanCopy() {
 }
 
 // True when the caller of the hooked GetBuffer is a module that copies the
-// frame. One lookup, cached per module.
-static bool CallerIsCaptureModule() {
+// frame. The address must be read inside HookGetBuffer itself: `_ReturnAddress()`
+// reports the return address of the *current* function, so reading it in here
+// would report a return address inside our own module.
+static bool CallerIsCaptureModule(void* caller) {
     static thread_local void* last_caller = nullptr;
     static thread_local bool last_answer = false;
-    void* caller = _ReturnAddress();
+    if (!caller) return false;
     if (caller == last_caller) return last_answer;
     last_caller = caller;
 
@@ -1327,7 +1329,7 @@ static bool CallerIsCaptureModule() {
 static HRESULT STDMETHODCALLTYPE HookGetBuffer(IDXGISwapChain* sc, UINT index, REFIID iid,
                                               void** out) {
     if (index == 0 && out && g_clean_tex && sc == g_swapchain && CaptureProtectionOn() &&
-        CallerIsCaptureModule()) {
+        CallerIsCaptureModule(_ReturnAddress())) {
         if (SUCCEEDED(g_clean_tex->QueryInterface(iid, out)) && *out) return S_OK;
     }
     return g_get_buffer(sc, index, iid, out);
@@ -4447,6 +4449,19 @@ static void RenderFrame(IDXGISwapChain* sc) {
                        (double)freq.QuadPart;
     }
 
+    // Diagnostics for the case where the menu draws but nothing else does: ESP on,
+    // in a match, and the runtime has never sent an entity. Says so once every 10 s
+    // instead of leaving the user with a menu and no features.
+    if (Has(F_ESP) && g_state.in_match && g_ents.empty()) {
+        static ULONGLONG last_empty_log = 0;
+        const ULONGLONG now = GetTickCount64();
+        if (now - last_empty_log > 10000) {
+            last_empty_log = now;
+            Log("state: ESP on, in match, no entities from the runtime (seq=%u count=%u)",
+                (unsigned)g_state.seq, (unsigned)g_state.count);
+        }
+    }
+
     if (!need) {
         // Nothing to draw this frame. Take the protected window off the screen
         // so it cannot leave the last ESP frame standing there as a still.
@@ -4459,7 +4474,24 @@ static void RenderFrame(IDXGISwapChain* sc) {
     // not help it: the only way for that screenshot to be clean is for the overlay
     // not to be drawn while it is being taken. Cheap: the hotkey check is four
     // GetAsyncKeyState calls and the process/window scans are cached.
-    if (CaptureProtectionOn() && comet_surface::SystemCaptureUiActive()) return;
+    {
+        static ULONGLONG snip_since = 0;
+        static bool snip_logged = false;
+        const bool snip = CaptureProtectionOn() && comet_surface::SystemCaptureUiActive();
+        const ULONGLONG now = GetTickCount64();
+        if (!snip) {
+            snip_since = 0;
+            snip_logged = false;
+        } else {
+            if (!snip_since) snip_since = now ? now : 1;
+            // Bounded: a capture UI that sits resident must not hide the overlay
+            // for the rest of the session.
+            if (now - snip_since < 5000) {
+                if (!snip_logged) { snip_logged = true; Log("overlay hidden: capture UI active"); }
+                return;
+            }
+        }
+    }
 
     // A GDI capture of the game window is waiting for an overlay-free frame.
     // Skip drawing; Present still runs, so the frame it is waiting for arrives
