@@ -1331,13 +1331,9 @@ static bool LoadState() {
 
     if (g_shm_state_p) {
 
-        static bool logged_shm = false;
-
         const State* s = reinterpret_cast<const State*>(g_shm_state_p);
 
         if (s->magic == STATE_MAGIC && s->version == VERSION) {
-
-            if (!logged_shm) { logged_shm = true; Log("state ipc: shared memory"); }
 
             if (s->seq != g_state.seq) {
 
@@ -1365,23 +1361,6 @@ static bool LoadState() {
     }
 
     // 2. Disk file fallback
-    //
-    // Only when the shared-memory block is not available. The runtime rewrites
-    // state.bin on every tick, so a naive "read it when it changed" turns into a
-    // 30-40 KB file read (plus an antivirus scan of it) on every presented frame -
-    // measured at ~5 ms/frame as `pre_avg_ms`. The runtime samples its own state at
-    // ~60 Hz, so polling the file faster than that cannot gain anything.
-    {
-        static ULONGLONG last_disk_poll = 0;
-        const ULONGLONG now = GetTickCount64();
-        if (last_disk_poll && now - last_disk_poll < 8) return true;
-        last_disk_poll = now;
-        static bool logged_once = false;
-        if (!logged_once) {
-            logged_once = true;
-            Log("state ipc: disk fallback (shared memory unavailable) - reading state.bin");
-        }
-    }
 
     if (!StateFileChanged()) return true;
 
