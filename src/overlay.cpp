@@ -516,6 +516,10 @@ static State g_state{};
 
 static std::vector<Ent> g_ents;
 
+// Scratch for copying entities out of the mapped file without touching g_ents
+// until the snapshot is known to be complete.
+static std::vector<Ent> g_ents_scratch;
+
 static teamtint::Labels g_team_labels;
 
 static comet_capture::Blackout g_obs{};
@@ -793,6 +797,103 @@ static bool ReadAll(const wchar_t* path, std::vector<uint8_t>& out) {
 }
 
 
+
+// ---------------------------------------------------------------------------
+// Mapped state file.
+//
+// When the runtime cannot create its shared-memory block (ctypes unavailable on
+// that install) it writes the snapshot into state.bin *in place*, at a fixed
+// size, instead of replacing the file. That keeps one mapping valid for the whole
+// session and turns a frame's state read into a memcpy out of the view - the
+// open/read/close cycle measured 3.4-5.8 ms per frame as `state_avg_ms`, which is
+// most of a 60 Hz frame.
+//
+// A snapshot can be caught half written. The writer bumps `seq` for every frame,
+// so the reader copies the header, the sequence, the entities, and then checks the
+// sequence again: if it moved, the frame is dropped and the previous state is
+// kept. One frame of stale ESP, never a corrupt one.
+static HANDLE g_state_file = INVALID_HANDLE_VALUE;
+static HANDLE g_state_mapping = nullptr;
+static const uint8_t* g_state_view = nullptr;
+static size_t g_state_view_size = 0;
+static ULONGLONG g_state_view_at = 0;
+static uint32_t g_state_view_seq = 0;
+
+static void CloseStateView() {
+    if (g_state_view) { UnmapViewOfFile(g_state_view); g_state_view = nullptr; }
+    if (g_state_mapping) { CloseHandle(g_state_mapping); g_state_mapping = nullptr; }
+    if (g_state_file != INVALID_HANDLE_VALUE) { CloseHandle(g_state_file); g_state_file = INVALID_HANDLE_VALUE; }
+    g_state_view_size = 0;
+    g_state_view_at = 0;
+    g_state_view_seq = 0;
+}
+
+static bool OpenStateView() {
+    const std::wstring path = StatePath();
+    HANDLE file = CreateFileW(path.c_str(), GENERIC_READ,
+                              FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, nullptr,
+                              OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
+    if (file == INVALID_HANDLE_VALUE) return false;
+    LARGE_INTEGER size{};
+    if (!GetFileSizeEx(file, &size) || size.QuadPart < (LONGLONG)sizeof(State)) {
+        CloseHandle(file);
+        return false;
+    }
+    HANDLE mapping = CreateFileMappingW(file, nullptr, PAGE_READONLY, 0, 0, nullptr);
+    if (!mapping) { CloseHandle(file); return false; }
+    void* view = MapViewOfFile(mapping, FILE_MAP_READ, 0, 0, 0);
+    if (!view) { CloseHandle(mapping); CloseHandle(file); return false; }
+    g_state_file = file;
+    g_state_mapping = mapping;
+    g_state_view = reinterpret_cast<const uint8_t*>(view);
+    g_state_view_size = (size_t)size.QuadPart;
+    g_state_view_at = GetTickCount64();
+    g_state_view_seq = reinterpret_cast<const State*>(view)->seq;
+    return true;
+}
+
+// Reads one snapshot out of the view. Returns false when the file is not there,
+// not mapped yet, or the snapshot was being written while it was copied.
+static bool ReadMappedState() {
+    if (!g_state_view) {
+        if (!OpenStateView()) return false;
+    }
+    if (g_state_view_size < sizeof(State)) return false;
+    const State* head = reinterpret_cast<const State*>(g_state_view);
+    const uint32_t seq_before = head->seq;
+    State snapshot = *head;
+    if (snapshot.magic != STATE_MAGIC || snapshot.version != VERSION) return false;
+
+    uint32_t count = snapshot.count;
+    if (count > 128) count = 128;
+    const size_t need = sizeof(State) + (size_t)count * sizeof(Ent);
+    if (need > g_state_view_size) return false;
+
+    if (count > g_ents_scratch.size()) g_ents_scratch.resize(count);
+    Ent* scratch = count ? g_ents_scratch.data() : nullptr;
+    if (count) memcpy(scratch, g_state_view + sizeof(State), (size_t)count * sizeof(Ent));
+
+    if (head->seq != seq_before) return false;   // written while we copied: retry next frame
+
+    // A file replaced underneath us (older runtime, rename) would leave the view
+    // frozen; reopen when the sequence has not moved for a second.
+    if (seq_before == g_state_view_seq) {
+        if (GetTickCount64() - g_state_view_at > 1000) {
+            CloseStateView();
+            if (!OpenStateView()) return false;
+            return ReadMappedState();
+        }
+        return false;
+    }
+    g_state_view_seq = seq_before;
+    g_state_view_at = GetTickCount64();
+
+    snapshot.count = count;
+    g_state = snapshot;
+    g_ents.resize(count);
+    if (count) memcpy(g_ents.data(), scratch, (size_t)count * sizeof(Ent));
+    return true;
+}
 
 static bool StateFileChanged() {
 
@@ -1465,7 +1566,21 @@ static bool LoadState() {
 
     }
 
-    // 2. Disk file fallback. Only reached while the shared-memory block is not
+    // 2. Mapped state file. The runtime writes the snapshot in place at a fixed
+    // size, so this mapping stays valid and a frame costs a memcpy. Reached when
+    // the shared-memory block is unavailable (ctypes missing on that install).
+    {
+        static bool mapped_ok = true;
+        if (mapped_ok) {
+            if (ReadMappedState()) return true;
+            // Mapped but no new snapshot yet (or one caught mid-write): keep what
+            // we have rather than paying for a file read every frame.
+            if (g_state_view) return true;
+            mapped_ok = false;
+        }
+    }
+
+    // 3. Disk file fallback. Only reached while the shared-memory block is not
     // available. The file is rewritten on every runtime tick, so "read it when it
     // changed" means a 30-40 KB read (and an antivirus scan of it) inside Present
     // on every frame - measured at ~5 ms as `pre_avg_ms`. Nothing can be fresher

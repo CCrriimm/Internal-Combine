@@ -16,67 +16,128 @@ except Exception:
 _import_order_moved = False
 
 
+def _meta_path_names():
+    names = []
+    for finder in list(sys.meta_path):
+        try:
+            names.append('%s.%s' % (type(finder).__module__, type(finder).__name__))
+        except Exception:
+            names.append('?')
+    return names
+
+
+def _finder_raises_for_anything(finder):
+    """True when this finder raises TypeError instead of saying "not here".
+
+    The engine's finder is what does it, but its class name is not a reliable
+    identifier across builds (`MImporter.finder` in one, something else in
+    another), so the test is behavioural: ask it about a module that cannot
+    exist. A working finder returns None; the broken one raises.
+    """
+    probe = getattr(finder, 'find_spec', None)
+    if probe is None:
+        return False
+    try:
+        probe('__comet_import_probe__')
+        return False
+    except TypeError as exc:
+        # Deliberately narrow. A finder with a different signature raises TypeError
+        # too ("missing 1 required positional argument"), and demoting a working
+        # finder for that would be a change for no reason. The engine's failure is
+        # recognisable by its message.
+        text = str(exc)
+        return 'NoneType' in text or 'unsupported operand' in text
+    except BaseException:
+        return False
+
+
 def _repair_import_order():
-    """Move the engine's own import finder to the end of sys.meta_path.
+    """Move finders that raise for unknown modules to the end of sys.meta_path.
 
     On a damaged install `MImporter.finder.find_spec` raises
 
         TypeError: unsupported operand type(s) for +: 'NoneType' and 'str'
           (find_spec_in_patch_encrypt -> get_relpath_with_path)
 
-    for any module that is not in the patch index. It sits at the *front* of
-    sys.meta_path, so it is asked about every import first - including standard
-    library modules - and a finder that raises aborts the import instead of
-    letting the next finder try. That is why `import ctypes` fails here, which is
-    why the shared-memory IPC never came up, which is why the overlay had to read
-    state.bin from disk on every presented frame (3.4-4.9 ms of every frame,
-    measured as state_avg_ms).
+    for any module that is not in the patch index. It sits at the front of
+    sys.meta_path, so it is asked about every import first - standard library
+    modules included - and a finder that raises aborts the import instead of
+    letting the next finder try. `import ctypes` failing there is why the shared
+    memory never came up, which is why the overlay had to read state.bin from
+    disk on every frame, which is what the runtime then blocked ~6 s on while
+    writing the same file.
 
-    Nothing is replaced or patched: the finder stays in the chain, it is simply
-    asked last, after the finders that work by path. Game modules that only exist
-    inside the patch bundles are still found by it, because the finders ahead of
-    it cannot resolve them.
+    Nothing is replaced or wrapped: the finder stays in the chain and is still
+    asked for the game modules that only it can resolve - it is simply asked
+    after the finders that work by path.
     """
+    global _import_order_moved
     try:
         order = list(sys.meta_path)
     except Exception:
         return False
-    engine = []
+
+    offenders = []
     rest = []
     for finder in order:
         cls = type(finder)
-        name = (getattr(cls, '__module__', '') or '') + '.' + (getattr(cls, '__name__', '') or '')
-        if 'mimporter' in name.lower() or 'importer' in name.lower():
-            engine.append(finder)
+        name = ((getattr(cls, '__module__', '') or '') + '.' +
+                (getattr(cls, '__name__', '') or '')).lower()
+        named = 'importer' in name or 'finder_encrypt' in name
+        if named or _finder_raises_for_anything(finder):
+            offenders.append(finder)
         else:
             rest.append(finder)
-    if not engine or order[-1:] == engine[-1:]:
+
+    if not offenders:
+        return False
+    if order[len(rest):] == offenders:
         return False
     try:
-        sys.meta_path[:] = rest + engine
+        sys.meta_path[:] = rest + offenders
     except Exception:
         return False
-    global _import_order_moved
     _import_order_moved = True
     return True
+
+
+def _load_ctypes():
+    """ctypes, from wherever it can be had. Never raises."""
+    module = sys.modules.get('ctypes')
+    if module is not None:
+        return module
+    try:
+        import ctypes as module
+        return module
+    except Exception:
+        return None
 
 
 try:
     _repair_import_order()
     if _import_order_moved:
-        # Loaded now, on purpose: once it is in sys.modules nothing can stop the
-        # runtime from using it later, whatever the engine's finder does next.
-        import ctypes as _ctypes_early
-        sys.modules.setdefault('ctypes', _ctypes_early)
+        # Loaded now, on purpose: once it is in sys.modules nothing can take it
+        # away, whatever the engine's finder does next.
+        _early_ctypes = _load_ctypes()
+        if _early_ctypes is not None:
+            sys.modules.setdefault('ctypes', _early_ctypes)
 except Exception:
     pass
 
 
 def _log_import_repair():
+    """One line that says whether the import chain is usable - and if not, why."""
     try:
-        if globals().get('_import_order_moved'):
-            _sys_log('[sys:boot] engine import finder moved last: standard imports work now',
-                     force=True)
+        ctypes_ok = 'ctypes' in sys.modules or _load_ctypes() is not None
+        if globals().get('_import_order_moved') and ctypes_ok:
+            _sys_log('[sys:boot] engine finder moved last, ctypes ok: %s'
+                     % ','.join(_meta_path_names()), force=True)
+        elif ctypes_ok:
+            _sys_log('[sys:boot] ctypes ok, no finder needed moving: %s'
+                     % ','.join(_meta_path_names()), force=True)
+        else:
+            _sys_log('[sys:boot] ctypes UNAVAILABLE, meta_path: %s'
+                     % ','.join(_meta_path_names()), force=True)
     except Exception:
         pass
 
@@ -555,14 +616,14 @@ def _init_ctypes_shm():
     ctypes = sys.modules.get('ctypes')
     if ctypes is None:
         try:
-            import ctypes as _ct
-            ctypes = _ct
+            ctypes = _load_ctypes()
         except Exception:
             ctypes = None
     if ctypes is None:
         if _shm_logged != 'missing':
             _shm_logged = 'missing'
-            _sys_log('[sys:ipc] ctypes unavailable - overlay reads state.bin (slower)', force=True)
+            _sys_log('[sys:ipc] ctypes unavailable - overlay reads state.bin (slower); '
+                     'meta_path: %s' % ','.join(_meta_path_names()), force=True)
         return
     try:
         k32 = ctypes.windll.kernel32
@@ -605,6 +666,49 @@ def _init_ctypes_shm():
         else:
             _sys_log('[sys:ipc] state shared memory failed - overlay reads state.bin on every '
                      'frame; retrying', force=True)
+
+
+# Size the state file is padded to. Fixed on purpose: the overlay maps this file
+# and reads the frames straight out of the mapping, so it must never change size
+# and must never be replaced by a rename - a rename would leave the overlay with a
+# mapping of the old file and a frozen ESP.
+STATE_FILE_SIZE = 65536
+
+_state_fh = None
+
+
+def _write_state_inplace(buf):
+    """Write the state snapshot into the same file, at offset 0, in one go.
+
+    The alternative (temp file + os.replace) is atomic but has two costs measured
+    in the user's logs: the overlay has to open/read/close state.bin on every
+    presented frame (3.4-5.8 ms as `state_avg_ms`), and the rename fights that
+    reader - one tick spent 5.9 s inside this write (`write=5.9421` in
+    [sys:perf]) with the game thread waiting on the lock.
+
+    Writing in place keeps the file identity stable, so the overlay's memory
+    mapping stays valid and a frame costs it a memcpy instead of three syscalls.
+    Readers detect a half-written snapshot with the sequence number, so a torn
+    read costs one frame of data, never a bad frame.
+    """
+    global _state_fh
+    try:
+        if _state_fh is None:
+            exists = os.path.exists(STATE_PATH)
+            _state_fh = open(STATE_PATH, 'r+b' if exists else 'w+b')
+        data = buf if len(buf) >= STATE_FILE_SIZE else buf + b'\x00' * (STATE_FILE_SIZE - len(buf))
+        _state_fh.seek(0)
+        _state_fh.write(data)
+        _state_fh.flush()
+        return True
+    except Exception:
+        try:
+            if _state_fh is not None:
+                _state_fh.close()
+        except Exception:
+            pass
+        _state_fh = None
+        return False
 
 
 # Disk fallback must not block the engine tick: replace pending snapshots with
@@ -667,13 +771,27 @@ def _write(path, data):
     if shared and now - _state_file_t < 0.25:
         return True
     _state_file_t = now
+    if not shared and _write_state_inplace(data):
+        # No shared memory (ctypes unavailable) but still no rename and no
+        # reader/writer fight: the overlay maps this file and reads the sequence
+        # number out of the view.
+        return True
     try:
         if _state_writer_thread is None or not _state_writer_thread.is_alive():
             _state_writer_thread = threading.Thread(target=_state_writer_loop, name='Comet state writer', daemon=True)
             _state_writer_thread.start()
-        with _state_writer_lock:
+        # Never wait for the writer. It holds this lock while it is inside the
+        # filesystem, and a contended write on this machine took 5.9 s once
+        # (`write=5.9421` in [sys:perf]) - the game thread waited on the lock for
+        # all of it. A dropped snapshot costs one frame of data; blocking costs
+        # six seconds of frames.
+        if not _state_writer_lock.acquire(False):
+            return False
+        try:
             _state_writer_pending = bytes(data)
             _state_writer_event.set()
+        finally:
+            _state_writer_lock.release()
         return True
     except Exception:
         # Do not fall back to synchronous I/O on the game thread.
@@ -1729,10 +1847,15 @@ def _install_class_hooks():
 
 
 def _install_instance_hooks():
-    # Retried here (2 s cadence) until the mapping exists: the disk fallback costs
-    # the overlay ~5 ms of every presented frame.
+    # Retried here (2 s cadence). The engine may install its finder after this
+    # module loads, so the repair has to be able to happen later than boot; the
+    # mapping itself is retried until it exists because the disk path costs the
+    # overlay milliseconds of every presented frame - and costs this runtime
+    # seconds whenever a write contends with the overlay's read.
     try:
         if _shm_state_p is None:
+            if _repair_import_order():
+                _log_import_repair()
             _init_ctypes_shm()
     except Exception:
         pass

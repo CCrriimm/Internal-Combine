@@ -94,7 +94,7 @@ class FrameCostTests(unittest.TestCase):
 
     def test_state_file_read_is_throttled(self):
         text = OVERLAY.read_text(encoding='utf-8')
-        start = text.index('// 2. Disk file fallback')
+        start = text.index('// 3. Disk file fallback')
         body = text[start:start + 900]
         self.assertIn('now - last_poll < 8', body,
                       'reading state.bin every frame cost ~5 ms of every frame')

@@ -23,7 +23,10 @@ class StateWriterTests(unittest.TestCase):
               '_shm_state_p': None, '_init_ctypes_shm': lambda: None,
               '_state_file_t': 0, '_state_writer_thread': None,
               '_state_writer_event': threading.Event(), '_state_writer_lock': threading.Lock(),
-              '_state_writer_pending': None, '_write_file': slow_write}
+              '_state_writer_pending': None, '_write_file': slow_write,
+              # in-place write is the first choice now; this test is about the
+              # asynchronous writer that runs when it is not available
+              '_write_state_inplace': lambda data: False}
         exec(compile(ast.Module(body=nodes, type_ignores=[]), str(source), 'exec'), ns)
         try:
             self.assertTrue(ns['_write']('state', b'first'))
