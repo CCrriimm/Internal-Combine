@@ -1,34 +1,70 @@
-name: Build
+# .github/workflows/build.yml
+# Branch: comet  (create from main: git checkout -b comet)
+# Produces 4 artifact files (same as before, bs_ → comet_):
+#   Comet.exe           (packed loader, was CiyE.exe)
+#   comet_overlay.dll   (was bs_overlay.dll)
+#   comet_pyexec.dll    (was bs_pyexec.dll)
+#   injector.exe        (unchanged name)
+# bsmap.exe is embedded inside Comet.exe; not distributed loose.
+
+name: comet build
 
 on:
   push:
-    branches: [main]
+    branches: [ comet, comet-patches ]
+  pull_request:
+    branches: [ comet, comet-patches ]
   workflow_dispatch:
 
 jobs:
-  build-windows-x64:
-    name: Build (Windows x64 Release)
-    runs-on: windows-latest
-    timeout-minutes: 90
+  build:
+    name: MSVC x64 Release
+    runs-on: windows-2022
+
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Set up MSVC
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
 
       - name: Configure CMake
-        run: cmake -S . -B build -A x64
+        run: |
+          cmake -S . -B build ^
+            -A x64 ^
+            -DCMAKE_BUILD_TYPE=Release ^
+            -DCIYE_DIST_DIR="${{ github.workspace }}\dist"
+        shell: cmd
 
-      - name: Build loader, Python bridge and overlay
-        run: cmake --build build --config Release --target bs_loader bs_pyexec bs_overlay
+      - name: Build Release
+        run: cmake --build build --config Release --parallel
+        shell: cmd
 
-      - name: Embed runtime payload into loader
-        run: cmake --build build --config Release --target pack_loader
+      # Collect exactly 4 files — same count as the previous run.
+      # Comet.exe lands in dist\ (set by CIYE_DIST_DIR).
+      # The two DLLs and injector.exe land in build\Release\.
+      - name: Collect outputs
+        run: |
+          mkdir staging
+          copy dist\Comet.exe             staging\Comet.exe
+          copy build\Release\comet_overlay.dll  staging\comet_overlay.dll
+          copy build\Release\comet_pyexec.dll   staging\comet_pyexec.dll
+          copy build\Release\injector.exe       staging\injector.exe
+        shell: cmd
 
-      - name: Upload build artifacts
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: bs-x64-release-${{ github.sha }}
-          path: |
-            build/Release
-            dist
+          name: comet-release-${{ github.sha }}
+          path: staging\
+          retention-days: 14
           if-no-files-found: error
-          retention-days: 30
