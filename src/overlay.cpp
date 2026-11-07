@@ -394,6 +394,7 @@ static bool g_unloading = false;
 static PresentFn g_present = nullptr;
 
 static Present1Fn g_present1 = nullptr;
+static bool g_imgui_ready = false;
 static thread_local bool g_inside_present = false;
 struct PresentScope {
     PresentScope() {g_inside_present=true;}
@@ -446,7 +447,6 @@ static bool g_display_dirty = false;
 
 static bool g_reset_menu_pos = false;
 
-static bool g_imgui_ready = false;
 
 
 static bool g_init_failed = false;
@@ -605,6 +605,59 @@ static void Log(const char* fmt, ...) {
     }
 
 }
+
+// ---------------------------------------------------------------------------
+// Fault containment.
+//
+// Every hook body runs on the game's render thread, inside the game's own
+// Present call. An exception that escapes here is not "an overlay bug" - it is
+// an unhandled exception inside the game process, which terminates it. So each
+// hook body is wrapped in SEH: the frame is skipped, the fault is logged, and
+// after a few faults the overlay disables itself and passes Present straight
+// through. A broken overlay should cost the ESP, never the game.
+static int g_fault_count = 0;
+static volatile bool g_render_disabled = false;
+
+static void NoteFault(const char* where, unsigned code) {
+    if (g_fault_count < 5) Log("%s fault code=%08x (fault %d)", where, code, g_fault_count + 1);
+    if (++g_fault_count >= 4) {
+        if (!g_render_disabled) Log("%s: repeated faults, overlay drawing disabled", where);
+        g_render_disabled = true;
+    }
+}
+
+// SEH on MSVC; off Windows the same bodies are type-checked with no-op macros,
+// so the g++ syntax pass and the menu preview keep working and the non-Windows
+// build never swallows an exception it does not understand.
+#if defined(_MSC_VER)
+  #define COMET_TRY __try
+  #define COMET_EXCEPT(filter) __except (filter)
+#else
+  #define COMET_TRY {
+  #define COMET_EXCEPT(filter) }
+  #define GetExceptionCode() 0u
+#endif
+
+
+// Note on the wrappers below: MSVC refuses __try/__except in any function that
+// needs C++ object unwinding (error C2712), which rules out RAII locals and
+// std::string in the same body. These two wrappers therefore keep *no*
+// destructible locals - just the call and the exception code - and every caller
+// keeps its own RAII scope and does its logging outside.
+static unsigned RenderFrameGuarded(IDXGISwapChain* sc) {
+    unsigned code = 0;
+    COMET_TRY {
+        if (!g_imgui_ready) InitOverlay(sc);
+        RenderFrame(sc);
+    }
+    COMET_EXCEPT(EXCEPTION_EXECUTE_HANDLER) {
+        code = (unsigned)GetExceptionCode();
+    }
+    return code;
+}
+
+
+
 
 
 
@@ -4113,27 +4166,25 @@ static void RenderFrame(IDXGISwapChain* sc) {
 
     if (!g_rtv) return;
 
-    if (g_display_dirty) {
-
-        g_display_dirty = false;
-
-        ImGui_ImplDX11_InvalidateDeviceObjects();
-
-        CreateRTV();
-
-        ImGui_ImplDX11_CreateDeviceObjects();
-
-    }
-
-    if (g_display_dirty || g_width == 0 || g_height == 0) {
+    // Back-buffer size change -> rebuild the RTV and the ImGui device objects.
+    // This must run *before* NewFrame: NewFrame uploads the font atlas using the
+    // texture handle stored in io.Fonts->TexID, so starting a frame after
+    // invalidating and before re-creating leaves that pointer dangling - a crash
+    // or a blank atlas on a window resize or DPI change.
+    {
         DXGI_SWAP_CHAIN_DESC desc{};
-        if (SUCCEEDED(sc->GetDesc(&desc))) {
-            UINT w = desc.BufferDesc.Width;
-            UINT h = desc.BufferDesc.Height;
-            if (w > 0 && h > 0 && (w != g_width || h != g_height)) {
-                ImGui_ImplDX11_InvalidateDeviceObjects();
-                CreateRTV();
-                ImGui_ImplDX11_CreateDeviceObjects();
+        const bool sized = SUCCEEDED(sc->GetDesc(&desc)) &&
+                           desc.BufferDesc.Width > 0 && desc.BufferDesc.Height > 0;
+        const bool resized = sized && (desc.BufferDesc.Width != g_width ||
+                                       desc.BufferDesc.Height != g_height);
+        if (resized || g_display_dirty) {
+            g_display_dirty = false;
+            ImGui_ImplDX11_InvalidateDeviceObjects();
+            CreateRTV();
+            ImGui_ImplDX11_CreateDeviceObjects();
+            if (sized) {
+                g_width = desc.BufferDesc.Width;
+                g_height = desc.BufferDesc.Height;
             }
         }
     }
@@ -4194,9 +4245,17 @@ static void RenderFrame(IDXGISwapChain* sc) {
     // without restoring the previous render target leaves the game drawing into
     // the wrong target with the wrong viewport on the next frame, which presents
     // as a frozen picture while the window still processes input.
-    ID3D11RenderTargetView* prev_rtv = nullptr;
+    // Restore *exactly* what the game had bound. Asking for the full MRT set
+    // matters: reading one target and rebinding one target would quietly drop
+    // the rest of a multi-target set, and the count matters too - if the game
+    // had nothing bound, rebinding "one target" is already wrong.
+    constexpr UINT kMaxTargets = D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT;
+    ID3D11RenderTargetView* prev_rtvs[kMaxTargets]{};
     ID3D11DepthStencilView* prev_dsv = nullptr;
-    g_context->OMGetRenderTargets(1, &prev_rtv, &prev_dsv);
+    g_context->OMGetRenderTargets(kMaxTargets, prev_rtvs, &prev_dsv);
+    UINT prev_rtv_count = 0;
+    while (prev_rtv_count < kMaxTargets && prev_rtvs[prev_rtv_count]) ++prev_rtv_count;
+
     D3D11_VIEWPORT prev_vp[D3D11_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE]{};
     UINT vp_count = (UINT)(sizeof(prev_vp) / sizeof(prev_vp[0]));
     g_context->RSGetViewports(&vp_count, prev_vp);
@@ -4205,46 +4264,48 @@ static void RenderFrame(IDXGISwapChain* sc) {
     ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 
     if (vp_count) g_context->RSSetViewports(vp_count, prev_vp);
-    g_context->OMSetRenderTargets(1, prev_rtv ? &prev_rtv : nullptr, prev_dsv);
-    if (prev_rtv) prev_rtv->Release();
+    g_context->OMSetRenderTargets(prev_rtv_count, prev_rtv_count ? prev_rtvs : nullptr, prev_dsv);
+    for (UINT i = 0; i < prev_rtv_count; ++i) prev_rtvs[i]->Release();
     if (prev_dsv) prev_dsv->Release();
 }
 
 
 
 static HRESULT STDMETHODCALLTYPE HookPresent(IDXGISwapChain* sc, UINT sync, UINT flags) {
-
     if(g_inside_present) return g_present(sc,sync,flags);
     PresentScope present_scope;
     if (g_unloading) return g_present ? g_present(sc, sync, flags) : sc->Present(sync, flags);
 
-    if (!g_imgui_ready) InitOverlay(sc);
-
-    RenderFrame(sc);
-
+    if (!g_render_disabled) {
+        const unsigned fault = RenderFrameGuarded(sc);
+        if (fault) NoteFault("present", fault);
+    }
+    // Always forward, whatever happened above: skipping the game's own Present
+    // is what turns an overlay fault into a frozen picture.
     return g_present(sc, sync, flags);
-
 }
+
+
 
 
 
 static HRESULT STDMETHODCALLTYPE HookPresent1(IDXGISwapChain1* sc, UINT sync, UINT flags, const DXGI_PRESENT_PARAMETERS* params) {
-
     if(g_inside_present) return g_present1(sc,sync,flags,params);
     PresentScope present_scope;
     if (g_unloading) return g_present1 ? g_present1(sc, sync, flags, params) : sc->Present1(sync, flags, params);
 
-    if (!g_imgui_ready) InitOverlay(sc);
-
-    RenderFrame(sc);
-
+    if (!g_render_disabled) {
+        const unsigned fault = RenderFrameGuarded(sc);
+        if (fault) NoteFault("present1", fault);
+    }
     return g_present1(sc, sync, flags, params);
-
 }
 
 
 
-static HRESULT STDMETHODCALLTYPE HookResizeBuffers(IDXGISwapChain* sc, UINT count, UINT w, UINT h, DXGI_FORMAT fmt, UINT flags) {
+
+
+static HRESULT ResizeBuffersBody(IDXGISwapChain* sc, UINT count, UINT w, UINT h, DXGI_FORMAT fmt, UINT flags) {
 
     if (g_unloading) return g_resize ? g_resize(sc, count, w, h, fmt, flags) : sc->ResizeBuffers(count, w, h, fmt, flags);
 
@@ -4291,6 +4352,34 @@ static HRESULT STDMETHODCALLTYPE HookResizeBuffers(IDXGISwapChain* sc, UINT coun
     return hr;
 
 }
+
+// SEH wrapper: no destructible locals here (see the note above), so MSVC accepts
+// the __try. A fault inside the resize path must not propagate into the game's
+// ResizeBuffers caller, which usually aborts the process on failure.
+static unsigned ResizeBuffersGuarded(IDXGISwapChain* sc, UINT count, UINT w, UINT h,
+                                     DXGI_FORMAT fmt, UINT flags, HRESULT& hr) {
+    DWORD code = 0;
+    COMET_TRY {
+        hr = ResizeBuffersBody(sc, count, w, h, fmt, flags);
+    }
+    COMET_EXCEPT(EXCEPTION_EXECUTE_HANDLER) {
+        code = GetExceptionCode();
+    }
+    return (unsigned)code;
+}
+
+static HRESULT STDMETHODCALLTYPE HookResizeBuffers(IDXGISwapChain* sc, UINT count, UINT w, UINT h, DXGI_FORMAT fmt, UINT flags) {
+    HRESULT hr = S_OK;
+    const unsigned fault = ResizeBuffersGuarded(sc, count, w, h, fmt, flags, hr);
+    if (fault) {
+        NoteFault("resize", fault);
+        // Fall through to the original so the game still gets a well-formed
+        // result instead of a made-up one.
+        return g_resize ? g_resize(sc, count, w, h, fmt, flags) : hr;
+    }
+    return hr;
+}
+
 
 
 
