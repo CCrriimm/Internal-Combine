@@ -1,6 +1,7 @@
 import builtins
-import os
-import sys
+import ctypes          # imported eagerly: the engine's importer is broken on some installs
+import os             # (see _rescue_importer) and a later `import ctypes` then fails, which
+import sys            # silently cost the overlay a 5 ms per-frame state read.
 import struct
 import time
 import math
@@ -457,37 +458,64 @@ def _finite(*xs):
 _shm_state_p = None
 _shm_cfg_p = None
 
+_shm_logged = None
+
+
 def _init_ctypes_shm():
-    global _shm_state_p, _shm_cfg_p
+    """Map the shared-memory blocks the overlay reads.
+
+    Deliberately avoids `from ctypes import wintypes`: on a broken game install the
+    engine's own importer raises TypeError for any module that is not already
+    loaded (`get_relpath_with_path` -> None), and `ctypes.wintypes` is one of them.
+    The old code swallowed that and left the overlay on its disk fallback, which
+    reads `state.bin` on every presented frame - ~5 ms/frame, measured as
+    `pre_avg_ms` in overlay_log.txt.
+    """
+    global _shm_state_p, _shm_cfg_p, _shm_logged
+    if _shm_state_p is not None and _shm_cfg_p is not None:
+        return
     try:
-        import ctypes
-        from ctypes import wintypes
         k32 = ctypes.windll.kernel32
-        k32.OpenFileMappingA.argtypes = [wintypes.DWORD, wintypes.BOOL, wintypes.LPCSTR]
-        k32.OpenFileMappingA.restype = wintypes.HANDLE
-        k32.CreateFileMappingA.argtypes = [wintypes.HANDLE, wintypes.LPVOID, wintypes.DWORD, wintypes.DWORD, wintypes.DWORD, wintypes.LPCSTR]
-        k32.CreateFileMappingA.restype = wintypes.HANDLE
-        k32.MapViewOfFile.argtypes = [wintypes.HANDLE, wintypes.DWORD, wintypes.DWORD, wintypes.DWORD, ctypes.c_size_t]
+        k32.OpenFileMappingA.argtypes = [ctypes.c_uint32, ctypes.c_int, ctypes.c_char_p]
+        k32.OpenFileMappingA.restype = ctypes.c_void_p
+        k32.CreateFileMappingA.argtypes = [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_uint32,
+                                           ctypes.c_uint32, ctypes.c_uint32, ctypes.c_char_p]
+        k32.CreateFileMappingA.restype = ctypes.c_void_p
+        k32.MapViewOfFile.argtypes = [ctypes.c_void_p, ctypes.c_uint32, ctypes.c_uint32,
+                                      ctypes.c_uint32, ctypes.c_size_t]
         k32.MapViewOfFile.restype = ctypes.c_void_p
 
         PAGE_READWRITE = 0x04
         FILE_MAP_ALL_ACCESS = 0x000F001F
+        INVALID_HANDLE_VALUE = ctypes.c_void_p(-1)
 
         if _shm_state_p is None:
             h = k32.OpenFileMappingA(FILE_MAP_ALL_ACCESS, False, b"Local\\BS_IPC_STATE")
             if not h:
-                h = k32.CreateFileMappingA(wintypes.HANDLE(-1), None, PAGE_READWRITE, 0, 65536, b"Local\\BS_IPC_STATE")
+                h = k32.CreateFileMappingA(INVALID_HANDLE_VALUE, None, PAGE_READWRITE, 0,
+                                           65536, b"Local\\BS_IPC_STATE")
             if h:
                 _shm_state_p = k32.MapViewOfFile(h, FILE_MAP_ALL_ACCESS, 0, 0, 65536)
 
         if _shm_cfg_p is None:
             h = k32.OpenFileMappingA(FILE_MAP_ALL_ACCESS, False, b"Local\\BS_IPC_CFG")
             if not h:
-                h = k32.CreateFileMappingA(wintypes.HANDLE(-1), None, PAGE_READWRITE, 0, CFG_SIZE, b"Local\\BS_IPC_CFG")
+                h = k32.CreateFileMappingA(INVALID_HANDLE_VALUE, None, PAGE_READWRITE, 0,
+                                           CFG_SIZE, b"Local\\BS_IPC_CFG")
             if h:
                 _shm_cfg_p = k32.MapViewOfFile(h, FILE_MAP_ALL_ACCESS, 0, 0, CFG_SIZE)
     except Exception:
         pass
+
+    ok = _shm_state_p is not None
+    if _shm_logged != ok:
+        _shm_logged = ok
+        if ok:
+            _sys_log('[sys:ipc] state shared memory: ok (overlay reads memory, no per-frame file I/O)')
+        else:
+            _sys_log('[sys:ipc] state shared memory: FAILED - overlay falls back to reading '
+                     'state.bin every frame (~5 ms/frame). Retrying.')
+
 
 # Disk fallback must not block the engine tick: replace pending snapshots with
 # the newest one instead of queueing unbounded old frames. The worker only sees
@@ -1611,9 +1639,14 @@ def _install_class_hooks():
 
 
 def _install_instance_hooks():
-    # UI classes can be imported after install; the guard is idempotent.
+    # Idempotent: the importer may be broken at install time and fixed by this, UI
+    # classes are imported later, and the shared-memory mapping is retried until it
+    # works (the disk fallback costs the overlay ~5 ms/frame).
     try:
+        _rescue_importer()
         _guard_ui_events()
+        if _shm_state_p is None:
+            _init_ctypes_shm()
     except Exception:
         pass
     targets = []
@@ -1709,6 +1742,71 @@ def _no_hooks_requested():
     return _no_hooks_cached
 
 
+_importer_rescued = False
+
+
+def _rescue_importer():
+    """Make a broken patch index raise "module not found" instead of TypeError.
+
+    On this install the engine's importer is asked about every fresh import and
+    raises
+
+        MImporter.finder.find_spec_in_patch_encrypt
+          -> find_spec_in_encrypt -> get_relpath_with_path
+        TypeError: unsupported operand type(s) for +: 'NoneType' and 'str'
+
+    because the module is not in the patch index at all (the patch bundles are
+    missing). A TypeError from a path finder aborts the whole import instead of
+    letting the next finder try, so *everything* that is not already loaded fails -
+    including `ctypes.wintypes`, which is why the runtime could not set up its
+    shared memory, and including the game's own UI modules, which is what the user
+    sees as "clicking kills the game".
+
+    Returning None from these three methods means "not found here, try elsewhere":
+    a normal module is still found, and a genuinely missing one raises a plain
+    ImportError that the UI guard (below) catches.
+    """
+    global _importer_rescued
+    if _importer_rescued:
+        return True
+    finders = []
+    try:
+        finders = list(sys.meta_path)
+    except Exception:
+        return False
+    patched = 0
+    for finder in finders:
+        cls = type(finder)
+        modname = getattr(cls, '__module__', '') or ''
+        if 'MImporter' not in modname and 'importer' not in modname.lower():
+            continue
+        for method in ('find_spec_in_patch_encrypt', 'find_spec_in_encrypt',
+                       'get_relpath_with_path', 'find_spec_in_anywhere'):
+            fn = getattr(finder, method, None)
+            if not callable(fn) or getattr(fn, '_m_rescued', False):
+                continue
+
+            def make(orig):
+                def safe(*args, **kwargs):
+                    try:
+                        return orig(*args, **kwargs)
+                    except TypeError:
+                        return None
+                safe._m_rescued = True
+                return safe
+
+            try:
+                setattr(finder, method, make(fn))
+                patched += 1
+            except Exception:
+                pass
+    if patched:
+        _importer_rescued = True
+        _sys_log('[sys:sec] importer rescued: %d finder methods return "not found" instead of '
+                 'TypeError (missing patch data)' % patched)
+    return _importer_rescued
+
+
 _ui_guard_logged = set()
 
 
@@ -1741,9 +1839,20 @@ def _guard_ui_events():
     """
     if _no_hooks_requested():
         return 0
+
+    # Walk what is already imported instead of `import ...`: on a broken install
+    # the import itself is what raises, which is why the first version of this
+    # guard never installed anything.
+    modules = []
     try:
-        import gclient.framework.ui.widgets.ui_node as ui_node
+        for name, module in list(sys.modules.items()):
+            if not module:
+                continue
+            if 'ui_node' in name or name.startswith('gclient.framework.ui'):
+                modules.append(module)
     except Exception:
+        return 0
+    if not modules:
         return 0
 
     def make_guarded(orig):
@@ -1758,26 +1867,29 @@ def _guard_ui_events():
         return dispatch
 
     wrapped = 0
-    try:
-        names = dir(ui_node)
-    except Exception:
-        return 0
-    for name in names:
+    seen = set()
+    for ui_node in modules:
         try:
-            cls = getattr(ui_node, name, None)
+            names = dir(ui_node)
         except Exception:
             continue
-        if not isinstance(cls, type):
-            continue
-        for method in ('eventDispatcher', 'onTouchEnded'):
-            fn = getattr(cls, method, None)
-            if not callable(fn) or getattr(fn, '_m_ui_guard', False):
-                continue
+        for name in names:
             try:
-                setattr(cls, method, make_guarded(fn))
-                wrapped += 1
+                cls = getattr(ui_node, name, None)
             except Exception:
-                pass
+                continue
+            if not isinstance(cls, type) or id(cls) in seen:
+                continue
+            seen.add(id(cls))
+            for method in ('eventDispatcher', 'onTouchEnded'):
+                fn = getattr(cls, method, None)
+                if not callable(fn) or getattr(fn, '_m_ui_guard', False):
+                    continue
+                try:
+                    setattr(cls, method, make_guarded(fn))
+                    wrapped += 1
+                except Exception:
+                    pass
     if wrapped:
         _sys_log('[sys:sec] ui event guard installed (%d methods)' % wrapped)
     return wrapped
@@ -1798,6 +1910,7 @@ def _install_hooks():
         _guard_story_pipeline()
         _patch_http_client()
         _install_excepthook_guard()
+        _rescue_importer()
         _guard_ui_events()
         _install_instance_hooks()
         _hooks_done = True

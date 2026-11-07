@@ -57,7 +57,7 @@ class UiGuardTests(unittest.TestCase):
             sys.modules.pop('gclient.framework.ui.widgets.ui_node', None)
 
     def _install(self):
-        return build({'traceback': traceback, '_sys_log': self.logs.append,
+        return build({'traceback': traceback, 'sys': sys, '_sys_log': self.logs.append,
                       '_no_hooks_requested': lambda: False,
                       '_ui_guard_logged': set()})
 
@@ -99,3 +99,46 @@ class UiGuardTests(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class ImporterRescueTests(unittest.TestCase):
+    """A path finder that raises TypeError aborts the whole import.
+
+    `MImporter.finder.find_spec_in_patch_encrypt` raises
+    `TypeError: NoneType + str` for anything that is not in the patch index, so
+    every module that was not already loaded failed to import - `ctypes.wintypes`
+    included, which is how the runtime silently lost its shared-memory IPC.
+    """
+
+    def test_typeerror_becomes_not_found(self):
+        source = SOURCE.read_text(encoding='utf-8-sig')
+        node = next(n for n in ast.parse(source).body
+                    if isinstance(n, ast.FunctionDef) and n.name == '_rescue_importer')
+
+        class Finder:
+            def find_spec_in_patch_encrypt(self, name, path=None, target=None):
+                raise TypeError("unsupported operand type(s) for +: 'NoneType' and 'str'")
+
+            def find_spec_in_encrypt(self, name, path=None, target=None):
+                return 'FOUND'
+
+        Finder.__module__ = 'MImporter_py3'
+        finder = Finder()
+        saved = list(sys.meta_path)
+        logs = []
+        ns = {'sys': sys, '_sys_log': logs.append, '_importer_rescued': False}
+        exec(compile(ast.Module(body=[node], type_ignores=[]), str(SOURCE), 'exec'), ns)
+        sys.meta_path.insert(0, finder)
+        try:
+            self.assertTrue(ns['_rescue_importer']())
+            self.assertIsNone(finder.find_spec_in_patch_encrypt('anything'))
+            self.assertEqual(finder.find_spec_in_encrypt('anything'), 'FOUND')
+        finally:
+            sys.meta_path[:] = saved
+        self.assertTrue(any('importer rescued' in l for l in logs), logs)
+
+    def test_ctypes_is_imported_eagerly(self):
+        source = SOURCE.read_text(encoding='utf-8-sig')
+        head = source.split('def _root_dir')[0]
+        self.assertIn('import ctypes', head,
+                      'ctypes must be loaded before the engine importer can break it')
