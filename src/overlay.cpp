@@ -420,7 +420,13 @@ static ID3D11Device* g_device = nullptr;
 
 static ID3D11DeviceContext* g_context = nullptr;
 
-static ID3D11RenderTargetView* g_rtv = nullptr;
+// NOT a held reference. Holding a render-target view on buffer 0 keeps that
+// back buffer un-releasable for the swapchain, so the game's own wait for the
+// previous buffer can never complete: frames keep being produced (the FPS
+// counter climbs, a swapchain capture still sees them) while the display stops
+// advancing. This is a capability flag only - the view is opened for the
+// duration of one ImGui draw and released immediately (see RenderFrame).
+static bool g_rtv_live = false;
 
 static UINT g_width = 0;
 
@@ -1108,13 +1114,27 @@ static void SetOptAimToggle(bool on) {
 // Keeps SetWindowDisplayAffinity(WDA_EXCLUDEFROMCAPTURE) in force while the
 // Settings toggle is on. The guard re-asserts the affinity if the game clears
 // it and backs off after an API failure instead of retrying every frame.
+// A file next to the DLL disables capture protection for the whole session.
+// Deliberately not an environment variable and not a config field: it has to
+// work before the config is read and without the loader re-packaging anything,
+// so a build can always be recovered when the protected window is invisible to
+// screen capture.
+static bool CaptureProtectionKilled() {
+    static const bool killed = [] {
+        const std::wstring flag = PathBase() + L"\\no_capture_guard.txt";
+        return GetFileAttributesW(flag.c_str()) != INVALID_FILE_ATTRIBUTES;
+    }();
+    return killed;
+}
+
 static void ApplyObsProtection() {
     if (!g_hwnd) {
         comet_capture::Apply(nullptr, false, g_obs, GetTickCount64());
         return;
     }
     const comet_capture::Status before = g_obs.status;
-    comet_capture::Apply(g_hwnd, HasOpt2(OPT2_OBS_PROTECT), g_obs, GetTickCount64());
+    const bool want = HasOpt2(OPT2_OBS_PROTECT) && !CaptureProtectionKilled();
+    comet_capture::Apply(g_hwnd, want, g_obs, GetTickCount64());
     if (g_obs.status != before) {
         if (g_obs.status == comet_capture::Status::Denied)
             Log("obs protection denied (win32 error %lu)", g_obs.error);
@@ -3285,7 +3305,7 @@ static DWORD WINAPI UnloadWorker(LPVOID) {
 
     }
 
-    if (g_rtv) { g_rtv->Release(); g_rtv = nullptr; }
+    g_rtv_live = false;
 
     if (g_context) { g_context->Release(); g_context = nullptr; }
 
@@ -3335,7 +3355,7 @@ static void SafeExitCheatAndGame() {
         ImGui::DestroyContext();
         g_imgui_ready = false;
     }
-    if (g_rtv) { g_rtv->Release(); g_rtv = nullptr; }
+    g_rtv_live = false;
     if (g_context) { g_context->Release(); g_context = nullptr; }
     if (g_device) { g_device->Release(); g_device = nullptr; }
 
@@ -3526,17 +3546,15 @@ static void HandleToggle() {
 
 
 
+// Confirms buffer 0 can be turned into a render target and records the current
+// size, then releases the view immediately. Nothing here is kept: see the note
+// on g_rtv_live. If this fails, drawing is skipped for the frame rather than
+// leaving a held reference behind.
 static void CreateRTV() {
 
+    g_rtv_live = false;
+
     if (!g_swapchain || !g_device) return;
-
-    if (g_rtv) {
-
-        g_rtv->Release();
-
-        g_rtv = nullptr;
-
-    }
 
     ID3D11Texture2D* back = nullptr;
 
@@ -3554,11 +3572,20 @@ static void CreateRTV() {
 
     }
 
-    g_device->CreateRenderTargetView(back, nullptr, &g_rtv);
+    ID3D11RenderTargetView* probe = nullptr;
+
+    if (SUCCEEDED(g_device->CreateRenderTargetView(back, nullptr, &probe)) && probe) {
+
+        g_rtv_live = true;
+
+        probe->Release();
+
+    }
 
     back->Release();
 
 }
+
 
 
 
@@ -3623,13 +3650,7 @@ static bool BindSwapchain(IDXGISwapChain* sc) {
 
     }
 
-    if (g_rtv) {
-
-        g_rtv->Release();
-
-        g_rtv = nullptr;
-
-    }
+    g_rtv_live = false;
 
     g_swapchain = sc;
 
@@ -3975,7 +3996,7 @@ static bool InitOverlay(IDXGISwapChain* sc) {
 
     CreateRTV();
 
-    if (!g_rtv) {
+    if (!g_rtv_live) {
 
         g_init_failed = true;
 
@@ -4028,7 +4049,7 @@ static bool InitOverlay(IDXGISwapChain* sc) {
 
     g_imgui_ready = true;
 
-    Log("overlay ready hwnd=%p device=%p rtv=%p size=%ux%u", g_hwnd, g_device, g_rtv, g_width, g_height);
+    Log("overlay ready hwnd=%p device=%p rtv=%d size=%ux%u", g_hwnd, g_device, g_rtv_live ? 1 : 0, g_width, g_height);
 
     return true;
 
@@ -4086,9 +4107,9 @@ static void RenderFrame(IDXGISwapChain* sc) {
 
     if (!BindSwapchain(sc)) return;
 
-    if (!g_rtv) CreateRTV();
+    if (!g_rtv_live) CreateRTV();
 
-    if (!g_rtv) return;
+    if (!g_rtv_live) return;
 
     // Back-buffer size change -> rebuild the RTV and the ImGui device objects.
     // This must run *before* NewFrame: NewFrame uploads the font atlas using the
@@ -4182,16 +4203,54 @@ static void RenderFrame(IDXGISwapChain* sc) {
     UINT vp_count = (UINT)(sizeof(prev_vp) / sizeof(prev_vp[0]));
     g_context->RSGetViewports(&vp_count, prev_vp);
 
-    g_context->OMSetRenderTargets(1, &g_rtv, nullptr);
-    ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+    // Open a view on the back buffer for this draw only and release it before
+    // Present. A render-target view left outstanding on buffer 0 keeps that
+    // buffer un-releasable, so the game's wait for the previous buffer never
+    // completes and the display stops advancing while frames keep being
+    // produced. Unbind first, then release: the context holds its own reference
+    // while a target is bound.
+    ID3D11Texture2D* back = nullptr;
+    ID3D11RenderTargetView* rtv = nullptr;
+    const bool have_back =
+        SUCCEEDED(g_swapchain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&back)) && back;
+    if (have_back && SUCCEEDED(g_device->CreateRenderTargetView(back, nullptr, &rtv)) && rtv) {
+        g_context->OMSetRenderTargets(1, &rtv, nullptr);
+        ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+        g_context->OMSetRenderTargets(prev_rtv_count, prev_rtv_count ? prev_rtvs : nullptr, prev_dsv);
+        rtv->Release();
+    } else {
+        // Could not reach the back buffer this frame: put the game's binding
+        // back and draw nothing rather than leaving it changed.
+        g_context->OMSetRenderTargets(prev_rtv_count, prev_rtv_count ? prev_rtvs : nullptr, prev_dsv);
+    }
+    if (back) back->Release();
 
     if (vp_count) g_context->RSSetViewports(vp_count, prev_vp);
-    g_context->OMSetRenderTargets(prev_rtv_count, prev_rtv_count ? prev_rtvs : nullptr, prev_dsv);
     for (UINT i = 0; i < prev_rtv_count; ++i) prev_rtvs[i]->Release();
     if (prev_dsv) prev_dsv->Release();
 }
 
 
+
+// A swap chain whose Present starts failing produces exactly the symptom
+// "the game runs, the screen does not move": frames are rendered and counted,
+// but nothing is scanned out. Present's HRESULT used to be discarded here, so
+// that state was invisible in the log. Record it, rate-limited so a persistent
+// failure cannot flood the file.
+static void NotePresentResult(HRESULT hr, const char* which) {
+    static DWORD last_ms = 0;
+    static int fails = 0;
+    if (SUCCEEDED(hr)) return;
+    ++fails;
+    const DWORD now = GetTickCount();
+    if (fails > 5 && now - last_ms < 1000) return;
+    last_ms = now;
+    Log("%s FAILED hr=%08x (failure %d)", which, (unsigned)hr, fails);
+    if (hr == DXGI_ERROR_DEVICE_REMOVED || hr == DXGI_ERROR_DEVICE_RESET) {
+        Log("%s: device lost, overlay drawing disabled", which);
+        g_render_disabled = true;
+    }
+}
 
 static HRESULT STDMETHODCALLTYPE HookPresent(IDXGISwapChain* sc, UINT sync, UINT flags) {
     if(g_inside_present) return g_present(sc,sync,flags);
@@ -4204,7 +4263,9 @@ static HRESULT STDMETHODCALLTYPE HookPresent(IDXGISwapChain* sc, UINT sync, UINT
     }
     // Always forward, whatever happened above: skipping the game's own Present
     // is what turns an overlay fault into a frozen picture.
-    return g_present(sc, sync, flags);
+    const HRESULT hr = g_present(sc, sync, flags);
+    NotePresentResult(hr, "Present");
+    return hr;
 }
 
 
@@ -4220,7 +4281,9 @@ static HRESULT STDMETHODCALLTYPE HookPresent1(IDXGISwapChain1* sc, UINT sync, UI
         const unsigned fault = RenderFrameGuarded(sc);
         if (fault) NoteFault("present1", fault);
     }
-    return g_present1(sc, sync, flags, params);
+    const HRESULT hr = g_present1(sc, sync, flags, params);
+    NotePresentResult(hr, "Present1");
+    return hr;
 }
 
 
@@ -4239,17 +4302,11 @@ static HRESULT ResizeBuffersBody(IDXGISwapChain* sc, UINT count, UINT w, UINT h,
 
     }
 
-    // We hold a reference to buffer 0 through g_rtv, and ResizeBuffers fails with
-    // DXGI_ERROR_INVALID_CALL while that reference exists - which leaves the game
-    // on a stale back buffer, the classic "picture is frozen but the UI still
-    // responds" symptom. Release exactly once here, re-create it below.
-    if (g_rtv) {
-
-        g_rtv->Release();
-
-        g_rtv = nullptr;
-
-    }
+    // ResizeBuffers fails with DXGI_ERROR_INVALID_CALL while any view on the
+    // back buffers is outstanding. Views are now per-frame and released before
+    // Present, so nothing should be held here; clear the flag defensively and
+    // re-probe below.
+    g_rtv_live = false;
 
     if (g_imgui_ready) ImGui_ImplDX11_InvalidateDeviceObjects();
 
@@ -4542,11 +4599,97 @@ static DWORD WINAPI RecoilControlSystemWorker(LPVOID) {
 
 
 #ifndef CIYE_MENU_PREVIEW
+// Set by CrashFilter install; see below.
+static LPTOP_LEVEL_EXCEPTION_FILTER g_prev_crash_filter = nullptr;
+// Pre-resolved in DllMain, before anything can fault. The crash path must not
+// touch the heap or the CRT file layer: if the fault happened with a heap or
+// stdio lock held by this same thread, logging through them would hang the
+// process instead of reporting the crash, and a hang looks exactly like the bug
+// being diagnosed.
+static wchar_t g_crash_log_path[MAX_PATH] = {};
+static void CrashWrite(const char* text) {
+    if (!g_crash_log_path[0] || !text || !*text) return;
+    wchar_t wide[900];
+    const int n = MultiByteToWideChar(CP_UTF8, 0, text, -1, wide, 900);
+    if (n <= 1) return;
+    HANDLE f = CreateFileW(g_crash_log_path, FILE_APPEND_DATA,
+                           FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr,
+                           OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
+    if (f == INVALID_HANDLE_VALUE) return;
+    DWORD written = 0;
+    WriteFile(f, wide, (DWORD)((n - 1) * sizeof(wchar_t)), &written, nullptr);
+    CloseHandle(f);
+}
+#define CRASHLOG(...) do { \
+    char _cl[800]; \
+    _snprintf_s(_cl, sizeof(_cl), _TRUNCATE, __VA_ARGS__); \
+    CrashWrite(_cl); \
+} while (0)
+// ---------------------------------------------------------------------------
+// Crash forensics.
+//
+// A process that dies inside injected code leaves nothing behind on its own, so
+// install a filter that records the exception before handing it on. That turns
+// "it crashes a few seconds into a match" into a faulting module, an offset and
+// a code - the difference between guessing and knowing.
+// ---------------------------------------------------------------------------
+static LONG WINAPI CrashFilter(EXCEPTION_POINTERS* info) {
+    if (!info || !info->ExceptionRecord) return EXCEPTION_EXECUTE_HANDLER;
+    const EXCEPTION_RECORD* rec = info->ExceptionRecord;
+    const void* where = rec->ExceptionAddress;
+    HMODULE owner = nullptr;
+    wchar_t owner_path[MAX_PATH]{};
+    const wchar_t* owner_name = L"unknown";
+    if (where && GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS |
+                                    GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+                                    reinterpret_cast<LPCWSTR>(where), &owner) && owner) {
+        if (GetModuleFileNameW(owner, owner_path, MAX_PATH)) {
+            const wchar_t* slash = wcsrchr(owner_path, L'\\');
+            owner_name = slash ? slash + 1 : owner_path;
+        }
+    }
+    char module_ansi[MAX_PATH]{};
+    WideCharToMultiByte(CP_ACP, 0, owner_name, -1, module_ansi, MAX_PATH, nullptr, nullptr);
+    const unsigned long long offset =
+        owner ? (unsigned long long)((uintptr_t)where - (uintptr_t)owner) : 0ull;
+    CRASHLOG("CRASH code=%08x addr=%p module=%s +0x%llx params=%lu\n",
+             (unsigned)rec->ExceptionCode, where, module_ansi, offset,
+             (unsigned long)rec->NumberParameters);
+    for (DWORD i = 0; i < rec->NumberParameters && i < 4; ++i) {
+        CRASHLOG("CRASH param[%lu]=%p\n", (unsigned long)i,
+                 reinterpret_cast<const void*>(rec->ExceptionInformation[i]));
+    }
+    CRASHLOG("CRASH state imgui=%d render_disabled=%d faults=%d in_present=%d\n",
+             g_imgui_ready ? 1 : 0, g_render_disabled ? 1 : 0, g_fault_count,
+             g_inside_present ? 1 : 0);
+    // An excluded window is invisible to screen capture; never leave one behind.
+    if (g_hwnd) SetWindowDisplayAffinity(g_hwnd, WDA_NONE);
+    g_obs.active = false;
+    g_obs.requested = false;
+    // Chain to whoever was installed before us (the engine's own reporter), so
+    // this is forensics, not a replacement. Returning EXECUTE_HANDLER here would
+    // suppress the game's crash dialog.
+    if (g_prev_crash_filter) return g_prev_crash_filter(info);
+    return EXCEPTION_EXECUTE_HANDLER;
+}
+
 BOOL APIENTRY DllMain(HMODULE module, DWORD reason, LPVOID) {
 
     if (reason == DLL_PROCESS_ATTACH) {
 
         g_hmodule = module;
+        // Resolve the log path now, while allocating is still safe: the filter
+        // must never allocate.
+        {
+            const std::wstring path = LogPath();
+            const std::wstring::size_type n =
+                path.size() < MAX_PATH - 1 ? path.size() : MAX_PATH - 1;
+            for (std::wstring::size_type i = 0; i < n; ++i) g_crash_log_path[i] = path[i];
+            g_crash_log_path[n] = L'\0';
+        }
+
+        // Must be armed before any other thread can fault.
+        g_prev_crash_filter = SetUnhandledExceptionFilter(CrashFilter);
 
         DisableThreadLibraryCalls(module);
 

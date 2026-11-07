@@ -162,12 +162,20 @@ inline void Apply(HWND window, bool enable, Blackout& state, std::uint64_t now_m
 }
 
 // Panic/shutdown path: always attempts the restore once, ignoring the timers.
+//
+// This has to work even when Apply() was never called - a cold start dies while
+// the exclusion is still in force, and an excluded window is invisible to screen
+// capture. Whatever the state says, clear the affinity on the way out and read
+// it back to confirm.
 inline void Restore(HWND window, Blackout& state) {
     state.requested = false;
     state.attempted = false;
     state.status = Status::Off;
     if (window && IsWindow(window)) {
-        SetWindowDisplayAffinity(window, WDA_NONE);
+        DWORD current = WDA_NONE;
+        if (GetWindowDisplayAffinity(window, &current) && current != WDA_NONE) {
+            SetWindowDisplayAffinity(window, WDA_NONE);
+        }
     }
     state.active = false;
     state.succeeded = false;

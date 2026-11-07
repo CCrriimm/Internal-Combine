@@ -4585,6 +4585,29 @@ _on_story_tick.__name__ = 'OnEngineViewportUpdate'
 _on_story_tick.__qualname__ = 'OnEngineViewportUpdate'
 
 
+def _install_fault_recorder():
+    """Record fatal Python faults that would otherwise vanish.
+
+    The game installs its own excepthook and, in places, its own threading
+    hooks; when a hook of ours raises where the engine swallows it, the only
+    symptom is that the tick stops. Write a marker so a crash report can tell
+    "our runtime raised" apart from "the process died in native code".
+    """
+    marker = os.path.join(IPC_DIR, 'runtime_fatal.txt')
+    try:
+        def hook(exc_type, exc, tb):
+            try:
+                with open(marker, 'a', encoding='utf-8', errors='replace') as f:
+                    f.write('%s FATAL %s\n' % (time.strftime('%H:%M:%S'), exc_type.__name__))
+                    f.write(''.join(traceback.format_exception(exc_type, exc, tb)))
+            except Exception:
+                pass
+            return _orig_excepthook(exc_type, exc, tb) if _orig_excepthook else None
+        sys.excepthook = hook
+    except Exception:
+        pass
+
+
 def start():
     global _last_apply_seq, _booted, _my_gen
     _my_gen = int(getattr(builtins, '_m_generation', 0) or 0)
@@ -4594,6 +4617,7 @@ def start():
     _make_cfg_default()
     _save_template_cache()
     _install_hooks()
+    _install_fault_recorder()
     try:
         import gclient.framework.util.story_tick as st
         def OnEngineViewportUpdate(dt):
