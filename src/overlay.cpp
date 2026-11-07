@@ -1354,22 +1354,16 @@ static std::string EnemyHeroLabel(uint32_t hero_id) {
 // The set of colours the user already uses for enemies / teammates / monsters.
 // Built once per frame: TeamTint is called per target, and a fresh hash set per
 // call was a heap allocation inside the present hook.
-using ReservedColours = std::unordered_set<uint32_t>;
+struct ReservedColours {
+    uint32_t values[3];
+    bool count(uint32_t colour) const {
+        return values[0] == colour || values[1] == colour || values[2] == colour;
+    }
+};
 
 static ReservedColours BuildReservedColours() {
-
-    ReservedColours reserved;
-
-    reserved.reserve(3);
-
-    reserved.insert(g_cfg.col_box & 0x00FFFFFFu);
-
-    reserved.insert(g_cfg.col_team & 0x00FFFFFFu);
-
-    reserved.insert(g_cfg.col_monster & 0x00FFFFFFu);
-
-    return reserved;
-
+    return {{g_cfg.col_box & 0x00FFFFFFu, g_cfg.col_team & 0x00FFFFFFu,
+             g_cfg.col_monster & 0x00FFFFFFu}};
 }
 
 static ImU32 TeamTint(int team, const ReservedColours& reserved) {
@@ -1382,12 +1376,6 @@ static ImU32 TeamTint(int team, const ReservedColours& reserved) {
     const uint32_t alpha = g_cfg.col_box & 0xFF000000u;
 
     return (g_team_labels.ColourFor(team, reserved) & 0x00FFFFFFu) | alpha;
-
-}
-
-static ImU32 TeamTint(int team) {
-
-    return TeamTint(team, BuildReservedColours());
 
 }
 
@@ -3733,7 +3721,7 @@ static void InitFonts() {
 
         cfg.PixelSnapH = true;
 
-        ImFont* f = io.Fonts->AddFontFromFileTTF(path, 16.0f, &cfg, io.Fonts->GetGlyphRangesChineseFull());
+        ImFont* f = io.Fonts->AddFontFromFileTTF(path, 16.0f, &cfg, io.Fonts->GetGlyphRangesDefault());
 
         if (f) {
 
@@ -3761,7 +3749,7 @@ static void InitFonts() {
 
         cfg.PixelSnapH = true;
 
-        ImFont* f = io.Fonts->AddFontFromFileTTF(path, 21.0f, &cfg, io.Fonts->GetGlyphRangesChineseFull());
+        ImFont* f = io.Fonts->AddFontFromFileTTF(path, 21.0f, &cfg, io.Fonts->GetGlyphRangesDefault());
 
         if (f) {
 
@@ -3789,7 +3777,7 @@ static void InitFonts() {
 
         cfg.PixelSnapH = true;
 
-        ImFont* f = io.Fonts->AddFontFromFileTTF(path, 18.0f, &cfg, io.Fonts->GetGlyphRangesChineseFull());
+        ImFont* f = io.Fonts->AddFontFromFileTTF(path, 18.0f, &cfg, io.Fonts->GetGlyphRangesDefault());
 
         if (f) {
 
@@ -4334,7 +4322,9 @@ static HRESULT ResizeBuffersBody(IDXGISwapChain* sc, UINT count, UINT w, UINT h,
 
         CreateRTV();
 
-        ImGui_ImplDX11_CreateDeviceObjects();
+        // RenderFrame handles g_display_dirty before its next ImGui NewFrame.
+        // Recreating here as well would compile shaders and recreate resources
+        // twice for the same resize.
 
     }
 

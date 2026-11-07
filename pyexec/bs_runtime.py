@@ -4594,20 +4594,24 @@ def _on_story_tick(dt):
         t_track = time.time()
         _sync_impulse_damping(cfg, in_match)
         _sync_weapon_case_damping(cfg, in_match)
+        t_sync = time.time()
         _last_state = now
         av, lid, team, lpos = _local()
+        t_local = time.time()
         # The per-tick ground-loot scan is gone (it walked the whole space and
         # projected every candidate); nothing calls it any more.
         buf = _serialize_frame_data(cfg, cam, in_match, origin, lpos, items)
+        t_serial = time.time()
         if buf is not None:
             _write(STATE_PATH, buf)
         t1 = time.time()
         total = t1 - t0
         if (total > 0.06 or t_track - t_gather > 0.04) and t0 - _perf_last >= 1.0:
             _perf_last = t0
-            _sys_log('[sys:perf] dt=%.3f total=%.3f apply=%.4f unlock=%.4f gather=%.4f track=%.4f state=%.4f items=%d' % (
+            _sys_log('[sys:perf] dt=%.3f total=%.3f apply=%.4f unlock=%.4f gather=%.4f track=%.4f state=%.4f sync=%.4f local=%.4f serialize=%.4f write=%.4f items=%d' % (
                 dt, total, t_apply - t0, t_unlock - t_apply, t_gather - t_unlock,
-                t_track - t_gather, t1 - t_track, len(items)))
+                t_track - t_gather, t1 - t_track, t_sync - t_track,
+                t_local - t_sync, t_serial - t_local, t1 - t_serial, len(items)))
     except Exception:
         _sys_log(traceback.format_exc())
 

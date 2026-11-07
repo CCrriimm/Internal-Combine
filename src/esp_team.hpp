@@ -81,7 +81,8 @@ public:
     // `reserved` holds colours that must not be picked (the player's own enemy
     // and teammate colours) so a team tint stays distinguishable from them.
     // Returns 0 when the team is invalid; callers fall back to their base colour.
-    uint32_t ColourFor(int team, const std::unordered_set<uint32_t>& reserved) {
+    template <typename Reserved>
+    uint32_t ColourFor(int team, const Reserved& reserved) {
         if (team <= 0) return 0;
         const auto it = m_teams.find(team);
         if (it == m_teams.end()) {
@@ -126,7 +127,8 @@ private:
     // the same team id gets the same colour for a given set of teams already
     // known, so it never flickers; the id offset is what makes different teams
     // land on different colours.
-    uint32_t Pick(int team, const std::unordered_set<uint32_t>& reserved) const {
+    template <typename Reserved>
+    uint32_t Pick(int team, const Reserved& reserved) const {
         constexpr int count = kCandidateCount;
         const int start = (team < 0 ? -team : team) % count;
         for (int attempt = 0; attempt < count; ++attempt) {

@@ -22,7 +22,16 @@ SOURCE = r'''
 static int failures = 0;
 #define CHECK(cond) do { if (!(cond)) { std::printf("FAIL %s:%d %s\n", __FILE__, __LINE__, #cond); ++failures; } } while (0)
 
+struct StackReserved {
+    std::uint32_t colour;
+    bool count(std::uint32_t candidate) const { return candidate == colour; }
+};
+
 int main() {
+    teamtint::Labels stack_labels;
+    StackReserved stack_reserved{teamtint::kCandidates[0]};
+    CHECK(stack_labels.ColourFor(7, stack_reserved) != stack_reserved.colour);
+
     // ---- labels: compact, stable, per match --------------------------------
     teamtint::Labels labels;
     CHECK(labels.NumberFor(2001) == 1);
