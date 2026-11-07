@@ -519,6 +519,8 @@ static comet_capture::Blackout g_obs{};
 // Game Capture and Steam screenshots.
 // ---------------------------------------------------------------------------
 static comet_surface::Output g_surface{};
+
+
 static comet_shield::CleanFrameGate g_clean_frame{};
 static comet_shield::Modules g_capture_modules{};
 static ULONGLONG g_capture_module_poll = 0;
@@ -1260,6 +1262,10 @@ static comet_shield::Chain PresentChainPosition() {
 // overlay: if the surface cannot be created the caller keeps drawing into the
 // game exactly as before and Settings says why.
 static void MaintainShieldSurface() {
+    // Never mutate the surface while one of its buffers is bound: the game's
+    // render targets are saved inside the Output for the duration of the frame,
+    // and releasing or recreating the swap chain there loses them.
+    if (g_surface.bound) return;
     const bool want = HasOpt2(OPT2_CAPTURE_SHIELD) && !CaptureProtectionKilled();
     if (!want) {
         if (g_surface.state != comet_surface::State::Off) {
@@ -3607,9 +3613,16 @@ static void DrawSettingsTab() {
         // The older, narrower switches are folded into this one.
         SetOpt2(OPT2_GDI_GUARD,false);
         SetOpt2(OPT2_OBS_PROTECT,false);
+        // Record the wish only. This runs *inside* comet_surface::Begin..End for
+        // the frame being drawn, with the shield's render target bound: creating
+        // or destroying the surface here pulled the bound view and the swap chain
+        // out from under the draw data that was already recorded and, on the way
+        // out, skipped the restore of the game's render target - which is what
+        // left the menu frozen and the game drawing into a dead buffer.
+        // MaintainShieldSurface() applies it at the top of the next frame, before
+        // anything is bound.
         g_surface_retry_at = 0;
-        if (protect) MaintainShieldSurface();
-        else comet_surface::Destroy(g_surface);
+        Log("capture shield %s", protect ? "requested: on" : "requested: off");
     }
     if (protect && !ShieldSurfaceReady()) {
         char described[192] = {};

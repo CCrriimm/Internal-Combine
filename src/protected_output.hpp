@@ -224,6 +224,12 @@ inline bool Create(Output& out, ID3D11Device* device, HWND game, UINT width, UIN
 // A window owned by the render thread is closed through WM_CLOSE so
 // DestroyWindow runs on the thread that created it.
 inline void Destroy(Output& out) {
+    // Refuse while a frame is in flight. `out` holds the game's saved render
+    // targets for the duration of Begin..End; releasing the swap chain and the
+    // views here leaves the context bound to a dead target, the game renders into
+    // it, and the restored state never happens. Callers defer to the top of the
+    // next frame instead (overlay.cpp: MaintainShieldSurface).
+    if (out.bound) return;
     detail::ReleasePipeline(out);
     if (out.window && IsWindow(out.window)) {
         SetWindowDisplayAffinity(out.window, WDA_NONE);
