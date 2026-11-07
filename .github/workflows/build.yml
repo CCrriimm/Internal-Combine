@@ -2,7 +2,7 @@ name: Build
 
 on:
   push:
-    branches: [main, arena/8fd1b987-internal-combine]
+    branches: [main]
   workflow_dispatch:
 
 jobs:
