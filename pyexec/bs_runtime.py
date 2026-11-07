@@ -6,6 +6,7 @@ import time
 import math
 import random
 import traceback
+import threading
 
 try:
     import MUI
@@ -229,6 +230,7 @@ _ray_hook = None
 _vis_cache = {}
 _melee_cache = {}
 _gather_cache = (0.0, None, None, [])
+_gather_key = None
 _last_gather = 0.0
 _last_hooks = 0.0
 _last_scrub = 0.0
@@ -485,21 +487,16 @@ def _init_ctypes_shm():
     except Exception:
         pass
 
-def _write(path, data):
-    global _state_file_t
-    if path == STATE_PATH:
-        if _shm_state_p is None:
-            _init_ctypes_shm()
-        if _shm_state_p:
-            try:
-                import ctypes
-                ctypes.memmove(_shm_state_p, data, len(data))
-            except Exception:
-                pass
-            now = time.time()
-            if now - _state_file_t < 0.25:
-                return True
-            _state_file_t = now
+# Disk fallback must not block the engine tick: replace pending snapshots with
+# the newest one instead of queueing unbounded old frames. The worker only sees
+# immutable bytes and filesystem paths, never game/engine objects.
+_state_writer_event = threading.Event()
+_state_writer_lock = threading.Lock()
+_state_writer_pending = None
+_state_writer_thread = None
+
+
+def _write_file(path, data):
     tmp = path + '.tmp'
     try:
         with open(tmp, 'wb') as f:
@@ -518,6 +515,49 @@ def _write(path, data):
         return True
     except Exception:
         return False
+
+
+def _state_writer_loop():
+    global _state_writer_pending
+    while True:
+        _state_writer_event.wait()
+        with _state_writer_lock:
+            pending = _state_writer_pending
+            _state_writer_pending = None
+            _state_writer_event.clear()
+        if pending is not None:
+            _write_file(STATE_PATH, pending)
+
+
+def _write(path, data):
+    global _state_file_t, _state_writer_thread, _state_writer_pending
+    if path != STATE_PATH:
+        return _write_file(path, data)
+    if _shm_state_p is None:
+        _init_ctypes_shm()
+    shared = False
+    if _shm_state_p:
+        try:
+            import ctypes
+            ctypes.memmove(_shm_state_p, data, len(data))
+            shared = True
+        except Exception:
+            pass
+    now = time.time()
+    if shared and now - _state_file_t < 0.25:
+        return True
+    _state_file_t = now
+    try:
+        if _state_writer_thread is None or not _state_writer_thread.is_alive():
+            _state_writer_thread = threading.Thread(target=_state_writer_loop, name='Comet state writer', daemon=True)
+            _state_writer_thread.start()
+        with _state_writer_lock:
+            _state_writer_pending = bytes(data)
+            _state_writer_event.set()
+        return True
+    except Exception:
+        # Do not fall back to synchronous I/O on the game thread.
+        return shared
 
 
 def _read(path, size):
@@ -4471,7 +4511,7 @@ def _serialize_frame_data(cfg, cam, in_match, origin, lpos, items):
 
 def _on_story_tick(dt):
     global _last_state, _fire_release_at, _last_catalog_check, _track_busy
-    global _last_gather, _gather_cache, _last_hooks, _last_scrub, _diag_t
+    global _last_gather, _gather_cache, _gather_key, _last_hooks, _last_scrub, _diag_t
     global _perf_t, _perf_last
     if int(getattr(builtins, '_m_generation', 0) or 0) != _my_gen:
         return
@@ -4516,12 +4556,20 @@ def _on_story_tick(dt):
         render_on = _flag(cfg, F_RENDER_ENTITIES)
         if in_match and (track_active or render_on):
             scan = max(float(cfg[IDX_RENDER_MAX_DIST]), float(cfg[IDX_TRACK_MAX_DIST]))
-            interval = 0.0
+            # Gathering walks the whole space and projects every visible bone on
+            # the game thread. Do it at most 60 times per second rather than once
+            # per game frame; tracking and state publishing still run every tick.
+            # Invalidate immediately when the space or gather options change.
+            interval = 1.0 / 60.0
             want_gun = render_on and _flag(cfg, F_RENDER_EQUIPMENT)
             want_bone = render_on and _flag(cfg, F_RENDER_SKELETON)
-            if now - _last_gather >= interval or _gather_cache[1] is None:
+            space = getattr(genv, 'space', None)
+            gather_key = (id(space), scan, want_gun, want_bone)
+            if (gather_key != _gather_key or now < _last_gather or
+                    now - _last_gather >= interval or _gather_cache[1] is None):
                 cam, origin, items = _query_visible_entities(scan, want_gun, want_bone)
                 _gather_cache = (now, cam, origin, items)
+                _gather_key = gather_key
                 _last_gather = now
             else:
                 _, cam, origin, items = _gather_cache
@@ -4554,6 +4602,7 @@ def _on_story_tick(dt):
                 cam = None
                 origin = None
             _gather_cache = (now, cam, origin, [])
+            _gather_key = None
         if items and track_active:
             t_gather = time.time()
             _update_cam_trajectory(cfg, items, cam, origin, menu_open, dt)
@@ -4567,16 +4616,18 @@ def _on_story_tick(dt):
         av, lid, team, lpos = _local()
         # The per-tick ground-loot scan is gone (it walked the whole space and
         # projected every candidate); nothing calls it any more.
+        t_state = time.time()
         buf = _serialize_frame_data(cfg, cam, in_match, origin, lpos, items)
+        t_serialize = time.time()
         if buf is not None:
             _write(STATE_PATH, buf)
         t1 = time.time()
         total = t1 - t0
-        if (total > 0.06 or t_track - t_gather > 0.04) and t0 - _perf_last >= 1.0:
+        if (total > 0.008 or t_track - t_gather > 0.004) and t0 - _perf_last >= 1.0:
             _perf_last = t0
-            _sys_log('[sys:perf] dt=%.3f total=%.3f apply=%.4f unlock=%.4f gather=%.4f track=%.4f state=%.4f items=%d' % (
+            _sys_log('[sys:perf] dt=%.3f total=%.3f apply=%.4f unlock=%.4f gather=%.4f track=%.4f state=%.4f serialize=%.4f write=%.4f items=%d' % (
                 dt, total, t_apply - t0, t_unlock - t_apply, t_gather - t_unlock,
-                t_track - t_gather, t1 - t_track, len(items)))
+                t_track - t_gather, t1 - t_track, t_serialize - t_state, t1 - t_serialize, len(items)))
     except Exception:
         _sys_log(traceback.format_exc())
 
