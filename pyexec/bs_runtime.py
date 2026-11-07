@@ -280,13 +280,15 @@ HERO_NAMES = {
 }
 
 
-def _sys_log(msg):
+def _sys_log(msg, force=False):
     global _last_err, _log_last_msg, _log_last_t
     now = time.time()
     text = str(msg)[:1200]
     if text == _log_last_msg and now - _log_last_t < 10.0:
         return
-    if now - _last_err < 0.5:
+    # The 0.5 s throttle keeps a busy hook from flooding the file, but it also hid
+    # one-off lines that matter (boot, IPC, guard install) behind asset spam.
+    if not force and now - _last_err < 0.5:
         return
     _last_err = now
     _log_last_msg = text
@@ -486,7 +488,7 @@ def _init_ctypes_shm():
     if ctypes is None:
         if _shm_logged != 'missing':
             _shm_logged = 'missing'
-            _sys_log('[sys:ipc] ctypes unavailable - overlay reads state.bin (slower)')
+            _sys_log('[sys:ipc] ctypes unavailable - overlay reads state.bin (slower)', force=True)
         return
     try:
         k32 = ctypes.windll.kernel32
@@ -525,10 +527,10 @@ def _init_ctypes_shm():
     if _shm_logged != ok:
         _shm_logged = ok
         if ok:
-            _sys_log('[sys:ipc] state shared memory ok')
+            _sys_log('[sys:ipc] state shared memory ok', force=True)
         else:
             _sys_log('[sys:ipc] state shared memory failed - overlay reads state.bin on every '
-                     'frame; retrying')
+                     'frame; retrying', force=True)
 
 
 # Disk fallback must not block the engine tick: replace pending snapshots with
@@ -4984,6 +4986,6 @@ def rebuild_catalog():
 # the native side and keeps working, which is exactly the "menu but no features"
 # state.
 try:
-    _sys_log('[sys:boot] runtime module loaded')
+    _sys_log('[sys:boot] runtime module loaded', force=True)
 except Exception:
     pass

@@ -1435,6 +1435,11 @@ static bool LoadState() {
 
         if (s->magic == STATE_MAGIC && s->version == VERSION) {
 
+            // Authoritative answer to "is the state coming from memory or from the
+            // file?", which is the difference between ~0 ms and a few ms per frame.
+            static bool logged_shm = false;
+            if (!logged_shm) { logged_shm = true; Log("state ipc: shared memory"); }
+
             if (s->seq != g_state.seq) {
 
                 g_state = *s;
@@ -1470,6 +1475,11 @@ static bool LoadState() {
         const ULONGLONG now = GetTickCount64();
         if (last_poll && now - last_poll < 8) return true;
         last_poll = now;
+    }
+
+    {
+        static bool logged_disk = false;
+        if (!logged_disk) { logged_disk = true; Log("state ipc: state.bin on disk"); }
     }
 
     if (!StateFileChanged()) return true;
@@ -4369,6 +4379,11 @@ static bool InitOverlay(IDXGISwapChain* sc) {
 // presenting thread and read by NotePresentPerf on the same thread.
 static thread_local LARGE_INTEGER g_frame_start_qpc{};
 static thread_local double t_ui_ms = 0.0;
+
+// Split out of the pre-draw block: the state poll and the clean copy are the two
+// pieces that can each cost milliseconds, and they are invisible in `pre_avg_ms`.
+static thread_local double t_state_ms = 0.0;
+static thread_local double t_copy_ms = 0.0;
 static thread_local double t_pre_ms = 0.0;
 static thread_local double t_shield_begin_ms = 0.0;
 static thread_local double t_shield_present_ms = 0.0;
@@ -4389,6 +4404,7 @@ static void TraceFrameStart() {
 static void RenderFrame(IDXGISwapChain* sc) {
 
     t_ui_ms = t_shield_begin_ms = t_shield_present_ms = 0.0;
+    t_state_ms = t_copy_ms = 0.0;
     QueryPerformanceCounter(&g_frame_start_qpc);
 
     if(!BindSwapchain(sc)) return;
@@ -4410,7 +4426,12 @@ static void RenderFrame(IDXGISwapChain* sc) {
 
         g_last_state_poll = tick;
 
+        LARGE_INTEGER s0{}, s1{}, sf{};
+        QueryPerformanceFrequency(&sf);
+        QueryPerformanceCounter(&s0);
         LoadState();
+        QueryPerformanceCounter(&s1);
+        if (sf.QuadPart) t_state_ms = (double)(s1.QuadPart - s0.QuadPart) * 1000.0 / (double)sf.QuadPart;
 
     }
 
@@ -4425,7 +4446,13 @@ static void RenderFrame(IDXGISwapChain* sc) {
 
     }
 
-    EnsureWndProc();
+    {
+        // Subclassing check: the game's window procedure cannot change under us
+        // more than once, so once a second is plenty. It used to run on every
+        // presented frame.
+        static ULONGLONG last_wnd_check = 0;
+        if (tick - last_wnd_check >= 1000) { last_wnd_check = tick; EnsureWndProc(); }
+    }
     MaintainShieldSurface();
     ApplyObsProtection();
 
@@ -4662,7 +4689,14 @@ static void RenderFrame(IDXGISwapChain* sc) {
     // Capture protection: keep a copy of the frame as the game made it, before a
     // single overlay pixel goes into this buffer. Done before the render target is
     // bound, so the back buffer is not read and written at the same time.
-    if (have_back && CaptureProtectionOn()) RefreshCleanCopy(back);
+    if (have_back && CaptureProtectionOn()) {
+        LARGE_INTEGER c0{}, c1{}, cf{};
+        QueryPerformanceFrequency(&cf);
+        QueryPerformanceCounter(&c0);
+        RefreshCleanCopy(back);
+        QueryPerformanceCounter(&c1);
+        if (cf.QuadPart) t_copy_ms = (double)(c1.QuadPart - c0.QuadPart) * 1000.0 / (double)cf.QuadPart;
+    }
     if (have_back && SUCCEEDED(g_device->CreateRenderTargetView(back, nullptr, &rtv)) && rtv) {
         g_context->OMSetRenderTargets(1, &rtv, nullptr);
         ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
@@ -4716,6 +4750,8 @@ struct PresentPerfSample {
     double ui_ms = 0.0;       // ImGui frame + draw-list building (menu + ESP)
     double shield_begin_ms = 0.0;   // GetBuffer + RTV + state save
     double shield_present_ms = 0.0; // shield Present (blocking)
+    double state_ms = 0.0;    // reading the runtime's state (shared memory or file)
+    double copy_ms = 0.0;     // the clean-copy CopyResource
 };
 
 
@@ -4765,6 +4801,8 @@ static void NotePresentPerf(IDXGISwapChain* sc, const char* which, UINT sync,
     sample.ui_ms += t_ui_ms;
     sample.shield_begin_ms += t_shield_begin_ms;
     sample.shield_present_ms += t_shield_present_ms;
+    sample.state_ms += t_state_ms;
+    sample.copy_ms += t_copy_ms;
     if (render > sample.overlay_max_ms) sample.overlay_max_ms = render;
     if (now - sample.started >= 10000) {
         // fps is measured between Present calls, so it is what the game actually
@@ -4772,12 +4810,13 @@ static void NotePresentPerf(IDXGISwapChain* sc, const char* which, UINT sync,
         // vsync-bound and its ceiling is the display refresh rate, not the
         // overlay - that is the first thing to check when the frame rate looks
         // pinned at 60.
-        Log("perf %s frames=%u interval_ms=%llu fps=%.1f sync0=%u sync1=%u sync_other=%u overlay_avg_ms=%.3f overlay_max_ms=%.3f present_avg_ms=%.3f pre_avg_ms=%.3f ui_avg_ms=%.3f shield_begin_ms=%.3f shield_present_ms=%.3f shield=%d chain=%s modules=%d",
+        Log("perf %s frames=%u interval_ms=%llu fps=%.1f sync0=%u sync1=%u sync_other=%u overlay_avg_ms=%.3f overlay_max_ms=%.3f present_avg_ms=%.3f pre_avg_ms=%.3f ui_avg_ms=%.3f state_avg_ms=%.3f copy_avg_ms=%.3f shield_begin_ms=%.3f shield_present_ms=%.3f shield=%d chain=%s modules=%d",
             which, sample.frames, (unsigned long long)(now - sample.started), g_pacing.fps,
             sample.sync_zero, sample.sync_one, sample.sync_other,
             sample.overlay_ms / sample.frames, sample.overlay_max_ms,
             sample.present_ms / sample.frames, sample.pre_ms / sample.frames,
-            sample.ui_ms / sample.frames, sample.shield_begin_ms / sample.frames,
+            sample.ui_ms / sample.frames, sample.state_ms / sample.frames,
+            sample.copy_ms / sample.frames, sample.shield_begin_ms / sample.frames,
             sample.shield_present_ms / sample.frames,
             ShieldSurfaceReady() ? 1 : 0,
             comet_shield::Describe(PresentChainPosition()), CaptureModules().Count());
