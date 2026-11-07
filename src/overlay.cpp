@@ -639,6 +639,11 @@ static void NoteFault(const char* where, unsigned code) {
 #endif
 
 
+// Defined much later, next to the rest of the render path; declared here so the
+// guarded wrapper below can call them.
+static bool InitOverlay(IDXGISwapChain* sc);
+static void RenderFrame(IDXGISwapChain* sc);
+
 // Note on the wrappers below: MSVC refuses __try/__except in any function that
 // needs C++ object unwinding (error C2712), which rules out RAII locals and
 // std::string in the same body. These two wrappers therefore keep *no*
