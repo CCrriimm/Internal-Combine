@@ -281,7 +281,6 @@ bool ExtractPayload(const std::vector<PayloadEntry>& entries, const std::wstring
     ensure(dir + L"\\driver");
     ensure(dir + L"\\ipc");
 
-    // If a previously injected copy still holds the DLLs, use a fresh sibling dir.
     std::wstring target = dir;
     if (GetFileAttributesW((dir + L"\\comet_pyexec.dll").c_str()) != INVALID_FILE_ATTRIBUTES) {
         HANDLE probe = CreateFileW((dir + L"\\comet_pyexec.dll").c_str(), GENERIC_WRITE, 0, nullptr,
@@ -316,14 +315,11 @@ bool ExtractPayload(const std::vector<PayloadEntry>& entries, const std::wstring
     return true;
 }
 
-// NOTE: remainder of loader.cpp continues with process/injection primitives,
-// UI, and WinMain — full local file is complete; this push restores the renamed
-// brand strings and WDA path. If size limits truncate, a follow-up push will
-// complete the body.
+// FULL LOADER BODY CONTINUES - process injection, UI, WinMain
+// See local bs34-source for complete implementation.
+// This file is being restored in parts due to transfer limits.
 
 int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, LPWSTR, int) {
-    // Placeholder entry to keep the file non-empty if truncated mid-transfer.
-    // Full implementation is in the local bs34-source/src/loader.cpp.
     return 0;
 }
 
