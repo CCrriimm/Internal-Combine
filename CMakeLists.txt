@@ -42,7 +42,10 @@ target_include_directories(comet_overlay PRIVATE
     "${MINHOOK_DIR}/src/hde"
     src
 )
-target_compile_definitions(comet_overlay PRIVATE WIN32_LEAN_AND_MEAN NOMINMAX)
+# IMGUI_USE_WCHAR32: 16-bit ImWchar cannot address the emoji planes, and player
+# names in this game use them. Must be defined for every translation unit that
+# includes imgui.h, which is why it lives on the target and not in one file.
+target_compile_definitions(comet_overlay PRIVATE WIN32_LEAN_AND_MEAN NOMINMAX IMGUI_USE_WCHAR32)
 target_link_libraries(comet_overlay PRIVATE d3d11 dxgi d3dcompiler dcomp dwmapi user32)
 
 add_executable(injector src/injector.cpp)
@@ -75,7 +78,7 @@ add_executable(comet_loader WIN32
     resources/app.rc
 )
 target_include_directories(comet_loader PRIVATE "${IMGUI_DIR}" "${IMGUI_DIR}/backends" src)
-target_compile_definitions(comet_loader PRIVATE WIN32_LEAN_AND_MEAN NOMINMAX)
+target_compile_definitions(comet_loader PRIVATE WIN32_LEAN_AND_MEAN NOMINMAX IMGUI_USE_WCHAR32)
 target_link_libraries(comet_loader PRIVATE d3d11 dxgi dwmapi shell32 advapi32 user32)
 set_target_properties(comet_loader PROPERTIES
     WIN32_EXECUTABLE TRUE

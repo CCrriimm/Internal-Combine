@@ -81,7 +81,10 @@ struct Ent {
 
     uint64_t id;
 
-    char name[40];
+    // UTF-8. 64 bytes is ~21 CJK characters, which is what a name needs once
+    // multi-byte characters and emoji are in play; 40 truncated Korean and
+    // Japanese names that read perfectly well in the game.
+    char name[64];
 
     char gun[32];
 
@@ -203,7 +206,7 @@ static_assert(sizeof(Cfg) == 228, "Cfg size");
 static_assert(offsetof(Cfg, col_team_box) == 148, "v7 legacy prefix changed");
 static_assert(offsetof(Cfg, aim_key2) == 224, "v8 layout changed");
 
-static_assert(sizeof(Ent) == 288, "Ent size");
+static_assert(sizeof(Ent) == 312, "Ent size");
 
 
 static_assert(sizeof(State) == 84, "State size");
@@ -220,7 +223,8 @@ static const uint32_t STATE_MAGIC = 0x42535331;
 
 static const uint32_t CATALOG_MAGIC = 0x42534354;
 
-static const uint32_t VERSION = 9;
+// 10: Ent::name grew from 40 to 64 bytes (UTF-8 names with emoji / CJK).
+static const uint32_t VERSION = 10;
 
 
 
@@ -4135,112 +4139,174 @@ static void UpdateClientSize() {
 
 
 
+// ---------------------------------------------------------------------------
+// Fonts.
+//
+// Player names in this game are not ASCII: Chinese, Japanese and Korean names
+// are the norm, names carry emoji and decorative symbols, and the ESP used to
+// render all of it with a Latin-only atlas - missing glyphs came out as nothing
+// or as boxes. Coverage is now explicit and split by script so each fallback
+// font only rasterises what it owns; handing every merged font the full Unicode
+// range is what turns an 18 px name atlas into a 64 MB texture.
+//
+// The UI font stays Latin + symbols (the menu has no user text); only the name
+// font pays for CJK, Hangul and emoji.
+// ---------------------------------------------------------------------------
+namespace fontcov {
+
+inline ImFontAtlas* Atlas() { return ImGui::GetIO().Fonts; }
+
+// Latin, punctuation, currency, arrows, math, geometric shapes, dingbats and the
+// CJK punctuation block: everything a "special symbols" name is built from.
+inline ImVector<ImWchar>& Latin() {
+    static ImVector<ImWchar> ranges;
+    if (ranges.empty()) {
+        ImFontGlyphRangesBuilder b;
+        b.AddRanges(Atlas()->GetGlyphRangesDefault());
+        static const ImWchar extra[] = {
+            0x0100, 0x024F,   // Latin extended A/B
+            0x0370, 0x03FF,   // Greek
+            0x0400, 0x04FF,   // Cyrillic
+            0x1E00, 0x1EFF,   // Latin extended additional (Vietnamese)
+            0x2000, 0x206F,   // general punctuation
+            0x20A0, 0x20CF,   // currency
+            0x2100, 0x214F,   // letterlike
+            0x2190, 0x21FF,   // arrows
+            0x2200, 0x22FF,   // math operators
+            0x2300, 0x23FF,   // misc technical
+            0x2460, 0x24FF,   // enclosed alphanumerics
+            0x2500, 0x257F,   // box drawing
+            0x25A0, 0x25FF,   // geometric shapes
+            0x2600, 0x26FF,   // misc symbols
+            0x2700, 0x27BF,   // dingbats
+            0x2900, 0x297F,   // supplemental arrows
+            0x2B00, 0x2BFF,   // misc symbols and arrows
+            0x3000, 0x303F,   // CJK punctuation
+            0
+        };
+        b.AddRanges(extra);
+        b.BuildRanges(&ranges);
+    }
+    return ranges;
+}
+
+// Chinese (common set), Japanese (kana + common kanji) and Korean (common
+// syllables). About eight thousand glyphs: enough for real names, small enough
+// to bake in well under a second.
+inline ImVector<ImWchar>& Names() {
+    static ImVector<ImWchar> ranges;
+    if (ranges.empty()) {
+        ImFontGlyphRangesBuilder b;
+        b.AddRanges(Latin().Data);
+        b.AddRanges(Atlas()->GetGlyphRangesChineseSimplifiedCommon());
+        b.AddRanges(Atlas()->GetGlyphRangesJapanese());
+        b.AddRanges(Atlas()->GetGlyphRangesKorean());
+        static const ImWchar cjk_extra[] = {
+            0x2E80, 0x2EFF,   // CJK radicals supplement
+            0x3100, 0x312F,   // bopomofo
+            0x31A0, 0x31BF,   // bopomofo extended
+            0x31F0, 0x31FF,   // katakana phonetic extensions
+            0x3200, 0x32FF,   // enclosed CJK
+            0xF900, 0xFAFF,   // CJK compatibility ideographs
+            0xFF00, 0xFFEF,   // halfwidth and fullwidth forms
+            0
+        };
+        b.AddRanges(cjk_extra);
+#ifdef IMGUI_USE_WCHAR32
+        // Emoji planes. Only addressable with 32-bit ImWchar. Most Windows emoji
+        // are colour glyphs that stb_truetype cannot rasterise, but the
+        // monochrome ones (and everything in Segoe UI Symbol) do render, so a
+        // plain fallback beats dropping the character.
+        static const ImWchar emoji[] = {
+            0x1F000, 0x1F0FF, 0x1F100, 0x1F1FF, 0x1F300, 0x1F5FF,
+            0x1F600, 0x1F64F, 0x1F680, 0x1F6FF, 0x1F900, 0x1F9FF,
+            0x1FA70, 0x1FAFF, 0
+        };
+        b.AddRanges(emoji);
+#endif
+        b.BuildRanges(&ranges);
+    }
+    return ranges;
+}
+
+inline const std::string& Root() {
+    static std::string root;
+    if (root.empty()) {
+        char dir[MAX_PATH]{};
+        const UINT n = GetWindowsDirectoryA(dir, MAX_PATH);
+        if (n && n < MAX_PATH) root = std::string(dir) + "\\Fonts\\";
+    }
+    return root;
+}
+
+inline bool Exists(const char* file) {
+    const std::string& root = Root();
+    if (root.empty()) return false;
+    return GetFileAttributesA((root + file).c_str()) != INVALID_FILE_ATTRIBUTES;
+}
+
+inline ImFont* Add(const char* file, float size, const ImWchar* ranges, bool merge,
+                   float oversample = 2.0f) {
+    if (!Exists(file)) return nullptr;
+    ImFontConfig cfg;
+    cfg.OversampleH = oversample;
+    cfg.OversampleV = oversample;
+    cfg.PixelSnapH = true;
+    cfg.MergeMode = merge;
+    return Atlas()->AddFontFromFileTTF((Root() + file).c_str(), size, &cfg, ranges);
+}
+
+// Primary face, first one that loads. Bold first: names are read at a glance.
+inline ImFont* Primary(float size, const ImWchar* ranges) {
+    static const char* candidates[] = {"seguisb.ttf", "segoeuib.ttf", "segoeui.ttf",
+                                       "msyhbd.ttc", "msyh.ttc", "simhei.ttf"};
+    for (const char* file : candidates) {
+        if (ImFont* f = Add(file, size, ranges, false)) return f;
+    }
+    return nullptr;
+}
+
+// Script fallbacks for names. Each is handed the whole name range and the atlas
+// keeps the first font that has a glyph, so the order below is the priority:
+// YaHei covers most Chinese, kana and common kanji; the rest fill the gaps.
+inline void MergeNameFallbacks(float size) {
+    const ImVector<ImWchar>& names = Names();
+    static const char* fonts[] = {
+        "msyh.ttc",     // Microsoft YaHei: Chinese, kana, common kanji
+        "msjh.ttc",     // Microsoft JhengHei: Traditional Chinese
+        "simsun.ttc",   // SimSun: last-resort CJK
+        "malgun.ttf",   // Malgun Gothic: Hangul
+        "gulim.ttc",    // Gulim: older Hangul
+        "seguisym.ttf", // arrows, geometric shapes, dingbats
+        "seguiemj.ttf", // emoji (monochrome subset)
+    };
+    for (const char* file : fonts) Add(file, size, names.Data, true, 1.0f);
+}
+
+} // namespace fontcov
+
 static void InitFonts() {
 
     ImGuiIO& io = ImGui::GetIO();
 
     io.Fonts->AddFontDefault();
-    char windows_directory[MAX_PATH]{};
-    const UINT length = GetWindowsDirectoryA(windows_directory, MAX_PATH);
-    if (!length || length >= MAX_PATH) return;
-    const std::string font_root = std::string(windows_directory) + "\\Fonts\\";
+    if (fontcov::Root().empty()) return;
 
-    const char* fonts[] = {
+    // Menu: Latin + symbols only. No user text is drawn with these.
+    ImFont* ui = fontcov::Primary(16.0f, fontcov::Latin().Data);
+    if (ui) io.FontDefault = ui;
 
-        "segoeui.ttf",
-        "msyh.ttc",
+    ImFont* big = fontcov::Primary(21.0f, fontcov::Latin().Data);
+    if (big) g_font_big = big;
 
-        "msyhbd.ttc",
-
-        "simhei.ttf",
-
-    };
-
-    for (const char* file : fonts) {
-        const std::string filename = font_root + file;
-        const char* path = filename.c_str();
-
-        if (GetFileAttributesA(path) == INVALID_FILE_ATTRIBUTES) continue;
-
-        ImFontConfig cfg;
-
-        cfg.OversampleH = 2;
-
-        cfg.OversampleV = 2;
-
-        cfg.PixelSnapH = true;
-
-        ImFont* f = io.Fonts->AddFontFromFileTTF(path, 16.0f, &cfg, io.Fonts->GetGlyphRangesDefault());
-
-        if (f) {
-
-            io.FontDefault = f;
-
-            break;
-
-        }
-
-    }
-
-    const char* bold[] = { "seguisb.ttf", "msyhbd.ttc", "msyh.ttc", "simhei.ttf" };
-
-    for (const char* file : bold) {
-        const std::string filename = font_root + file;
-        const char* path = filename.c_str();
-
-        if (GetFileAttributesA(path) == INVALID_FILE_ATTRIBUTES) continue;
-
-        ImFontConfig cfg;
-
-        cfg.OversampleH = 2;
-
-        cfg.OversampleV = 2;
-
-        cfg.PixelSnapH = true;
-
-        ImFont* f = io.Fonts->AddFontFromFileTTF(path, 21.0f, &cfg, io.Fonts->GetGlyphRangesDefault());
-
-        if (f) {
-
-            g_font_big = f;
-
-            break;
-
-        }
-
-    }
-
-    const char* esp_fonts[] = { "seguisb.ttf", "segoeuib.ttf", "msyhbd.ttc", "msyh.ttc", "simhei.ttf" };
-
-    for (const char* file : esp_fonts) {
-        const std::string filename = font_root + file;
-        const char* path = filename.c_str();
-
-        if (GetFileAttributesA(path) == INVALID_FILE_ATTRIBUTES) continue;
-
-        ImFontConfig cfg;
-
-        cfg.OversampleH = 2;
-
-        cfg.OversampleV = 2;
-
-        cfg.PixelSnapH = true;
-
-        ImFont* f = io.Fonts->AddFontFromFileTTF(path, 18.0f, &cfg, io.Fonts->GetGlyphRangesDefault());
-
-        if (f) {
-
-            g_font_esp = f;
-
-            break;
-
-        }
-
+    // Names: full coverage, merged into one font so AddText never switches face.
+    ImFont* esp = fontcov::Primary(18.0f, fontcov::Names().Data);
+    if (esp) {
+        g_font_esp = esp;
+        fontcov::MergeNameFallbacks(18.0f);
     }
 
 }
-
-
 
 static SHORT RawAsyncKeyState(int vk) {return GetAsyncKeyState(vk);}
 

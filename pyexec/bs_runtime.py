@@ -168,7 +168,7 @@ ERR_PATH = os.path.join(IPC_DIR, 'runtime_err.txt')
 CFG_MAGIC = 0x42534346
 STATE_MAGIC = 0x42535331
 CATALOG_MAGIC = 0x42534354
-VERSION = 9
+VERSION = 10
 MAX_ENTITIES = 128
 
 # Cfg grew at the tail with the Comet port (team colours, armor tiers,
@@ -178,7 +178,7 @@ MAX_ENTITIES = 128
 CFG_FMT = '<IIIIIiIiIifffffiiI' + 'I' * 13 + 'f' + 'I' * 19 + 'ff' + 'I' * 3 + 'i'
 STATE_FMT = '<IIIIQ14fBBH'
 # Ent grew by hero_id + is_dying (56 -> 58 packed fields, 280 -> 288 bytes).
-ENT_FMT = '<Q40s32s3f3f2f2f5fi4BI32fII'
+ENT_FMT = '<Q64s32s3f3f2f2f5fi4BI32fII'   # 64-byte UTF-8 name: CJK + emoji
 CAT_HEAD_FMT = '<IIII'
 CAT_ENTRY_FMT = '<IIII48s'
 # Ground-loot publishing was removed at the user's request: the marker read as
@@ -2333,6 +2333,76 @@ def _max_armor(e):
     return 100.0
 
 
+_name_encoding = None
+
+
+def _preferred_name_encoding():
+    """The legacy code page names on this client are probably encoded in.
+
+    A name that arrives as `bytes` is not UTF-8: it is the client's ANSI code
+    page (GBK on a Chinese install, cp949 on a Korean one, cp932 on a Japanese
+    one). Guessing between them by trying every codec does not work - cp949 and
+    GBK both decode almost any byte pair, just to different characters - so ask
+    the system, once.
+    """
+    global _name_encoding
+    if _name_encoding is not None:
+        return _name_encoding
+    encoding = ''
+    try:
+        import locale
+        encoding = (locale.getpreferredencoding(False) or '').lower()
+    except Exception:
+        encoding = ''
+    aliases = {
+        'cp936': 'gbk', 'gb2312': 'gbk', 'gb18030': 'gbk', 'cp54936': 'gbk',
+        'cp949': 'cp949', 'cp932': 'shift_jis', 'cp943': 'shift_jis',
+        'cp950': 'big5',
+        'utf-8': '', 'utf8': '', 'ascii': '',
+    }
+    encoding = aliases.get(encoding, encoding)
+    if encoding not in ('gbk', 'cp949', 'shift_jis', 'big5'):
+        encoding = ''
+    _name_encoding = encoding
+    return _name_encoding
+
+
+def _text(value):
+    """A name as text, whatever the engine handed over.
+
+    Names in this game are Chinese, Japanese or Korean as often as not, and the
+    engine does not always give a `str`: a `bytes` name is the client code page,
+    and `str(b'...')` produces `b'\\xd6\\xd0'` - which then renders as that
+    literal in the ESP. Decode it properly instead, and drop control characters,
+    which no font has a glyph for.
+    """
+    if value is None:
+        return ''
+    if isinstance(value, (bytes, bytearray)):
+        raw = bytes(value)
+        text = None
+        for encoding in ('utf-8', _preferred_name_encoding()):
+            if not encoding:
+                continue
+            try:
+                text = raw.decode(encoding)
+                break
+            except Exception:
+                text = None
+        if text is None:
+            for encoding in ('gbk', 'cp949', 'shift_jis', 'big5'):
+                try:
+                    text = raw.decode(encoding)
+                    break
+                except Exception:
+                    text = None
+        if text is None:
+            text = raw.decode('utf-8', 'replace')
+    else:
+        text = str(value)
+    return ''.join(ch for ch in text if ch >= ' ' and ch != '\x7f')
+
+
 def _ename(e):
     for n in ('show_name', 'player_name', 'nickname', 'name'):
         try:
@@ -2340,11 +2410,16 @@ def _ename(e):
         except Exception:
             continue
         if v:
-            return str(v)
+            text = _text(v)
+            if text:
+                return text
     try:
-        return str(e.GetName())
+        text = _text(e.GetName())
+        if text:
+            return text
     except Exception:
-        return type(e).__name__
+        pass
+    return type(e).__name__
 
 
 def _weapon_case(e):
@@ -4980,7 +5055,7 @@ def _serialize_frame_data(cfg, cam, in_match, origin, lpos, items):
             try:
                 bones_data = ps if (ps and len(ps) == 32) else ([-1.0] * 32)
                 struct.pack_into(ENT_FMT, buf, off,
-                                 eid_i, _bytes(_ename(e), 40), _bytes(gun, 32),
+                                 eid_i, _bytes(_ename(e), 64), _bytes(gun, 32),
                                  ht[0], ht[1], ht[2], feet[0], feet[1], feet[2],
                                  ph[0], ph[1], pf[0], pf[1],
                                  float(dist), _hp(e), _max_hp(e), _armor(e), _max_armor(e), team_i,
