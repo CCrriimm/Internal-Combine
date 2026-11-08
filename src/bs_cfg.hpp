@@ -110,6 +110,10 @@ enum : uint32_t {
                                  // frame without overlay has been presented.
                                  // Only used when the protected output is not
                                  // active; see docs/capture-protection.md.
+    OPT2_NO_VSYNC     = 1u << 9, // Present with sync=0 even when the game asks for
+                                 // 1. Off by default: tearing and it defeats
+                                 // G-Sync, but it is the only lever the overlay
+                                 // has over an engine that pins itself to 60.
 };
 
 inline constexpr uint32_t CFG_UI_TAG = 0x55490001;

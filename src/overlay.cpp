@@ -3845,6 +3845,15 @@ static void DrawSettingsTab() {
         g_cfg_dirty=true;ApplyMenuPreferences();
     }
     EndCard();
+    ImGui::Dummy(ImVec2(0,12));
+    BeginCard("settings_perf",ImVec2(0,0));
+    Section("Performance");
+    bool no_vsync = HasOpt2(OPT2_NO_VSYNC);
+    if (CometUi::Toggle("Ignore game V-Sync",&no_vsync,ImGui::GetContentRegionAvail().x)) {
+        SetOpt2(OPT2_NO_VSYNC,no_vsync);
+        Log("vsync override %s", no_vsync ? "on" : "off");
+    }
+    EndCard();
     ImGui::TableNextColumn();
     BeginCard("settings_protection",ImVec2(0,0));
     Section("Protection");
@@ -4989,6 +4998,24 @@ static void LogDisplayMode(bool force) {
         (int)desc.SwapEffect, (unsigned)desc.Flags, desk_w, desk_h, desk_hz);
 }
 
+// The sync interval the overlay forwards. Normally the game's own value, untouched.
+//
+// Measured, not assumed: with the game asking for sync=1 the frame rate sat at 60
+// while the overlay cost 0.013 ms per frame (ui_avg_ms=0.000), and the same
+// session reached 226 fps the moment the game presented with sync=0. So when the
+// frame rate is pinned, the game's own present call is the reason, and the only
+// lever left on our side is this one - opt-in, because it tears and it defeats
+// G-Sync/FreeSync.
+static UINT EffectivePresentSync(UINT sync) {
+    if (sync != 1 || !HasOpt2(OPT2_NO_VSYNC)) return sync;
+    static bool logged = false;
+    if (!logged) {
+        logged = true;
+        Log("vsync override: presenting sync=0 (the game asked for 1)");
+    }
+    return 0;
+}
+
 static void NotePresentPerf(IDXGISwapChain* sc, const char* which, UINT sync,
                             const LARGE_INTEGER& begin, const LARGE_INTEGER& before_present,
                             const LARGE_INTEGER& after_present, const LARGE_INTEGER& frequency) {
@@ -5160,12 +5187,13 @@ static HRESULT STDMETHODCALLTYPE HookPresent(IDXGISwapChain* sc, UINT sync, UINT
     // Always forward, whatever happened above: skipping the game's own Present
     // is what turns an overlay fault into a frozen picture.
     QueryPerformanceCounter(&perf_before);
-    const HRESULT hr = g_present(sc, sync, flags);
+    const UINT out_sync = EffectivePresentSync(sync);
+    const HRESULT hr = g_present(sc, out_sync, flags);
     QueryPerformanceCounter(&perf_after);
     // Releases a GDI capture that is waiting for an overlay-free frame (see the
     // PrintWindow/BitBlt detours below).
     g_clean_frame.OnPresented();
-    NotePresentPerf(sc, "Present", sync, perf_begin, perf_before, perf_after, perf_freq);
+    NotePresentPerf(sc, "Present", out_sync, perf_begin, perf_before, perf_after, perf_freq);
     NotePresentResult(hr, "Present");
     return hr;
 }
@@ -5192,10 +5220,11 @@ static HRESULT STDMETHODCALLTYPE HookPresent1(IDXGISwapChain1* sc, UINT sync, UI
         Log("game Present1 sync=%u flags=0x%08x", (unsigned)sync, (unsigned)flags);
     }
     QueryPerformanceCounter(&perf_before);
-    const HRESULT hr = g_present1(sc, sync, flags, params);
+    const UINT out_sync = EffectivePresentSync(sync);
+    const HRESULT hr = g_present1(sc, out_sync, flags, params);
     QueryPerformanceCounter(&perf_after);
     g_clean_frame.OnPresented();
-    NotePresentPerf(sc, "Present1", sync, perf_begin, perf_before, perf_after, perf_freq);
+    NotePresentPerf(sc, "Present1", out_sync, perf_begin, perf_before, perf_after, perf_freq);
     NotePresentResult(hr, "Present1");
     return hr;
 }
