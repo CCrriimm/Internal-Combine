@@ -141,3 +141,51 @@ class FontCoverageTests(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class SymbolCoverageTests(unittest.TestCase):
+    """The characters between Latin-1 and Greek.
+
+    A clan tag like "KNS ʚ Saejin" is IPA - U+029A - and the default glyph
+    ranges stop at U+00FF, then resume at Greek U+0370. Everything in between was
+    baked as nothing and skipped silently, so the tag vanished and the name read
+    as "KNS  Saejin". These pin the ranges that cover it, and the reporter that
+    names any codepoint still missing instead of drawing a gap.
+    """
+
+    def setUp(self):
+        self.src = OVERLAY.read_text(encoding='utf-8', errors='replace')
+
+    def _body(self, name):
+        start = self.src.index('inline ImVector<ImWchar>& %s()' % name)
+        return self.src[start:self.src.index('\n}', start)]
+
+    def test_the_ipa_and_modifier_blocks_are_covered(self):
+        body = self._body('Symbols')
+        self.assertIn('0x0250, 0x02FF', body, 'IPA extensions + spacing modifiers')
+        self.assertIn('0x0300, 0x036F', body, 'combining diacritical marks')
+
+    def test_small_capitals_are_covered(self):
+        body = self._body('Symbols')
+        self.assertIn('0x1D00, 0x1DBF', body, 'phonetic extensions, used as decoration')
+
+    def test_the_name_font_asks_for_the_symbols(self):
+        body = self._body('Names')
+        self.assertIn('Symbols().Data', body,
+                      'ranges only apply to the font that asks for them')
+
+    def test_a_missing_glyph_is_logged_once(self):
+        self.assertIn('static void NoteMissingGlyphs', self.src)
+        body = self.src[self.src.index('static void NoteMissingGlyphs'):]
+        body = body[:body.index('\n}\n')]
+        self.assertIn('FindGlyph(', body)
+        self.assertIn('g->Codepoint == c', body, 'the fallback glyph answers for a miss')
+        self.assertIn('Log("[font] no glyph for U+%04X', self.src)
+        # And it has to actually run on the strings that get drawn.
+        chip = self.src[self.src.index('auto chip = [&]'):]
+        chip = chip[:chip.index('};')]
+        self.assertIn('NoteMissingGlyphs(', chip)
+
+    def test_the_atlas_size_is_reported(self):
+        self.assertIn('atlas=%dx%d', self.src,
+                      'an atlas overflow drops glyphs without an error')

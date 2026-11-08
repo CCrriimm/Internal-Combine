@@ -2672,6 +2672,65 @@ static void LogProjectionCalibration() {
         used[3] ? std::to_string(sum[3] / used[3]).c_str() : "-");
 }
 
+// A glyph the atlas does not carry is skipped by AddText without a word: the name
+// simply shows a gap. Real names are full of decoration the default ranges never
+// reach - the game's own nameplates use IPA letters and small capitals ("KNS ʚ
+// Saejin") - so the first sighting of each missing codepoint is logged instead of
+// silently drawing nothing. That turns "add the symbols" into a list of ranges.
+static void NoteMissingGlyphs(ImFont* font, float size, const char* s) {
+    static unsigned int logged[64];
+    static int logged_n = 0;
+    if (!font || !s || !*s) return;
+    // 1.93 rasterises on demand, so ask the baked font for the glyph: a lookup
+    // that cannot produce it comes back as the fallback, whose Codepoint is not
+    // the one asked for. That is the only way to tell "not covered" apart from
+    // "covered but not drawn yet".
+    ImFontBaked* baked = font->GetFontBaked(size);
+    if (!baked) return;
+    const unsigned char* p = (const unsigned char*)s;
+    while (*p) {
+        unsigned int c = *p++;
+        if (c >= 0xF0) {
+            if (!p[0] || !p[1] || !p[2]) break;
+            c = ((c & 0x07) << 18) | ((p[0] & 0x3F) << 12) | ((p[1] & 0x3F) << 6) | (p[2] & 0x3F);
+            p += 3;
+        } else if (c >= 0xE0) {
+            if (!p[0] || !p[1]) break;
+            c = ((c & 0x0F) << 12) | ((p[0] & 0x3F) << 6) | (p[1] & 0x3F);
+            p += 2;
+        } else if (c >= 0xC0) {
+            if (!p[0]) break;
+            c = ((c & 0x1F) << 6) | (p[0] & 0x3F);
+            p += 1;
+        }
+        if (c < 0x20) continue;
+        const ImFontGlyph* g = baked->FindGlyph((ImWchar)c);
+        if (g && g->Codepoint == c) continue;
+        bool seen = false;
+        for (int i = 0; i < logged_n; ++i) if (logged[i] == c) { seen = true; break; }
+        if (seen) continue;
+        if (logged_n >= (int)(sizeof(logged) / sizeof(logged[0]))) return;
+        logged[logged_n++] = c;
+        Log("[font] no glyph for U+%04X in \"%s\" - add that block to fontcov::Symbols()",
+            c, s);
+    }
+}
+
+// One line about the atlas, on the first frame where it exists. 1.93 grows the
+// texture on demand, so this is a size report rather than an error check - but a
+// name font that failed to load at all shows up here as families=1.
+static void NoteFontAtlasOnce() {
+    static bool done = false;
+    if (done) return;
+    ImGuiIO& io = ImGui::GetIO();
+    if (!io.Fonts || !io.Fonts->TexData) return;
+    done = true;
+    ImFontBaked* baked = g_font_esp ? g_font_esp->GetFontBaked(18.0f) : nullptr;
+    Log("[font] atlas=%dx%d families=%d esp-glyphs=%d", io.Fonts->TexData->Width,
+        io.Fonts->TexData->Height, (int)io.Fonts->Fonts.Size,
+        baked ? (int)baked->Glyphs.Size : 0);
+}
+
 static void DrawESP() {
 
     // The camera frame for everything this function projects. One build per frame,
@@ -2892,6 +2951,7 @@ static void DrawESP() {
         // and 10 enemies × 3 chips each would cost ~120 extra verts per frame.
         auto chip = [&](float ccx, float cy_top, const char* s, ImU32 fg) -> float {
             if (!s || !*s) return 0.0f;
+            NoteMissingGlyphs(esp_font, esp_font_sz, s);
             ImVec2 sz = calc_sz(s);
             float pad_x = 6.0f, pad_y = 2.0f;
             ImVec2 a(ccx - sz.x * 0.5f - pad_x, cy_top - pad_y);
@@ -4424,6 +4484,36 @@ inline ImVector<ImWchar>& Latin() {
     return ranges;
 }
 
+// Decoration. The default ranges stop at U+00FF and the next block starts at
+// Greek U+0370, so everything between them was baked as nothing: IPA extensions
+// (ʚ ʕ ʔ), spacing modifier letters (˅ ˖ ˚) and combining marks - which is where
+// the tags between a clan and a name live ("KNS ʚ Saejin" read as "KNS  Saejin").
+// Small capitals and superscript letters (ᴠ ᴋ ᴀ ᵛ) are the other half of that
+// habit, and Segoe UI carries both.
+inline ImVector<ImWchar>& Symbols() {
+    static ImVector<ImWchar> ranges;
+    if (ranges.empty()) {
+        ImFontGlyphRangesBuilder b;
+        static const ImWchar extra[] = {
+            0x0250, 0x02FF,   // IPA extensions, spacing modifier letters
+            0x0300, 0x036F,   // combining diacritical marks
+            0x1D00, 0x1DBF,   // phonetic extensions + supplement (small capitals)
+            0x1F00, 0x1FFF,   // Greek extended
+            0x2050, 0x209F,   // punctuation extras, superscripts and subscripts
+            0x2150, 0x218F,   // number forms
+            0x27C0, 0x27EF,   // misc mathematical symbols A
+            0x2980, 0x29FF,   // misc mathematical symbols B
+            0x2C60, 0x2C7F,   // Latin extended C
+            0xA720, 0xA7FF,   // Latin extended D
+            0xFE20, 0xFE2F,   // combining half marks
+            0
+        };
+        b.AddRanges(extra);
+        b.BuildRanges(&ranges);
+    }
+    return ranges;
+}
+
 // Chinese (common set), Japanese (kana + common kanji) and Korean (common
 // syllables). About eight thousand glyphs: enough for real names, small enough
 // to bake in well under a second.
@@ -4432,6 +4522,7 @@ inline ImVector<ImWchar>& Names() {
     if (ranges.empty()) {
         ImFontGlyphRangesBuilder b;
         b.AddRanges(Latin().Data);
+        b.AddRanges(Symbols().Data);
         b.AddRanges(Atlas()->GetGlyphRangesChineseSimplifiedCommon());
         b.AddRanges(Atlas()->GetGlyphRangesJapanese());
         b.AddRanges(Atlas()->GetGlyphRangesKorean());
@@ -4546,6 +4637,9 @@ static void InitFonts() {
         g_font_esp = esp;
         fontcov::MergeNameFallbacks(18.0f);
     }
+
+    Log("[font] names=%s families=%d", esp ? "ok" : "missing",
+        (int)io.Fonts->Fonts.Size);
 
 }
 
@@ -5034,6 +5128,7 @@ static void RenderFrame(IDXGISwapChain* sc) {
     }
 
     ImGui::NewFrame();
+    NoteFontAtlasOnce();
 
     // Resolve menu changes before choosing the visual destination in this same frame.
     auto* background=ImGui::GetBackgroundDrawList();

@@ -2722,8 +2722,10 @@ def _line_of_sight_query(e, head, dist, max_dist):
                             hit = _vec(getattr(r, 'Pos', None))
                             if hit is not None and _len(_sub(hit, point)) <= 0.75:
                                 v, outcome = True, 1
+                            else:
+                                v, outcome = False, 2
                         except Exception:
-                            pass
+                            v, outcome = False, 2
     except Exception as exc:
         global _vis_err
         v, outcome = False, 3
