@@ -351,11 +351,22 @@ _perf_last = 0.0
 # user frames. Summed every tick (two float adds) and logged every 10 s.
 _perf_phase_sum = [0.0, 0.0, 0.0, 0.0, 0.0]
 _perf_bone_sum = 0.0
+# Cost split inside the gather. `bone=` says how much of it is skeleton joints;
+# these say whether the rest is the engine's projection, the team lookup, or the
+# walk over the whole space.
+_perf_proj_sum = 0.0
+_perf_team_sum = 0.0
+_perf_list_sum = 0.0
+_perf_walk = 0
 _appearance_sync_t = 0.0
 _damping_t = 0.0
 _perf_items = 0
 _unlock_t = 0.0
 _g_bone_t = 0.0
+_g_proj_t = 0.0
+_g_team_t = 0.0
+_g_list_t = 0.0
+_g_walk = 0
 _perf_tick_window = 0.0
 _perf_tick_count = 0
 _perf_tick_sum = 0.0
@@ -2866,6 +2877,11 @@ def _query_visible_entities(max_dist, want_gun=True, want_bone=True):
     ents = _collect_space_entities(space)
     t_list = time.time()
     t_bone = 0.0
+    # Where the per-item milliseconds go. `[sys:tick]` could say the gather costs
+    # 0.19 ms per target but not which call that was, which is the difference
+    # between measuring and guessing.
+    t_proj = 0.0
+    t_team = 0.0
     for e in ents:
         try:
             if e is local_av:
@@ -2911,8 +2927,10 @@ def _query_visible_entities(max_dist, want_gun=True, want_bone=True):
             dist = _len(_sub(ht, origin))
             if dist <= 0.1 or dist > max_dist:
                 continue
+            tp = time.time()
             ph = _matrix_world_to_screen(head) if _front(head) else None
             pf = _matrix_world_to_screen(feet) if _front(feet) else None
+            t_proj += time.time() - tp
             # Bones and the weapon chip are drawn next to the box, so they are only
             # worth sampling for a target that is actually on screen. This used to
             # run for every entity inside the scan distance: 16 joints each, ~1700
@@ -2945,8 +2963,10 @@ def _query_visible_entities(max_dist, want_gun=True, want_bone=True):
                 t_bone += time.time() - tb
             else:
                 bones_2d = [-1.0] * 48
+            tt0 = time.time()
             team = _team_id(e)
             is_team = not _check_faction_relation(e, local_av, local_team, team, is_bot, is_monster)
+            t_team += time.time() - tt0
             tb = time.time()
             gun = _gun_name(e) if (want_gun and on_screen) else ''
             t_bone += time.time() - tb
@@ -2956,8 +2976,12 @@ def _query_visible_entities(max_dist, want_gun=True, want_bone=True):
             pass
     out.sort(key=lambda x: x[0])
     total = time.time() - t0
-    global _g_bone_t
+    global _g_bone_t, _g_proj_t, _g_team_t, _g_list_t, _g_walk
     _g_bone_t = t_bone
+    _g_proj_t = t_proj
+    _g_team_t = t_team
+    _g_list_t = t_list - t0
+    _g_walk = len(ents)
     if total > 0.05 and t0 - _g_log_t >= 1.0:
         _g_log_t = t0
         _g_slow = total
@@ -5152,7 +5176,7 @@ def _on_story_tick(dt):
     global _perf_t, _perf_last
     global _perf_tick_window, _perf_tick_count, _perf_tick_sum, _perf_tick_max, _perf_tick_dt
     global _perf_phase_sum, _appearance_sync_t, _damping_t, _perf_items, _unlock_t
-    global _perf_bone_sum
+    global _perf_bone_sum, _perf_proj_sum, _perf_team_sum, _perf_list_sum, _perf_walk
     if int(getattr(builtins, '_m_generation', 0) or 0) != _my_gen:
         return
     try:
@@ -5294,6 +5318,10 @@ def _on_story_tick(dt):
         _perf_phase_sum[3] += t_track - t_gather
         _perf_phase_sum[4] += t1 - t_track
         _perf_bone_sum += _g_bone_t
+        _perf_proj_sum += _g_proj_t
+        _perf_team_sum += _g_team_t
+        _perf_list_sum += _g_list_t
+        _perf_walk = _g_walk
         _perf_items = len(items)
         _perf_tick_dt += dt
         if total > _perf_tick_max:
@@ -5301,20 +5329,25 @@ def _on_story_tick(dt):
         if _perf_tick_window and t0 - _perf_tick_window >= 10.0:
             ticks = _perf_tick_count or 1
             _sys_log('[sys:tick] n=%d avg_ms=%.3f max_ms=%.3f frame_ms=%.2f in_match=%d '
-                     'apply=%.3f unlock=%.3f gather=%.3f track=%.3f rest=%.3f bone=%.3f items=%d'
+                     'apply=%.3f unlock=%.3f gather=%.3f track=%.3f rest=%.3f bone=%.3f '
+                     'proj=%.3f team=%.3f collect=%.3f walk=%d items=%d'
                      % (ticks, 1000.0 * _perf_tick_sum / ticks, 1000.0 * _perf_tick_max,
                         1000.0 * _perf_tick_dt / ticks, 1 if in_match else 0,
                         1000.0 * _perf_phase_sum[0] / ticks, 1000.0 * _perf_phase_sum[1] / ticks,
                         1000.0 * _perf_phase_sum[2] / ticks, 1000.0 * _perf_phase_sum[3] / ticks,
                         1000.0 * _perf_phase_sum[4] / ticks,
                         1000.0 * _perf_bone_sum / ticks,
-                        _perf_items), force=True)
+                        1000.0 * _perf_proj_sum / ticks, 1000.0 * _perf_team_sum / ticks,
+                        1000.0 * _perf_list_sum / ticks, _perf_walk, _perf_items), force=True)
             _perf_tick_window = t0
             _perf_tick_count = 0
             _perf_tick_sum = 0.0
             for _i in range(5):
                 _perf_phase_sum[_i] = 0.0
             _perf_bone_sum = 0.0
+            _perf_proj_sum = 0.0
+            _perf_team_sum = 0.0
+            _perf_list_sum = 0.0
             _perf_tick_max = 0.0
             _perf_tick_dt = 0.0
         elif not _perf_tick_window:

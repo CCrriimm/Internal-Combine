@@ -2583,6 +2583,13 @@ static const ProjVariant PROJ_VARIANTS[4] = {
 // constant someone has to keep in sync with a log.
 static int g_proj_best = 1;
 
+// How many calibrations in a row have been wrong. One bad reading is not a
+// broken convention - a single target at the edge of the screen, or one that
+// moved between the gather and this frame, reads tens of pixels on its own. The
+// session that shipped the gate before this had six disables and six re-enables:
+// six ten-second holes in the skeletons, from single-sample rows.
+static int g_proj_bad = 0;
+
 // Compare our projection with the engine's own, and say which convention wins.
 // Runs at most every 10 s and decides whether the skeleton may be drawn from it.
 static void LogProjectionCalibration() {
@@ -2634,8 +2641,19 @@ static void LogProjectionCalibration() {
         const double mean = sum[v] / used[v];
         if (mean < best_mean) { best_mean = mean; best = v; }
     }
-    const bool trusted = best_mean < 40.0;
-    if (trusted) g_proj_best = best;
+    // A row has to be worth believing before it can change anything: three or
+    // more targets, and two bad rows in a row before the skeletons stop.
+    const bool enough = samples >= 3;
+    const bool good = best_mean < 40.0;
+    if (enough) {
+        if (good) {
+            g_proj_bad = 0;
+            g_proj_best = best;
+        } else if (g_proj_bad < 3) {
+            ++g_proj_bad;
+        }
+    }
+    const bool trusted = g_proj_bad < 2;
     if (trusted != g_proj_ok) {
         g_proj_ok = trusted;
         Log(trusted ? "[proj] drawing skeletons from our projection"

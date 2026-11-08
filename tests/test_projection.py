@@ -95,7 +95,8 @@ class ProjectionTests(unittest.TestCase):
 
     def test_the_calibration_chooses_the_variant_the_draw_uses(self):
         body = self.body()
-        self.assertIn('if (trusted) g_proj_best = best;', body)
+        self.assertIn('if (good) {', body)
+        self.assertIn('g_proj_best = best;', body)
 
     def test_the_labels_cannot_disagree_with_the_arguments(self):
         """The first log named the wrong winner: labels were derived twice."""
@@ -107,8 +108,19 @@ class ProjectionTests(unittest.TestCase):
 
     def test_a_wrong_calibration_disables_the_skeleton(self):
         body = self.body()
-        self.assertIn('const bool trusted = best_mean < 40.0;', body)
+        self.assertIn('const bool good = best_mean < 40.0;', body)
+        self.assertIn('const bool trusted = g_proj_bad < 2;', body)
         self.assertIn('g_proj_ok = trusted;', body)
+
+    def test_one_bad_reading_does_not_blink_the_skeletons(self):
+        """The shipped-to-the-user build flipped 6 times in one session."""
+        body = self.body()
+        # A row needs three targets before it may change anything, and two bad
+        # rows in a row before the draw stops.
+        self.assertIn('const bool enough = samples >= 3;', body)
+        self.assertIn('} else if (g_proj_bad < 3) {', body)
+        self.assertIn('++g_proj_bad;', body)
+        self.assertIn('g_proj_bad = 0;', body)
         draw = OVERLAY[OVERLAY.index('static void DrawESP() {'):]
         skel = draw[draw.index('bool has_bones = false;'):]
         self.assertIn('bi < 16 && g_proj_ok', skel)
