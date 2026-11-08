@@ -102,11 +102,13 @@ class RuntimeTickCostTests(unittest.TestCase):
     def test_the_average_is_logged_periodically(self):
         body = self.tick_body()
         self.assertIn("[sys:tick] n=%d avg_ms=%.3f max_ms=%.3f frame_ms=%.2f in_match=%d", body)
+        for phase in ('apply=%.3f', 'unlock=%.3f', 'gather=%.3f', 'track=%.3f', 'rest=%.3f'):
+            self.assertIn(phase, body)
         self.assertIn('>= 10.0', body)
 
     def test_the_line_cannot_be_swallowed_by_the_log_throttle(self):
         body = self.tick_body()
-        line = body[body.index("[sys:tick]"):][:400]
+        line = body[body.index("[sys:tick]"):][:600]
         self.assertIn('force=True', line)
 
     def test_the_window_resets(self):

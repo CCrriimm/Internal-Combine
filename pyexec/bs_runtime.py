@@ -349,6 +349,7 @@ _perf_last = 0.0
 # 60 ms, which says nothing about the tick that runs sixty times a second on the
 # game thread - and that one is the only place the runtime could be costing the
 # user frames. Summed every tick (two float adds) and logged every 10 s.
+_perf_phase_sum = [0.0, 0.0, 0.0, 0.0, 0.0]
 _perf_tick_window = 0.0
 _perf_tick_count = 0
 _perf_tick_sum = 0.0
@@ -2509,7 +2510,15 @@ def _fetch_skeleton_joint(e, names):
     return None
 
 
-def _sample_joint_transform(e, which):
+def _sample_joint_transform(e, which, ttl=0.008):
+    """World-space joint transform, cached for `ttl` seconds.
+
+    The ESP passes a longer ttl for the skeleton joints: sixteen transforms per
+    visible player per frame is the single most expensive thing the runtime did,
+    and a joint that is up to one frame older costs nothing visually because the
+    skeleton is projected with the current camera every frame anyway. The aim
+    path keeps the short ttl, where a stale hitbox would matter.
+    """
     try:
         key = (getattr(e, 'id', None), int(which))
     except Exception:
@@ -2517,7 +2526,7 @@ def _sample_joint_transform(e, which):
     now = time.time()
     if key is not None:
         c = _bone_cache.get(key)
-        if c is not None and now - c[0] < 0.008:
+        if c is not None and now - c[0] < ttl:
             return c[1]
     which_idx = int(which)
     if 0 <= which_idx < len(BONE_NAMES):
@@ -2873,16 +2882,23 @@ def _query_visible_entities(max_dist, want_gun=True, want_bone=True):
                 continue
             ph = _matrix_world_to_screen(head) if _front(head) else None
             pf = _matrix_world_to_screen(feet) if _front(feet) else None
+            # Bones and the weapon chip are drawn next to the box, so they are only
+            # worth sampling for a target that is actually on screen. This used to
+            # run for every entity inside the scan distance: 16 joints each, ~1700
+            # engine calls per frame in a full match, which was most of the 8.5 ms
+            # the runtime was spending inside a 13 ms frame.
+            on_screen = (ph is not None and pf is not None and
+                         -0.25 <= ph[0] <= 1.25 and -0.25 <= ph[1] <= 1.25)
             # Keep behind-camera targets for offscreen arrows; tracking checks its own FOV.
             if ph is None:
                 ph = (-1.0, -1.0)
             if pf is None:
                 pf = (-1.0, -1.0)
             bones_2d = []
-            if want_bone and not is_dying:
+            if want_bone and not is_dying and on_screen:
                 tb = time.time()
                 for bi in range(16):
-                    bp = _sample_joint_transform(e, bi)
+                    bp = _sample_joint_transform(e, bi, 0.016)
                     p2 = _matrix_world_to_screen(bp) if (bp is not None and _front(bp)) else None
                     if p2 is not None:
                         bones_2d.extend(p2)
@@ -2894,7 +2910,7 @@ def _query_visible_entities(max_dist, want_gun=True, want_bone=True):
             team = _team_id(e)
             is_team = not _check_faction_relation(e, local_av, local_team, team, is_bot, is_monster)
             tb = time.time()
-            gun = _gun_name(e) if want_gun else ''
+            gun = _gun_name(e) if (want_gun and on_screen) else ''
             t_bone += time.time() - tb
             out.append((dist, e, eid, ht, feet, ph, pf, bones_2d, (-1.0, -1.0),
                         gun, team, is_team, is_dying))
@@ -5095,6 +5111,7 @@ def _on_story_tick(dt):
     global _last_gather, _gather_cache, _last_hooks, _last_scrub, _diag_t
     global _perf_t, _perf_last
     global _perf_tick_window, _perf_tick_count, _perf_tick_sum, _perf_tick_max, _perf_tick_dt
+    global _perf_phase_sum
     if int(getattr(builtins, '_m_generation', 0) or 0) != _my_gen:
         return
     try:
@@ -5201,17 +5218,28 @@ def _on_story_tick(dt):
         # number that decides whether a low frame rate can be ours at all.
         _perf_tick_count += 1
         _perf_tick_sum += total
+        _perf_phase_sum[0] += t_apply - t0
+        _perf_phase_sum[1] += t_unlock - t_apply
+        _perf_phase_sum[2] += t_gather - t_unlock
+        _perf_phase_sum[3] += t_track - t_gather
+        _perf_phase_sum[4] += t1 - t_track
         _perf_tick_dt += dt
         if total > _perf_tick_max:
             _perf_tick_max = total
         if _perf_tick_window and t0 - _perf_tick_window >= 10.0:
             ticks = _perf_tick_count or 1
-            _sys_log('[sys:tick] n=%d avg_ms=%.3f max_ms=%.3f frame_ms=%.2f in_match=%d'
+            _sys_log('[sys:tick] n=%d avg_ms=%.3f max_ms=%.3f frame_ms=%.2f in_match=%d '
+                     'apply=%.3f unlock=%.3f gather=%.3f track=%.3f rest=%.3f'
                      % (ticks, 1000.0 * _perf_tick_sum / ticks, 1000.0 * _perf_tick_max,
-                        1000.0 * _perf_tick_dt / ticks, 1 if in_match else 0), force=True)
+                        1000.0 * _perf_tick_dt / ticks, 1 if in_match else 0,
+                        1000.0 * _perf_phase_sum[0] / ticks, 1000.0 * _perf_phase_sum[1] / ticks,
+                        1000.0 * _perf_phase_sum[2] / ticks, 1000.0 * _perf_phase_sum[3] / ticks,
+                        1000.0 * _perf_phase_sum[4] / ticks), force=True)
             _perf_tick_window = t0
             _perf_tick_count = 0
             _perf_tick_sum = 0.0
+            for _i in range(5):
+                _perf_phase_sum[_i] = 0.0
             _perf_tick_max = 0.0
             _perf_tick_dt = 0.0
         elif not _perf_tick_window:

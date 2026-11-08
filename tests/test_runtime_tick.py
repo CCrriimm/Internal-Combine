@@ -22,6 +22,7 @@ class RuntimeTickTests(unittest.TestCase):
             # Per-tick cost window (see the [sys:tick] line).
             '_perf_tick_window': 0.0, '_perf_tick_count': 0, '_perf_tick_sum': 0.0,
             '_perf_tick_max': 0.0, '_perf_tick_dt': 0.0,
+            '_perf_phase_sum': [0.0, 0.0, 0.0, 0.0, 0.0],
             '_flag': lambda *args: False,
             '_sys_log': logs.append, '_get_cam': lambda: None,
             '_local': lambda: (None, None, None, None),
