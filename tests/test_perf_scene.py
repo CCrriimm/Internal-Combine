@@ -56,6 +56,20 @@ class PerfLineTests(unittest.TestCase):
         self.assertEqual(count + 1, conversions)
 
 
+class AppearanceSyncTests(unittest.TestCase):
+    """Skin reconciliation must not run at the frame rate."""
+
+    def test_it_is_throttled(self):
+        start = RUNTIME.index('_sync_configured_appearance(cfg)',
+                              RUNTIME.index('def _on_story_tick'))
+        window = RUNTIME[start - 600:start + 200]
+        self.assertIn('0.2', window)
+        self.assertIn('_appearance_sync_t', window)
+
+    def test_the_throttle_state_is_module_level(self):
+        self.assertIn('\n_appearance_sync_t = 0.0', RUNTIME)
+
+
 class DisplayModeTests(unittest.TestCase):
 
     def test_the_display_mode_is_logged_when_the_swapchain_binds(self):

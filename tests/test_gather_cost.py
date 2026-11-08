@@ -24,6 +24,7 @@ def build(screen_value, want_bone=True, want_gun=True):
     """A minimal gather harness with call counters."""
     source = RUNTIME.read_text(encoding='utf-8-sig')
     names = {'_query_visible_entities', '_collect_space_entities', '_ai_kind', '_is_combat',
+             '_combat_type',
              '_entity_flag', '_team_id', '_check_faction_relation', '_local', '_call_attr',
              '_is_vehicle', '_is_skill_object', '_normalize_team_id'}
     tree = ast.parse(source)
@@ -56,7 +57,7 @@ def build(screen_value, want_bone=True, want_gun=True):
         '_sample_joint_transform': joint,
         '_matrix_world_to_screen': lambda p: screen_value,
         '_gun_name': gun, '_g_log_t': 0, '_g_slow': 0, '_sys_log': lambda *a, **k: None,
-        'MAX_ENTITIES': 256, '_bone_cache': {},
+        'MAX_ENTITIES': 256, '_bone_cache': {}, '_combat_type_cache': {},
     }
     exec(compile(ast.Module(body=nodes, type_ignores=[]), str(RUNTIME), 'exec'), ns)
     return ns, space, calls, local
@@ -103,17 +104,53 @@ class GatherCostTests(unittest.TestCase):
         # The aim path calls it without the ttl argument, so it keeps 8 ms.
         body = source[source.index('def _query_visible_entities'):]
         body = body[:body.index('def _owner_type_name')]
-        self.assertIn("head = _sample_joint_transform(e, 0) if want_bone else None", body)
+        self.assertIn("head = _sample_joint_transform(e, 0) if (want_bone and in_front) else None",
+                      body)
 
     def test_the_weapon_name_is_only_looked_up_for_visible_targets(self):
         ns, space, calls, _ = build(None)
         gather(ns, space, [target(2), target(3)], want_gun=True)
         self.assertEqual(calls['gun'], 0)
 
+    def test_behind_camera_targets_do_not_fetch_a_head_joint(self):
+        ns, space, calls, _ = build(None)
+        behind = target(2)
+        behind.position = (0, 0, -50)
+        behind.model = types.SimpleNamespace(Position=(0, 0, -50))
+        out = gather(ns, space, [behind], want_bone=True)
+        self.assertEqual(calls['joint'], [], 'an arrow needs a direction, not a joint')
+        self.assertEqual(len(out), 1)
+
+    def test_the_distance_filter_runs_before_classification(self):
+        """Classification is ~two dozen flag checks per entity; far entities skip it."""
+        source = RUNTIME.read_text(encoding='utf-8-sig')
+        body = source[source.index('def _query_visible_entities'):]
+        body = body[:body.index('def _owner_type_name')]
+        self.assertLess(body.index('rough > max_dist'), body.index('_ai_kind(e, tn)'))
+
+    def test_combat_class_check_is_cached_by_type(self):
+        source = RUNTIME.read_text(encoding='utf-8-sig')
+        self.assertIn('def _combat_type(cls):', source)
+        self.assertIn('_combat_type_cache[cls] = hit', source)
+        self.assertIn("_entity_flag(e, 'IsCombatAvatar') and _combat_type(type(e))", source)
+
     def test_skeleton_still_comes_back_in_packet_shape(self):
         ns, space, calls, _ = build(None)
         out = gather(ns, space, [target(2)], want_bone=True)
         self.assertEqual(len(out[0][7]), 32, '32 floats per target, all -1 when not sampled')
+
+
+class GatherRateTests(unittest.TestCase):
+
+    def test_the_gather_is_capped_rather_than_run_per_frame(self):
+        source = RUNTIME.read_text(encoding='utf-8-sig')
+        start = source.index('interval = 1.0 / 120.0')
+        self.assertIn('_last_gather', source[start:start + 600])
+
+    def test_a_cached_gather_is_reused(self):
+        source = RUNTIME.read_text(encoding='utf-8-sig')
+        start = source.index('if now - _last_gather >= interval')
+        self.assertIn('_gather_cache = (now, cam, origin, items)', source[start:start + 500])
 
 
 if __name__ == '__main__':

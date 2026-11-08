@@ -11,7 +11,7 @@ import unittest
 class EspFilterTests(unittest.TestCase):
     def setUp(self):
         source = Path(os.environ.get('ESP_RUNTIME_SOURCE', Path(__file__).resolve().parents[1] / 'pyexec/bs_runtime.py'))
-        names = {'_call_attr', '_entity_flag', '_normalize_team_id', '_team_id', '_is_vehicle',
+        names = {'_call_attr', '_entity_flag', '_normalize_team_id', '_team_id', '_is_vehicle', '_combat_type',
                  '_is_combat', '_is_skill_object', '_ai_kind', '_check_faction_relation', '_local', '_max_hp',
                  '_collect_space_entities', '_query_visible_entities', '_sample_target_motion', '_target_joint_indices', '_pick', '_pick_eid', '_options', '_flag'}
         tree = ast.parse(source.read_text(encoding='utf-8-sig'))
@@ -33,7 +33,8 @@ class EspFilterTests(unittest.TestCase):
                    '_line_of_sight_query': lambda *args: True,
                    '_sample_joint_transform': lambda *args: None,
                    '_matrix_world_to_screen': lambda p: (.5, .5), '_gun_name': lambda e: '',
-                   '_g_log_t': 0, '_g_slow': 0, '_sys_log': lambda _: None, 'MAX_ENTITIES': 256}
+                   '_g_log_t': 0, '_g_slow': 0, '_sys_log': lambda _: None, 'MAX_ENTITIES': 256,
+                   '_combat_type_cache': {}}
         exec(compile(ast.Module(body=nodes, type_ignores=[]), str(source), 'exec'), self.ns)
 
     def entity(self, eid=2, team='8', **extra):

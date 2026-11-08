@@ -350,6 +350,7 @@ _perf_last = 0.0
 # game thread - and that one is the only place the runtime could be costing the
 # user frames. Summed every tick (two float adds) and logged every 10 s.
 _perf_phase_sum = [0.0, 0.0, 0.0, 0.0, 0.0]
+_appearance_sync_t = 0.0
 _perf_tick_window = 0.0
 _perf_tick_count = 0
 _perf_tick_sum = 0.0
@@ -2195,6 +2196,22 @@ def _is_skill_object(e):
     return any(any(kind in name for kind in kinds) for name in names)
 
 
+_combat_type_cache = {}
+
+
+def _combat_type(cls):
+    hit = _combat_type_cache.get(cls)
+    if hit is None:
+        try:
+            hit = any(base.__name__.startswith('CombatAvatar') for base in cls.__mro__)
+        except Exception:
+            hit = False
+        if len(_combat_type_cache) > 512:
+            _combat_type_cache.clear()
+        _combat_type_cache[cls] = hit
+    return hit
+
+
 def _is_combat(e):
     if _is_skill_object(e) or _is_vehicle(e):
         return False
@@ -2202,8 +2219,10 @@ def _is_combat(e):
            'IsRobotCombatAvatar', 'IsRobotCombatAvatarZombie', 'IsDummyCombatAvatar', 'IsATMGuardAI')):
         return True
     # Remote avatars lack the local-player marker in SquadFight and other modes.
-    return _entity_flag(e, 'IsCombatAvatar') and any(
-        cls.__name__.startswith('CombatAvatar') for cls in type(e).__mro__)
+    # The MRO walk is type-derived and cannot change for a class, so it is cached
+    # by type object; the per-instance flag is still read fresh, because a live
+    # entity can gain a skill/vehicle marker at any time.
+    return _entity_flag(e, 'IsCombatAvatar') and _combat_type(type(e))
 
 
 def _ai_kind(e, tn=None):
@@ -2848,13 +2867,8 @@ def _query_visible_entities(max_dist, want_gun=True, want_bone=True):
             eid = getattr(e, 'id', None)
             if eid is None or (local_id is not None and eid == local_id):
                 continue
-            tn = type(e).__name__.lower()
-            is_bot, is_monster, is_ai = _ai_kind(e, tn)
-            if not _is_combat(e):
-                continue
-            if not _alive(e):
-                continue
-            is_dying = _is_dying(e)
+            # Position and distance first: classifying an entity costs about two
+            # dozen flag checks and most of a full space is outside the ESP range.
             pos_raw = _call_attr(e, ('position', 'pos', 'GetPosition'))
             if pos_raw is None:
                 m = getattr(e, 'model', None)
@@ -2866,8 +2880,19 @@ def _query_visible_entities(max_dist, want_gun=True, want_bone=True):
                 rough = _len(_sub(feet, origin))
                 if rough > max_dist + 10.0:
                     continue
+            tn = type(e).__name__.lower()
+            is_bot, is_monster, is_ai = _ai_kind(e, tn)
+            if not _is_combat(e):
+                continue
+            if not _alive(e):
+                continue
+            is_dying = _is_dying(e)
+            # Behind the camera there is no box to draw, only an arrow, and the
+            # arrow needs a direction, not a head joint - so the joint is only
+            # fetched for targets that can actually appear on screen.
+            in_front = True if feet is None else _front(feet)
             tb = time.time()
-            head = _sample_joint_transform(e, 0) if want_bone else None
+            head = _sample_joint_transform(e, 0) if (want_bone and in_front) else None
             t_bone += time.time() - tb
             offset_y = 0.45 if is_dying else 1.62
             if head is None and feet is not None:
@@ -5111,7 +5136,7 @@ def _on_story_tick(dt):
     global _last_gather, _gather_cache, _last_hooks, _last_scrub, _diag_t
     global _perf_t, _perf_last
     global _perf_tick_window, _perf_tick_count, _perf_tick_sum, _perf_tick_max, _perf_tick_dt
-    global _perf_phase_sum
+    global _perf_phase_sum, _appearance_sync_t
     if int(getattr(builtins, '_m_generation', 0) or 0) != _my_gen:
         return
     try:
@@ -5139,8 +5164,14 @@ def _on_story_tick(dt):
         in_match = not bool(getattr(genv, 'is_in_hall', True))
         _sync_ray_interceptor(cfg, in_match)
         _apply(cfg)
-        _sync_configured_appearance(cfg)
-        _dispatch_appearance_queue()
+        # Skin/theme reconciliation walks every equipped case and reads the hero
+        # and the manifest; at 100 Hz in a match it measured 0.89 ms of the frame
+        # in `apply=` for a change nobody can see. Five times a second is enough
+        # for an icon that only changes when the player changes something.
+        if now - _appearance_sync_t >= 0.2:
+            _appearance_sync_t = now
+            _sync_configured_appearance(cfg)
+            _dispatch_appearance_queue()
         t_apply = time.time()
         if _flag(cfg, F_UNLOCK_EFFECTS) and not hooks_off:
             _refresh_runtime_cosmetics(not in_match)
@@ -5154,7 +5185,13 @@ def _on_story_tick(dt):
         render_on = _flag(cfg, F_RENDER_ENTITIES)
         if in_match and (track_active or render_on):
             scan = max(float(cfg[IDX_RENDER_MAX_DIST]), float(cfg[IDX_TRACK_MAX_DIST]))
-            interval = 0.0
+            # At most 120 gathers a second. The gather is the most expensive thing
+            # the runtime does (2.6 ms in a match even after the offscreen fix), and
+            # above 120 fps the frame rate is spent recomputing an ESP that cannot be
+            # seen updating faster than that anyway. Positions eight milliseconds old
+            # are indistinguishable from fresh ones on screen, and the aim path
+            # predicts ahead regardless.
+            interval = 1.0 / 120.0
             want_gun = render_on and _flag(cfg, F_RENDER_EQUIPMENT)
             want_bone = render_on and _flag(cfg, F_RENDER_SKELETON)
             if now - _last_gather >= interval or _gather_cache[1] is None:
