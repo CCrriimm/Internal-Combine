@@ -2646,6 +2646,11 @@ def _screen_coord_v2(v):
 # Visibility outcomes for the log: cleared / hit the target / hit cover /
 # no raycast at all. Throttled with the other 10 s lines.
 _vis_stats = [0, 0, 0, 0, 0]   # cleared, hit-target, cover, no-ray, no-camera
+# Cover hits that landed within two metres of the aim point. If this tracks
+# `cover`, the ray is stopping on the target's own geometry - a body without an
+# owner id, or a hit position that is not the point the ray struck - and a target
+# in plain sight is being reported as hidden.
+_vis_near = [0]
 _vis_log_t = 0.0
 # First exception out of the raycast, kept for [sys:vis]. A raycast that cannot
 # be made at all is indistinguishable from "covered" in the ESP, so the reason
@@ -2724,6 +2729,8 @@ def _line_of_sight_query(e, head, dist, max_dist):
                                 v, outcome = True, 1
                             else:
                                 v, outcome = False, 2
+                                if hit is not None and _len(_sub(hit, point)) <= 2.0:
+                                    _vis_near[0] += 1
                         except Exception:
                             v, outcome = False, 2
         else:
@@ -2755,12 +2762,13 @@ def _log_vis_stats():
     if total == 0:
         return
     _vis_log_t = now
-    _sys_log('[sys:vis] checks=%d cleared=%d hit-target=%d cover=%d nocam=%d '
-             'no-ray=%d err=%s'
-             % (total, _vis_stats[0], _vis_stats[1], _vis_stats[2], _vis_stats[4],
-                _vis_stats[3], _vis_err or '-'))
+    _sys_log('[sys:vis] checks=%d cleared=%d hit-target=%d cover=%d near=%d '
+             'nocam=%d no-ray=%d err=%s'
+             % (total, _vis_stats[0], _vis_stats[1], _vis_stats[2], _vis_near[0],
+                _vis_stats[4], _vis_stats[3], _vis_err or '-'))
     for i in range(5):
         _vis_stats[i] = 0
+    _vis_near[0] = 0
 
 
 def _query_occlusion_cache(e, max_age=0.60):

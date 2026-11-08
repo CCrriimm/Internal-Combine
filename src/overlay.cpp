@@ -4520,6 +4520,9 @@ inline ImVector<ImWchar>& Symbols() {
         ImFontGlyphRangesBuilder b;
         static const ImWchar extra[] = {
             0x0250, 0x02FF,   // IPA extensions, spacing modifier letters
+            0x0E80, 0x0EFF,   // Lao
+            0x0F00, 0x0FFF,   // Tibetan (༺ ༻, the bracket pair used in names)
+            0x1000, 0x109F,   // Myanmar
             0x0300, 0x036F,   // combining diacritical marks
             0x1D00, 0x1DBF,   // phonetic extensions + supplement (small capitals)
             0x1F00, 0x1FFF,   // Greek extended
@@ -4592,6 +4595,11 @@ inline const std::string& Root() {
     return root;
 }
 
+inline std::string& Loaded() {
+    static std::string loaded;
+    return loaded;
+}
+
 inline bool Exists(const char* file) {
     const std::string& root = Root();
     if (root.empty()) return false;
@@ -4606,7 +4614,14 @@ inline ImFont* Add(const char* file, float size, const ImWchar* ranges, bool mer
     cfg.OversampleV = oversample;
     cfg.PixelSnapH = true;
     cfg.MergeMode = merge;
-    return Atlas()->AddFontFromFileTTF((Root() + file).c_str(), size, &cfg, ranges);
+    ImFont* font = Atlas()->AddFontFromFileTTF((Root() + file).c_str(), size, &cfg, ranges);
+    // A fallback that is not installed contributes nothing and says nothing, so
+    // "Thai renders" and "Thai does not render" are indistinguishable in a log.
+    if (font) {
+        if (!Loaded().empty()) Loaded() += ',';
+        Loaded() += file;
+    }
+    return font;
 }
 
 // Primary face, first one that loads. Bold first: names are read at a glance.
@@ -4632,7 +4647,9 @@ inline void MergeNameFallbacks(float size) {
         "gulim.ttc",    // Gulim: older Hangul
         "leelawui.ttf", // Leelawadee UI: Thai
         "leelawad.ttf", // Leelawadee: Thai, older Windows
-        "tahoma.ttf",   // Tahoma: Thai and Lao fallback, always present
+        "tahoma.ttf",   // Tahoma: Thai, Lao and Myanmar, always present
+        "himalaya.ttf", // Microsoft Himalaya: the only stock font with Tibetan
+        "arialuni.ttf", // Arial Unicode MS, if Office installed it
         "seguisym.ttf", // arrows, geometric shapes, dingbats
         "seguiemj.ttf", // emoji (monochrome subset)
     };
@@ -4670,8 +4687,8 @@ static void InitFonts() {
         fontcov::MergeNameFallbacks(18.0f);
     }
 
-    Log("[font] names=%s families=%d", esp ? "ok" : "missing",
-        (int)io.Fonts->Fonts.Size);
+    Log("[font] names=%s families=%d loaded=%s", esp ? "ok" : "missing",
+        (int)io.Fonts->Fonts.Size, fontcov::Loaded().c_str());
 
 }
 

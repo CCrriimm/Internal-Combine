@@ -29,7 +29,7 @@ def build(raycast):
     node = next(n for n in ast.parse(SOURCE.read_text(encoding='utf-8')).body
                 if isinstance(n, ast.FunctionDef) and n.name == '_line_of_sight_query')
     ns = {'math': math, 'time': time, '_vis_cache': {},
-          '_vis_stats': [0, 0, 0, 0, 0], '_vis_log_t': 0.0, '_vis_err': '',
+          '_vis_stats': [0, 0, 0, 0, 0], '_vis_near': [0], '_vis_log_t': 0.0, '_vis_err': '',
           '_vec': lambda p: tuple(p) if p is not None else None,
           '_v3': lambda p: p,
           '_len': lambda v: math.sqrt(sum(x * x for x in v)),

@@ -236,3 +236,27 @@ class BuildStampTests(unittest.TestCase):
         cmake = (ROOT / 'CMakeLists.txt').read_text(encoding='utf-8')
         self.assertIn('git rev-parse --short=8 HEAD', cmake)
         self.assertIn('OVL_BUILD_ID="${OVL_BUILD_ID}"', cmake)
+
+
+class TibetanCoverageTests(unittest.TestCase):
+    """༺ ༻ - U+0F3A / U+0F3B - reported by the missing-glyph logger in the user's
+    log, not guessed at. Names wrap themselves in them."""
+
+    def setUp(self):
+        self.src = OVERLAY.read_text(encoding='utf-8', errors='replace')
+
+    def test_the_tibetan_block_is_covered(self):
+        body = self.src[self.src.index('inline ImVector<ImWchar>& Symbols()'):]
+        body = body[:body.index('\n}')]
+        self.assertIn('0x0F00, 0x0FFF', body)
+
+    def test_a_font_that_carries_tibetan_is_merged(self):
+        body = self.src[self.src.index('inline void MergeNameFallbacks'):]
+        body = body[:body.index('\n}')]
+        self.assertIn('himalaya.ttf', body,
+                      'no other stock Windows font has Tibetan')
+
+    def test_the_fallbacks_that_loaded_are_logged(self):
+        self.assertIn('loaded=%s', self.src)
+        self.assertIn('Loaded() += file;', self.src,
+                      'name the fonts, or "is it installed" is unanswerable')
