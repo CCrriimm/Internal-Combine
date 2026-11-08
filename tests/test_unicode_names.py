@@ -113,6 +113,16 @@ class FontCoverageTests(unittest.TestCase):
         for font in ('msyh.ttc', 'malgun.ttf', 'seguisym.ttf'):
             self.assertIn(font, block)
 
+    def test_thai_names_have_a_font(self):
+        """A Thai name was drawing as empty boxes: no Latin or CJK face has it."""
+        block = self.text[self.text.index('namespace fontcov'):]
+        block = block[:block.index('static void InitFonts()')]
+        self.assertIn('GetGlyphRangesThai()', block)
+        merged = self.text[self.text.index('MergeNameFallbacks'):]
+        merged = merged[:merged.index('} // namespace fontcov')]
+        self.assertTrue(any(f in merged for f in ('leelawui.ttf', 'leelawad.ttf', 'tahoma.ttf')),
+                        'Thai needs Leelawadee or Tahoma merged into the name font')
+
     def test_the_menu_font_stays_cheap(self):
         """Only the name font pays for CJK; the menu has no user text."""
         block = self.text[self.text.index('static void InitFonts()'):]

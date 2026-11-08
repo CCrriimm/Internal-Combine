@@ -2506,12 +2506,22 @@ static void Cross3(const float* a, const float* b, float* out) {
 // handedness: 0 = right = up x fwd, 1 = right = fwd x up (mirrored).
 static bool MakeProjFrame(ProjFrame& f, int handedness, bool fov_is_vertical) {
     f.valid = false;
-    if (g_state.screen_w < 32.0f || g_state.screen_h < 32.0f) return false;
+    // The drawable area, not the state packet's idea of the resolution.
+    //
+    // The game can render at a scale below the window size, and the engine's
+    // WorldToScreenPercent answers in percent, so it never noticed - which is why
+    // the boxes were always right while our own projection came out exactly
+    // 0.62x too small: in the user's screenshot every skeleton vertex sat at
+    // 0.58-0.64 of its true pixel position on both axes about the top left.
+    // Measuring the same screenshot's cross-check against the engine could not
+    // see it, because both sides were multiplied by the same shrunken number.
+    const ImVec2 ds = ImGui::GetIO().DisplaySize;
+    if (!(ds.x >= 32.0f && ds.y >= 32.0f)) return false;
     const float fov = g_state.fov;
     if (!(fov > 1.0f && fov < 179.0f)) return false;
 
-    f.w = g_state.screen_w;
-    f.h = g_state.screen_h;
+    f.w = ds.x;
+    f.h = ds.y;
     for (int i = 0; i < 3; ++i) {
         f.pos[i] = g_state.cam_pos[i];
         f.fwd[i] = g_state.cam_forward[i];
@@ -2558,6 +2568,21 @@ static bool ProjectWorld(const ProjFrame& f, const float* world, float* out_px) 
 // the check below can tell them apart clearly enough to gate the draw.
 static bool g_proj_ok = true;
 
+// The four candidate conventions, label and arguments in the same row: they used
+// to be derived separately and the log named the wrong winner once.
+struct ProjVariant { const char* name; int handedness; bool fov_is_vertical; };
+static const ProjVariant PROJ_VARIANTS[4] = {
+    {"upxfwd,vfov", 0, true},
+    {"fwdxup,vfov", 1, true},
+    {"upxfwd,hfov", 0, false},
+    {"fwdxup,hfov", 1, false},
+};
+
+// Index of the variant the calibration measured as closest to the engine. The
+// draw uses this one, so the choice is a measurement at runtime rather than a
+// constant someone has to keep in sync with a log.
+static int g_proj_best = 1;
+
 // Compare our projection with the engine's own, and say which convention wins.
 // Runs at most every 10 s and decides whether the skeleton may be drawn from it.
 static void LogProjectionCalibration() {
@@ -2571,22 +2596,13 @@ static void LogProjectionCalibration() {
         return;
     }
 
-    // The label and the arguments live in the same row. They used to be computed
-    // from the index in two places and disagreed, which made the first log read
-    // like the wrong variant had won.
-    struct Variant { const char* name; int handedness; bool fov_is_vertical; };
-    static const Variant VARIANTS[4] = {
-        {"upxfwd,vfov", 0, true},
-        {"fwdxup,vfov", 1, true},
-        {"upxfwd,hfov", 0, false},
-        {"fwdxup,hfov", 1, false},
-    };
+    const ImVec2 ds = ImGui::GetIO().DisplaySize;
     double sum[4] = {0, 0, 0, 0};
     double worst[4] = {0, 0, 0, 0};
     int used[4] = {0, 0, 0, 0};
     ProjFrame frames[4];
     for (int v = 0; v < 4; ++v)
-        MakeProjFrame(frames[v], VARIANTS[v].handedness, VARIANTS[v].fov_is_vertical);
+        MakeProjFrame(frames[v], PROJ_VARIANTS[v].handedness, PROJ_VARIANTS[v].fov_is_vertical);
 
     int samples = 0;
     for (const Ent& e : g_ents) {
@@ -2595,8 +2611,7 @@ static void LogProjectionCalibration() {
         const bool ok_head = (e.head_screen[0] >= -0.5f && e.head_screen[0] <= 1.5f &&
                               e.head_screen[1] >= -0.5f && e.head_screen[1] <= 1.5f);
         if (!ok_head) continue;
-        const float want[2] = {e.head_screen[0] * g_state.screen_w,
-                               e.head_screen[1] * g_state.screen_h};
+        const float want[2] = {e.head_screen[0] * ds.x, e.head_screen[1] * ds.y};
         bool counted = false;
         for (int v = 0; v < 4; ++v) {
             float got[2];
@@ -2620,15 +2635,19 @@ static void LogProjectionCalibration() {
         if (mean < best_mean) { best_mean = mean; best = v; }
     }
     const bool trusted = best_mean < 40.0;
+    if (trusted) g_proj_best = best;
     if (trusted != g_proj_ok) {
         g_proj_ok = trusted;
         Log(trusted ? "[proj] drawing skeletons from our projection"
                     : "[proj] ERROR too large - skeletons disabled");
     }
-    Log("[proj] samples=%d best=%s mean_err_px=%.2f max_err_px=%.2f fov=%.1f screen=%.0fx%.0f "
-        "(mean px: %s, %s, %s, %s)",
-        samples, VARIANTS[best].name, best_mean, worst[best], g_state.fov, g_state.screen_w,
-        g_state.screen_h,
+    // draw= is the size the draw list is actually in; state= is what the packet
+    // calls the resolution. They differ by the game's render scale, and mixing
+    // them up is what put the first skeletons 0.62x out.
+    Log("[proj] samples=%d best=%s mean_err_px=%.2f max_err_px=%.2f fov=%.1f "
+        "draw=%.0fx%.0f state=%.0fx%.0f (mean px: %s, %s, %s, %s)",
+        samples, PROJ_VARIANTS[best].name, best_mean, worst[best], g_state.fov,
+        ds.x, ds.y, g_state.screen_w, g_state.screen_h,
         used[0] ? std::to_string(sum[0] / used[0]).c_str() : "-",
         used[1] ? std::to_string(sum[1] / used[1]).c_str() : "-",
         used[2] ? std::to_string(sum[2] / used[2]).c_str() : "-",
@@ -2640,10 +2659,11 @@ static void DrawESP() {
     // The camera frame for everything this function projects. One build per frame,
     // the same trick the reference overlay uses ("one camera read per projected
     // frame, not thirteen reads per bone").
-    // right = fwd x up, focal from the vertical fov - the variant the calibration
-    // measured at 0.01 px and the convention the reference overlay uses.
+    // The variant the calibration last measured as closest to the engine (it
+    // starts on the one the user's log picked, `fwdxup,vfov`).
     ProjFrame proj;
-    MakeProjFrame(proj, 1, true);
+    MakeProjFrame(proj, PROJ_VARIANTS[g_proj_best].handedness,
+                  PROJ_VARIANTS[g_proj_best].fov_is_vertical);
     auto bone_ok = [](const float* b) {
         return !(b[0] == -1.0f && b[1] == -1.0f && b[2] == -1.0f);
     };
@@ -4397,6 +4417,10 @@ inline ImVector<ImWchar>& Names() {
         b.AddRanges(Atlas()->GetGlyphRangesChineseSimplifiedCommon());
         b.AddRanges(Atlas()->GetGlyphRangesJapanese());
         b.AddRanges(Atlas()->GetGlyphRangesKorean());
+        // Thai (U+0E00..U+0E7F). Neither Segoe UI nor YaHei has a single Thai
+        // glyph, so a name written in Thai drew as empty boxes; Leelawadee and
+        // Tahoma carry the script.
+        b.AddRanges(Atlas()->GetGlyphRangesThai());
         static const ImWchar cjk_extra[] = {
             0x2E80, 0x2EFF,   // CJK radicals supplement
             0x3100, 0x312F,   // bopomofo
@@ -4473,6 +4497,9 @@ inline void MergeNameFallbacks(float size) {
         "simsun.ttc",   // SimSun: last-resort CJK
         "malgun.ttf",   // Malgun Gothic: Hangul
         "gulim.ttc",    // Gulim: older Hangul
+        "leelawui.ttf", // Leelawadee UI: Thai
+        "leelawad.ttf", // Leelawadee: Thai, older Windows
+        "tahoma.ttf",   // Tahoma: Thai and Lao fallback, always present
         "seguisym.ttf", // arrows, geometric shapes, dingbats
         "seguiemj.ttf", // emoji (monochrome subset)
     };

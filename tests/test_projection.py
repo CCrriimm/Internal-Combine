@@ -2,14 +2,21 @@
 
 A skeleton used to cost eighteen `gui.WorldToScreenPercent` calls per gather (one
 head, one feet, sixteen joints). The overlay has the camera position, forward
-vector, fov and screen size already, so it does the maths itself; the engine's
+vector, fov and drawable size already, so it does the maths itself; the engine's
 answer is still used for the box, which is what the calibration keeps checking.
 
-Two details were only knowable by measurement: which handedness the camera basis
-has, and whether the engine's fov is vertical or horizontal. The 2026-11 log
-settled both - `right = forward x worldUp` with the focal from the *vertical* fov
-matched to 0.01-0.19 px, the other three conventions were 59-652 px out - so the
-draw path uses that variant and disables itself if the error ever grows.
+Three things had to be measured, not assumed:
+
+  * which handedness the camera basis has - `right = forward x worldUp`;
+  * whether the engine's fov is vertical or horizontal - vertical;
+  * what size the answer has to be in - the draw list's, not the state packet's.
+
+The last one is the bug this file exists for. The packet reports the resolution
+the game *renders* at, which can be well below the window: the user's screenshot
+showed every skeleton vertex at 0.58-0.64 of its true pixel position on both axes,
+a uniform scale about the top left. The old cross-check could not see it because
+it multiplied the engine's answer by the same shrunken number it then divided by,
+which is why it read 0.03 px while the skeletons floated away from their players.
 """
 
 import pathlib
@@ -28,9 +35,26 @@ class ProjectionTests(unittest.TestCase):
 
     def test_the_projection_uses_what_the_state_already_carries(self):
         body = self.body()
-        for field in ('g_state.cam_pos', 'g_state.cam_forward', 'g_state.fov',
-                      'g_state.screen_w', 'g_state.screen_h'):
+        for field in ('g_state.cam_pos', 'g_state.cam_forward', 'g_state.fov'):
             self.assertIn(field, body)
+
+    def test_the_frame_is_in_the_units_the_draw_list_uses(self):
+        """The packet's resolution can be a render scale below the window."""
+        body = self.body()
+        self.assertIn('const ImVec2 ds = ImGui::GetIO().DisplaySize;', body)
+        self.assertIn('f.w = ds.x;', body)
+        self.assertIn('f.h = ds.y;', body)
+        # The state's idea of the resolution must not reach the maths at all.
+        self.assertNotIn('f.w = g_state.screen_w;', body)
+        self.assertNotIn('f.h = g_state.screen_h;', body)
+        self.assertNotIn('(fov_is_vertical ? g_state', body)
+
+    def test_the_cross_check_compares_in_those_same_units(self):
+        """Otherwise a scale error cancels on both sides and looks perfect."""
+        body = self.body()
+        self.assertIn('e.head_screen[0] * ds.x', body)
+        self.assertIn('e.head_screen[1] * ds.y', body)
+        self.assertIn('draw=%.0fx%.0f state=%.0fx%.0f', body)
 
     def test_it_matches_the_reference_formula(self):
         body = self.body()
@@ -61,17 +85,24 @@ class ProjectionTests(unittest.TestCase):
 
     def test_the_draw_frame_uses_the_measured_convention(self):
         draw = OVERLAY[OVERLAY.index('static void DrawESP() {'):]
-        self.assertIn('MakeProjFrame(proj, 1, true)', draw)
+        self.assertIn('PROJ_VARIANTS[g_proj_best].handedness', draw)
+        self.assertIn('PROJ_VARIANTS[g_proj_best].fov_is_vertical', draw)
         body = self.body()
-        # 1 = right = forward x worldUp, true = fov is vertical: the winner.
+        # Index 1 = right = forward x worldUp, fov vertical: the measured winner,
+        # and the default until the first calibration overrides it.
         self.assertIn('{"fwdxup,vfov", 1, true},', body)
+        self.assertIn('static int g_proj_best = 1;', body)
+
+    def test_the_calibration_chooses_the_variant_the_draw_uses(self):
+        body = self.body()
+        self.assertIn('if (trusted) g_proj_best = best;', body)
 
     def test_the_labels_cannot_disagree_with_the_arguments(self):
         """The first log named the wrong winner: labels were derived twice."""
         body = self.body()
-        self.assertIn('struct Variant { const char* name; int handedness; bool fov_is_vertical; };', body)
-        self.assertIn('VARIANTS[v].handedness, VARIANTS[v].fov_is_vertical', body)
-        self.assertIn('VARIANTS[best].name', body)
+        self.assertIn('struct ProjVariant { const char* name; int handedness; bool fov_is_vertical; };', body)
+        self.assertIn('PROJ_VARIANTS[v].handedness, PROJ_VARIANTS[v].fov_is_vertical', body)
+        self.assertIn('PROJ_VARIANTS[best].name', body)
         self.assertNotIn('names[4]', body)
 
     def test_a_wrong_calibration_disables_the_skeleton(self):
@@ -101,7 +132,7 @@ class ProjectionTests(unittest.TestCase):
     def test_calibration_is_throttled_and_independent_per_variant(self):
         body = self.body()
         self.assertIn('now - last < 10000', body)
-        self.assertIn('static const Variant VARIANTS[4]', body)
+        self.assertIn('static const ProjVariant PROJ_VARIANTS[4]', body)
 
     def test_it_is_called_from_the_frame(self):
         self.assertIn('    LogProjectionCalibration();\n', OVERLAY)
