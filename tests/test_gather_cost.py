@@ -137,7 +137,7 @@ class GatherCostTests(unittest.TestCase):
     def test_skeleton_still_comes_back_in_packet_shape(self):
         ns, space, calls, _ = build(None)
         out = gather(ns, space, [target(2)], want_bone=True)
-        self.assertEqual(len(out[0][7]), 32, '32 floats per target, all -1 when not sampled')
+        self.assertEqual(len(out[0][7]), 48, '16 joints x world xyz, all -1 when not sampled')
 
 
 class GatherRateTests(unittest.TestCase):

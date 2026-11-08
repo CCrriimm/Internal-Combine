@@ -168,7 +168,7 @@ ERR_PATH = os.path.join(IPC_DIR, 'runtime_err.txt')
 CFG_MAGIC = 0x42534346
 STATE_MAGIC = 0x42535331
 CATALOG_MAGIC = 0x42534354
-VERSION = 10
+VERSION = 11
 MAX_ENTITIES = 128
 
 # Cfg grew at the tail with the Comet port (team colours, armor tiers,
@@ -178,7 +178,7 @@ MAX_ENTITIES = 128
 CFG_FMT = '<IIIIIiIiIifffffiiI' + 'I' * 13 + 'f' + 'I' * 19 + 'ff' + 'I' * 3 + 'i'
 STATE_FMT = '<IIIIQ14fBBH'
 # Ent grew by hero_id + is_dying (56 -> 58 packed fields, 280 -> 288 bytes).
-ENT_FMT = '<Q64s32s3f3f2f2f5fi4BI32fII'   # 64-byte UTF-8 name: CJK + emoji
+ENT_FMT = '<Q64s32s3f3f2f2f5fi4BI48fII'   # 64-byte UTF-8 name: CJK + emoji; 16 bones x world xyz
 CAT_HEAD_FMT = '<IIII'
 CAT_ENTRY_FMT = '<IIII48s'
 # Ground-loot publishing was removed at the user's request: the marker read as
@@ -356,6 +356,7 @@ _damping_t = 0.0
 _perf_items = 0
 _unlock_t = 0.0
 _g_bone_t = 0.0
+_track_t = 0.0
 _perf_tick_window = 0.0
 _perf_tick_count = 0
 _perf_tick_sum = 0.0
@@ -2926,23 +2927,25 @@ def _query_visible_entities(max_dist, want_gun=True, want_bone=True):
             if pf is None:
                 pf = (-1.0, -1.0)
             bones_2d = []
-            # A skeleton costs sixteen joint lookups and sixteen projections, which
-            # makes it by far the most expensive per-target work. Everyone visible
-            # keeps their box, name and team label; only the nearest few get bones,
-            # and beyond that the bones are unreadable on screen anyway.
+            # Skeleton joints are published in WORLD space and projected by the
+            # overlay, which has the camera position, forward vector, fov and
+            # screen size. The engine's projection measured 0.01 px against the
+            # overlay's own ([proj] samples=5 mean_err_px=0.03), so there is no
+            # reason to pay a WorldToScreenPercent call per joint per player - that
+            # was 16 calls per skeleton, every gather.
             if want_bone and not is_dying and on_screen and bone_budget > 0:
                 bone_budget -= 1
                 tb = time.time()
                 for bi in range(16):
                     bp = _sample_joint_transform(e, bi, 0.016)
-                    p2 = _matrix_world_to_screen(bp) if (bp is not None and _front(bp)) else None
-                    if p2 is not None:
-                        bones_2d.extend(p2)
+                    w3 = _vec(bp) if bp is not None else None
+                    if w3 is not None:
+                        bones_2d.extend(w3)
                     else:
-                        bones_2d.extend((-1.0, -1.0))
+                        bones_2d.extend((-1.0, -1.0, -1.0))
                 t_bone += time.time() - tb
             else:
-                bones_2d = [-1.0] * 32
+                bones_2d = [-1.0] * 48
             team = _team_id(e)
             is_team = not _check_faction_relation(e, local_av, local_team, team, is_bot, is_monster)
             tb = time.time()
@@ -5116,7 +5119,7 @@ def _serialize_frame_data(cfg, cam, in_match, origin, lpos, items):
             except Exception:
                 hero_i = 0
             try:
-                bones_data = ps if (ps and len(ps) == 32) else ([-1.0] * 32)
+                bones_data = ps if (ps and len(ps) == 48) else ([-1.0] * 48)
                 struct.pack_into(ENT_FMT, buf, off,
                                  eid_i, _bytes(_ename(e), 64), _bytes(gun, 32),
                                  ht[0], ht[1], ht[2], feet[0], feet[1], feet[2],
@@ -5150,7 +5153,7 @@ def _on_story_tick(dt):
     global _perf_t, _perf_last
     global _perf_tick_window, _perf_tick_count, _perf_tick_sum, _perf_tick_max, _perf_tick_dt
     global _perf_phase_sum, _appearance_sync_t, _damping_t, _perf_items, _unlock_t
-    global _perf_bone_sum
+    global _perf_bone_sum, _track_t
     if int(getattr(builtins, '_m_generation', 0) or 0) != _my_gen:
         return
     try:
@@ -5249,7 +5252,10 @@ def _on_story_tick(dt):
                 cam = None
                 origin = None
             _gather_cache = (now, cam, origin, [])
-        if items and track_active:
+        if items and track_active and now - _track_t >= 1.0 / 60.0:
+            # The items themselves are at most 60 Hz old, so re-solving the
+            # trajectory faster than that only re-solves stale data.
+            _track_t = now
             t_gather = time.time()
             _update_cam_trajectory(cfg, items, cam, origin, menu_open, dt)
         else:

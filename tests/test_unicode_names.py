@@ -75,8 +75,8 @@ class PacketTests(unittest.TestCase):
     def test_the_two_sides_agree_on_the_entity_layout(self):
         fmt = self.runtime[self.runtime.index('ENT_FMT = '):]
         fmt = fmt[:fmt.index('\n')].split("'")[1]
-        self.assertEqual(struct.calcsize(fmt), 312, 'must match sizeof(Ent) in overlay.cpp')
-        self.assertIn('static_assert(sizeof(Ent) == 312', self.overlay)
+        self.assertEqual(struct.calcsize(fmt), 376, 'must match sizeof(Ent) in overlay.cpp')
+        self.assertIn('static_assert(sizeof(Ent) == 376', self.overlay)
 
     def test_both_sides_carry_the_same_state_version(self):
         tail = self.runtime[self.runtime.index('\nVERSION = ') + 1:]

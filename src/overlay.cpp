@@ -118,7 +118,10 @@ struct Ent {
 
     uint32_t is_knocked;
 
-    float bones[16][2]; // 16 bones in normalized screen coords [0..1]
+    // 16 joints in WORLD space. The overlay projects them itself (see
+    // ProjectWorld); the runtime used to call the engine's projection sixteen
+    // times per skeleton, per gather. -1,-1,-1 means "not sampled".
+    float bones[16][3];
 
     // Comet additions. Appended at the tail so every earlier offset in the
     // serialized record - and therefore every existing reader - is unchanged.
@@ -206,7 +209,7 @@ static_assert(sizeof(Cfg) == 228, "Cfg size");
 static_assert(offsetof(Cfg, col_team_box) == 148, "v7 legacy prefix changed");
 static_assert(offsetof(Cfg, aim_key2) == 224, "v8 layout changed");
 
-static_assert(sizeof(Ent) == 312, "Ent size");
+static_assert(sizeof(Ent) == 376, "Ent size");
 
 
 static_assert(sizeof(State) == 84, "State size");
@@ -224,7 +227,8 @@ static const uint32_t STATE_MAGIC = 0x42535331;
 static const uint32_t CATALOG_MAGIC = 0x42534354;
 
 // 10: Ent::name grew from 40 to 64 bytes (UTF-8 names with emoji / CJK).
-static const uint32_t VERSION = 10;
+// 11: skeleton joints are world-space xyz; the overlay projects them.
+static const uint32_t VERSION = 11;
 
 
 
@@ -2548,8 +2552,14 @@ static bool ProjectWorld(const ProjFrame& f, const float* world, float* out_px) 
     return std::isfinite(out_px[0]) && std::isfinite(out_px[1]);
 }
 
+// Measured, not assumed: with right = forward x worldUp and the focal taken from
+// the *vertical* fov, our projection of every head matched the engine's own to
+// 0.01-0.19 px on this build. The other three conventions were 59-652 px out, so
+// the check below can tell them apart clearly enough to gate the draw.
+static bool g_proj_ok = true;
+
 // Compare our projection with the engine's own, and say which convention wins.
-// Runs at most every 10 s and draws nothing.
+// Runs at most every 10 s and decides whether the skeleton may be drawn from it.
 static void LogProjectionCalibration() {
     static ULONGLONG last = 0;
     const ULONGLONG now = GetTickCount64();
@@ -2561,12 +2571,22 @@ static void LogProjectionCalibration() {
         return;
     }
 
-    const char* names[4] = {"upxfwd,vfov", "upxfwd,hfov", "fwdxup,vfov", "fwdxup,hfov"};
+    // The label and the arguments live in the same row. They used to be computed
+    // from the index in two places and disagreed, which made the first log read
+    // like the wrong variant had won.
+    struct Variant { const char* name; int handedness; bool fov_is_vertical; };
+    static const Variant VARIANTS[4] = {
+        {"upxfwd,vfov", 0, true},
+        {"fwdxup,vfov", 1, true},
+        {"upxfwd,hfov", 0, false},
+        {"fwdxup,hfov", 1, false},
+    };
     double sum[4] = {0, 0, 0, 0};
     double worst[4] = {0, 0, 0, 0};
     int used[4] = {0, 0, 0, 0};
     ProjFrame frames[4];
-    for (int v = 0; v < 4; ++v) MakeProjFrame(frames[v], v & 1, (v & 2) == 0);
+    for (int v = 0; v < 4; ++v)
+        MakeProjFrame(frames[v], VARIANTS[v].handedness, VARIANTS[v].fov_is_vertical);
 
     int samples = 0;
     for (const Ent& e : g_ents) {
@@ -2599,9 +2619,15 @@ static void LogProjectionCalibration() {
         const double mean = sum[v] / used[v];
         if (mean < best_mean) { best_mean = mean; best = v; }
     }
+    const bool trusted = best_mean < 40.0;
+    if (trusted != g_proj_ok) {
+        g_proj_ok = trusted;
+        Log(trusted ? "[proj] drawing skeletons from our projection"
+                    : "[proj] ERROR too large - skeletons disabled");
+    }
     Log("[proj] samples=%d best=%s mean_err_px=%.2f max_err_px=%.2f fov=%.1f screen=%.0fx%.0f "
         "(mean px: %s, %s, %s, %s)",
-        samples, names[best], best_mean, worst[best], g_state.fov, g_state.screen_w,
+        samples, VARIANTS[best].name, best_mean, worst[best], g_state.fov, g_state.screen_w,
         g_state.screen_h,
         used[0] ? std::to_string(sum[0] / used[0]).c_str() : "-",
         used[1] ? std::to_string(sum[1] / used[1]).c_str() : "-",
@@ -2610,6 +2636,17 @@ static void LogProjectionCalibration() {
 }
 
 static void DrawESP() {
+
+    // The camera frame for everything this function projects. One build per frame,
+    // the same trick the reference overlay uses ("one camera read per projected
+    // frame, not thirteen reads per bone").
+    // right = fwd x up, focal from the vertical fov - the variant the calibration
+    // measured at 0.01 px and the convention the reference overlay uses.
+    ProjFrame proj;
+    MakeProjFrame(proj, 1, true);
+    auto bone_ok = [](const float* b) {
+        return !(b[0] == -1.0f && b[1] == -1.0f && b[2] == -1.0f);
+    };
     if (!Has(F_ESP) || !g_state.in_match) return;
     ImDrawList* dl = ImGui::GetForegroundDrawList();
     ImVec2 ds = ImGui::GetIO().DisplaySize;
@@ -2888,8 +2925,8 @@ static void DrawESP() {
 
         if (Has(F_ESP_SKELETON) && !is_knocked) {
             bool has_bones = false;
-            for (int bi = 0; bi < 16; ++bi) {
-                if (e.bones[bi][0] >= 0.0f && e.bones[bi][1] >= 0.0f) {
+            for (int bi = 0; bi < 16 && g_proj_ok; ++bi) {
+                if (bone_ok(e.bones[bi])) {
                     has_bones = true;
                     break;
                 }
@@ -2905,10 +2942,10 @@ static void DrawESP() {
                 for (int p = 0; p < 15; ++p) {
                     const float* b1 = e.bones[PAIRS[p][0]];
                     const float* b2 = e.bones[PAIRS[p][1]];
-                    if (b1[0] >= 0.0f && b1[1] >= 0.0f && b2[0] >= 0.0f && b2[1] >= 0.0f) {
-                        seg(ImVec2(b1[0] * W, b1[1] * H),
-                            ImVec2(b2[0] * W, b2[1] * H),
-                            scol, 1.8f);
+                    float s1[2], s2[2];
+                    if (bone_ok(b1) && bone_ok(b2) &&
+                        ProjectWorld(proj, b1, s1) && ProjectWorld(proj, b2, s2)) {
+                        seg(ImVec2(s1[0], s1[1]), ImVec2(s2[0], s2[1]), scol, 1.8f);
                     }
                 }
                 // Joint dots make the skeleton read as anatomy, not just lines.
@@ -2916,9 +2953,9 @@ static void DrawESP() {
                 ImU32 joint = (scol & 0x00FFFFFF) | 0xFF000000;
                 for (int bi = 0; bi < 16; ++bi) {
                     const float* b = e.bones[bi];
-                    if (b[0] < 0.0f || b[1] < 0.0f) continue;
-                    ImVec2 jp(b[0] * W, b[1] * H);
-                    dl->AddCircleFilled(jp, 1.6f, joint, 6);
+                    float sp[2];
+                    if (!bone_ok(b) || !ProjectWorld(proj, b, sp)) continue;
+                    dl->AddCircleFilled(ImVec2(sp[0], sp[1]), 1.6f, joint, 6);
                 }
             } else if (h >= 14.0f) {
                 float sy = hy + h * 0.28f;
