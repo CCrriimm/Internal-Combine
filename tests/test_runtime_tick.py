@@ -27,7 +27,7 @@ class RuntimeTickTests(unittest.TestCase):
             '_perf_proj_sum': 0.0, '_perf_team_sum': 0.0, '_perf_list_sum': 0.0, '_perf_walk': 0,
             '_g_proj_t': 0.0, '_g_team_t': 0.0, '_g_list_t': 0.0, '_g_walk': 0,
             '_flag': lambda *args: False,
-            '_sys_log': logs.append, '_get_cam': lambda: None,
+            '_sys_log': logs.append, '_log_vis_stats': lambda: None, '_get_cam': lambda: None,
             '_local': lambda: (None, None, None, None),
             '_serialize_frame_data': lambda *args: b'frame', 'STATE_PATH': 'unused',
             '_write': lambda *args: None,

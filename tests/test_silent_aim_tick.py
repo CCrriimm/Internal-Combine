@@ -69,7 +69,7 @@ def build(tick_calls, campoint=(0.0, 0.0, 0.0)):
         'F_MENU_OPEN': 2, 'F_UNLOCK_EFFECTS': 3, 'F_FORCE_KILLFX': 4,
         'F_TRACK_VIEW': 1, 'F_RENDER_ENTITIES': 5, 'F_RENDER_EQUIPMENT': 6,
         'F_RENDER_SKELETON': 7,
-        '_sys_log': lambda *a: None,
+        '_sys_log': lambda *a: None, '_log_vis_stats': lambda: None,
         '_get_cam': lambda: types.SimpleNamespace(GetOrigin=lambda: campoint),
         '_query_visible_entities': lambda *a: ('cam', campoint, [item]),
         '_update_cam_trajectory': update_cam_trajectory,

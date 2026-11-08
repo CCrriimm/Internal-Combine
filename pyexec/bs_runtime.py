@@ -2648,7 +2648,37 @@ def _screen_coord_v2(v):
     return p if p is not None else (-1.0, -1.0)
 
 
+# Visibility outcomes for the log: cleared / hit the target / hit cover /
+# no raycast at all. Throttled with the other 10 s lines.
+_vis_stats = [0, 0, 0, 0]
+_vis_log_t = 0.0
+
+
+def _vis_count(index):
+    _vis_stats[index] += 1
+
+
 def _line_of_sight_query(e, head, dist, max_dist):
+    """Is there a clear line from the camera to this point?
+
+    This mirrors the game's own `IsVisible` (gclient/framework/util/
+    assist_aim_util): raycast from the camera origin to the aim position with
+    `PHYSICS_SHOOT_TEST`, then check that the body we hit belongs to the target.
+    Wall and floor cover comes out right, and always has.
+
+    What was wrong is `with_trigger`. `Space.RawRaycast(..., with_trigger=True)`
+    resolves to `ClosestRaycast`, which returns the nearest hit *of any kind* -
+    trigger volumes included. A player under a parachute or mid-jump is inside a
+    skydive/air-drop trigger, so the nearest hit was the volume (owner id 0), not
+    the player, and a target in plain sight read as "behind a wall". The moment
+    they land and leave the volume, the same check says visible - which is
+    exactly the behaviour reported.
+
+    The game passes `with_trigger=False` wherever it wants geometry
+    (`ClosestRaycastWithoutTrigger`, and the sweep helpers default to it). So:
+    triggers are out, and a ray that reaches the target point without hitting
+    anything blocking means the target is in plain sight.
+    """
     key = getattr(e, 'id', None)
     if key is None:
         return False
@@ -2664,6 +2694,7 @@ def _line_of_sight_query(e, head, dist, max_dist):
         _vis_cache[key] = (now, False)
         return False
     v = False
+    outcome = 3
     try:
         from gclient import cconst
         cam = _get_cam()
@@ -2672,19 +2703,55 @@ def _line_of_sight_query(e, head, dist, max_dist):
             tgt = _v3(point)
             if tgt is not None:
                 r = genv.space.RawRaycast(origin, max(1.0, dist + 2.0),
-                                          cconst.PHYSICS_SHOOT_TEST, True, to_pos=tgt)
-                if r is not None and getattr(r, 'IsHit', False):
+                                          cconst.PHYSICS_SHOOT_TEST, False, to_pos=tgt)
+                if r is None or not getattr(r, 'IsHit', False):
+                    # Nothing blocking between the camera and the target.
+                    v, outcome = True, 0
+                else:
                     body = getattr(r, 'Body', None)
                     owner = getattr(body, 'ownerid', None)
                     if owner is None:
                         owner = getattr(getattr(r, 'Actor', None), 'ownerid', None)
-                    v = (owner == key)
+                    if owner == key:
+                        v, outcome = True, 1
+                    else:
+                        # A hit at the target's own position is the target's
+                        # geometry with a proxy body whose owner id is not the
+                        # entity (parachute, hitbox shell). Anything nearer than
+                        # this is real cover.
+                        try:
+                            hit = _vec(getattr(r, 'Pos', None))
+                            if hit is not None and _len(_sub(hit, point)) <= 0.75:
+                                v, outcome = True, 1
+                        except Exception:
+                            pass
     except Exception:
-        v = False
+        v, outcome = False, 3
+    _vis_count(outcome)
     _vis_cache[cache_key] = _vis_cache[key] = (now, v)
     if len(_vis_cache) > 2048:
         _vis_cache.clear()
     return v
+
+
+def _log_vis_stats():
+    """Ten-second visibility tally, so the next log says which case is happening.
+
+    `cleared` is a ray that reached the target point, `hit-target` a body owned by
+    the target, `cover` a wall/floor/another body, `none` a raycast that could not
+    be made at all.
+    """
+    global _vis_log_t
+    now = time.time()
+    if now - _vis_log_t < 10.0:
+        return
+    total = sum(_vis_stats)
+    if total == 0:
+        return
+    _vis_log_t = now
+    _sys_log('[sys:vis] checks=%d cleared=%d hit-target=%d cover=%d none=%d'
+             % (total, _vis_stats[0], _vis_stats[1], _vis_stats[2], _vis_stats[3]))
+    _vis_stats[0] = _vis_stats[1] = _vis_stats[2] = _vis_stats[3] = 0
 
 
 def _query_occlusion_cache(e, max_age=0.60):
@@ -5384,6 +5451,7 @@ def _on_story_tick(dt):
         _perf_phase_sum[2] += t_gather - t_unlock
         _perf_phase_sum[3] += t_track - t_gather
         _perf_phase_sum[4] += t1 - t_track
+        _log_vis_stats()
         _perf_bone_sum += _g_bone_t
         _perf_proj_sum += _g_proj_t
         _perf_team_sum += _g_team_t
