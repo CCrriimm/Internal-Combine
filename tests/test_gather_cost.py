@@ -144,8 +144,15 @@ class GatherRateTests(unittest.TestCase):
 
     def test_the_gather_is_capped_rather_than_run_per_frame(self):
         source = RUNTIME.read_text(encoding='utf-8-sig')
-        start = source.index('interval = 1.0 / 120.0')
+        start = source.index('interval = 1.0 / 60.0')
         self.assertIn('_last_gather', source[start:start + 600])
+
+    def test_only_the_nearest_few_targets_get_a_skeleton(self):
+        source = RUNTIME.read_text(encoding='utf-8-sig')
+        body = source[source.index('def _query_visible_entities'):]
+        body = body[:body.index('def _owner_type_name')]
+        self.assertIn('bone_budget = 10', body)
+        self.assertIn('bone_budget > 0', body)
 
     def test_a_cached_gather_is_reused(self):
         source = RUNTIME.read_text(encoding='utf-8-sig')

@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- **The tick is now 0.4-0.9 ms where it was 8.5.** The user's log shows both ends of it: `21:59:42 avg_ms=0.407 frame_ms=4.91 in_match=1 gather=0.026` - a 204 fps frame with 0.4 ms of runtime in it - and `22:00:02 avg_ms=4.506 frame_ms=10.05 gather=2.769 track=0.892 rest=0.693` in a fight. In other words the fix works, and what is left scales with how many entities are on screen, which is the gather. This build attacks that:
+  - the gather runs at **60 Hz** instead of once per frame (the ESP is a 60 Hz overlay in effect; at 100 fps that halves its cost per frame and it keeps falling as fps rises);
+  - a **skeleton costs sixteen joint lookups plus sixteen projections**, so only the nearest **ten** on-screen targets get bones - everyone visible still gets their box, name and team label;
+  - `_update_cam_trajectory` and the damping syncs run at the gather cadence instead of every frame;
+  - the unlock/cosmetics pass runs at **2 Hz**, not per frame: it measured 0.45-0.5 ms per frame in the lobby and produced the `max_ms=70.338` outlier when it rebuilt;
+  - `[sys:tick]` now also reports `items=N`, so the next log ties cost to scene size directly.
+- Honest limit: the runtime is Python running on the game's own thread. Its remaining per-frame work is dominated by engine calls (position, joint, projection per entity), so there is a floor of roughly a millisecond in a busy fight; the light-scene 0.4 ms figure is what the code costs when it is not gathering. Getting below that in a fight means moving the gather out of Python, not another micro-optimisation.
 - **Match frame rate: 68 -> ~105 fps with the offscreen-bone fix, and this build cuts the rest of the tick.** The user's `[sys:tick]` went from `avg_ms=8.535 frame_ms=13.39` to `avg_ms=4.265 frame_ms=9.57`, and the phase split said where the remainder was: `apply=0.881 gather=2.597 track=0.545 rest=0.236`. Four changes:
   - the distance filter now runs **before** classification, so entities outside the ESP range no longer pay for ~two dozen flag checks each;
   - the head joint is only fetched for targets **in front of the camera** (an arrow needs a direction, not a joint), which removes the last per-entity joint call;

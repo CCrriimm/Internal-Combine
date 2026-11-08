@@ -351,6 +351,9 @@ _perf_last = 0.0
 # user frames. Summed every tick (two float adds) and logged every 10 s.
 _perf_phase_sum = [0.0, 0.0, 0.0, 0.0, 0.0]
 _appearance_sync_t = 0.0
+_damping_t = 0.0
+_perf_items = 0
+_unlock_t = 0.0
 _perf_tick_window = 0.0
 _perf_tick_count = 0
 _perf_tick_sum = 0.0
@@ -2857,6 +2860,7 @@ def _query_visible_entities(max_dist, want_gun=True, want_bone=True):
         return cam, origin, []
     local_av, local_id, local_team, _ = _local()
     out = []
+    bone_budget = 10
     ents = _collect_space_entities(space)
     t_list = time.time()
     t_bone = 0.0
@@ -2920,7 +2924,12 @@ def _query_visible_entities(max_dist, want_gun=True, want_bone=True):
             if pf is None:
                 pf = (-1.0, -1.0)
             bones_2d = []
-            if want_bone and not is_dying and on_screen:
+            # A skeleton costs sixteen joint lookups and sixteen projections, which
+            # makes it by far the most expensive per-target work. Everyone visible
+            # keeps their box, name and team label; only the nearest few get bones,
+            # and beyond that the bones are unreadable on screen anyway.
+            if want_bone and not is_dying and on_screen and bone_budget > 0:
+                bone_budget -= 1
                 tb = time.time()
                 for bi in range(16):
                     bp = _sample_joint_transform(e, bi, 0.016)
@@ -5136,7 +5145,7 @@ def _on_story_tick(dt):
     global _last_gather, _gather_cache, _last_hooks, _last_scrub, _diag_t
     global _perf_t, _perf_last
     global _perf_tick_window, _perf_tick_count, _perf_tick_sum, _perf_tick_max, _perf_tick_dt
-    global _perf_phase_sum, _appearance_sync_t
+    global _perf_phase_sum, _appearance_sync_t, _damping_t, _perf_items, _unlock_t
     if int(getattr(builtins, '_m_generation', 0) or 0) != _my_gen:
         return
     try:
@@ -5173,10 +5182,16 @@ def _on_story_tick(dt):
             _sync_configured_appearance(cfg)
             _dispatch_appearance_queue()
         t_apply = time.time()
-        if _flag(cfg, F_UNLOCK_EFFECTS) and not hooks_off:
-            _refresh_runtime_cosmetics(not in_match)
-        if _flag(cfg, F_FORCE_KILLFX) and not hooks_off:
-            _force_killfx_on_equipped()
+        # Twice a second, not sixty times. This pair is a catalogue walk plus
+        # effect application; measured at 0.45-0.5 ms per frame in the lobby and as
+        # a 68 ms outlier when it rebuilt (`max_ms=70.338` in [sys:tick]). Nothing
+        # it changes is visible before the next half second anyway.
+        if now - _unlock_t >= 0.5:
+            _unlock_t = now
+            if _flag(cfg, F_UNLOCK_EFFECTS) and not hooks_off:
+                _refresh_runtime_cosmetics(not in_match)
+            if _flag(cfg, F_FORCE_KILLFX) and not hooks_off:
+                _force_killfx_on_equipped()
         t_unlock = time.time()
         cam = None
         origin = None
@@ -5185,13 +5200,13 @@ def _on_story_tick(dt):
         render_on = _flag(cfg, F_RENDER_ENTITIES)
         if in_match and (track_active or render_on):
             scan = max(float(cfg[IDX_RENDER_MAX_DIST]), float(cfg[IDX_TRACK_MAX_DIST]))
-            # At most 120 gathers a second. The gather is the most expensive thing
-            # the runtime does (2.6 ms in a match even after the offscreen fix), and
-            # above 120 fps the frame rate is spent recomputing an ESP that cannot be
-            # seen updating faster than that anyway. Positions eight milliseconds old
-            # are indistinguishable from fresh ones on screen, and the aim path
-            # predicts ahead regardless.
-            interval = 1.0 / 120.0
+            # At most 60 gathers a second. The gather is the most expensive thing
+            # the runtime does - 2.7 ms per call in a fight even after the offscreen
+            # fix - and it was being paid on every frame. The ESP is a 60 Hz overlay
+            # in effect: at 100 fps this halves what it costs per frame, and above
+            # that it drops further. Positions 16 ms old are what a 60 fps ESP always
+            # looked like, and the aim path predicts ahead regardless.
+            interval = 1.0 / 60.0
             want_gun = render_on and _flag(cfg, F_RENDER_EQUIPMENT)
             want_bone = render_on and _flag(cfg, F_RENDER_SKELETON)
             if now - _last_gather >= interval or _gather_cache[1] is None:
@@ -5236,8 +5251,12 @@ def _on_story_tick(dt):
             t_gather = time.time()
             _track_busy = False
         t_track = time.time()
-        _sync_impulse_damping(cfg, in_match)
-        _sync_weapon_case_damping(cfg, in_match)
+        # These walk engine state every call and only matter at the rate the ESP is
+        # updated at; 60 Hz is that rate.
+        if now - _damping_t >= 1.0 / 60.0:
+            _damping_t = now
+            _sync_impulse_damping(cfg, in_match)
+            _sync_weapon_case_damping(cfg, in_match)
         t_sync = time.time()
         _last_state = now
         av, lid, team, lpos = _local()
@@ -5260,18 +5279,20 @@ def _on_story_tick(dt):
         _perf_phase_sum[2] += t_gather - t_unlock
         _perf_phase_sum[3] += t_track - t_gather
         _perf_phase_sum[4] += t1 - t_track
+        _perf_items = len(items)
         _perf_tick_dt += dt
         if total > _perf_tick_max:
             _perf_tick_max = total
         if _perf_tick_window and t0 - _perf_tick_window >= 10.0:
             ticks = _perf_tick_count or 1
             _sys_log('[sys:tick] n=%d avg_ms=%.3f max_ms=%.3f frame_ms=%.2f in_match=%d '
-                     'apply=%.3f unlock=%.3f gather=%.3f track=%.3f rest=%.3f'
+                     'apply=%.3f unlock=%.3f gather=%.3f track=%.3f rest=%.3f items=%d'
                      % (ticks, 1000.0 * _perf_tick_sum / ticks, 1000.0 * _perf_tick_max,
                         1000.0 * _perf_tick_dt / ticks, 1 if in_match else 0,
                         1000.0 * _perf_phase_sum[0] / ticks, 1000.0 * _perf_phase_sum[1] / ticks,
                         1000.0 * _perf_phase_sum[2] / ticks, 1000.0 * _perf_phase_sum[3] / ticks,
-                        1000.0 * _perf_phase_sum[4] / ticks), force=True)
+                        1000.0 * _perf_phase_sum[4] / ticks,
+                        _perf_items), force=True)
             _perf_tick_window = t0
             _perf_tick_count = 0
             _perf_tick_sum = 0.0
