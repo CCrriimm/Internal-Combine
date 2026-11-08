@@ -356,7 +356,6 @@ _damping_t = 0.0
 _perf_items = 0
 _unlock_t = 0.0
 _g_bone_t = 0.0
-_track_t = 0.0
 _perf_tick_window = 0.0
 _perf_tick_count = 0
 _perf_tick_sum = 0.0
@@ -5153,7 +5152,7 @@ def _on_story_tick(dt):
     global _perf_t, _perf_last
     global _perf_tick_window, _perf_tick_count, _perf_tick_sum, _perf_tick_max, _perf_tick_dt
     global _perf_phase_sum, _appearance_sync_t, _damping_t, _perf_items, _unlock_t
-    global _perf_bone_sum, _track_t
+    global _perf_bone_sum
     if int(getattr(builtins, '_m_generation', 0) or 0) != _my_gen:
         return
     try:
@@ -5252,10 +5251,14 @@ def _on_story_tick(dt):
                 cam = None
                 origin = None
             _gather_cache = (now, cam, origin, [])
-        if items and track_active and now - _track_t >= 1.0 / 60.0:
-            # The items themselves are at most 60 Hz old, so re-solving the
-            # trajectory faster than that only re-solves stale data.
-            _track_t = now
+        # Every tick, exactly as before. This is the aim path, not the ESP: it
+        # publishes `_ray_target` and holds `_track_busy` up for the silent-aim
+        # redirect, and it integrates the view turn with `dt`. Throttling it made
+        # `_track_busy` drop to False on the skipped ticks, so `_query_corrected_ray`
+        # returned the unmodified ray on roughly half of them and silent aim
+        # stopped landing. The gather is safely rate-limited because stale item
+        # positions are predicted forward; this is not.
+        if items and track_active:
             t_gather = time.time()
             _update_cam_trajectory(cfg, items, cam, origin, menu_open, dt)
         else:
