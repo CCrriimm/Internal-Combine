@@ -60,6 +60,7 @@ def build(screen_value, want_bone=True, want_gun=True):
         'MAX_ENTITIES': 256, '_bone_cache': {}, '_combat_type_cache': {},
         # The per-entity verdict cache is module state; a fresh one per harness.
         '_combat_cache': None, '_combat_cache_space': None, 'COMBAT_CACHE_TTL': 0.5,
+        '_faction_cache': None, 'FACTION_CACHE_TTL': 1.0,
     }
     exec(compile(ast.Module(body=nodes, type_ignores=[]), str(RUNTIME), 'exec'), ns)
     return ns, space, calls, local
@@ -76,6 +77,7 @@ def gather(ns, space, entities, want_bone=True, want_gun=True):
     space.entities = {e.id: e for e in entities}
     ns['_ent_list_cache'] = None
     ns['_combat_cache'] = None
+    ns['_faction_cache'] = None
     return ns['_query_visible_entities'](400, want_gun, want_bone)[2]
 
 
@@ -242,3 +244,39 @@ class VerdictCacheTests(unittest.TestCase):
         t = target(60)
         self.assertEqual(len(gather(ns, space, [t])), 1)
         self.assertEqual(len(gather(ns, space, [t])), 1, 'cached as a target, not skipped')
+
+
+class FactionCacheTests(unittest.TestCase):
+    """`IsTeammate` and `CanDamage` are two engine calls per target per gather.
+
+    In a 22-target fight that was `team=0.164` averaged over every tick, i.e.
+    ~0.6 ms of each gather, for a relation that changes when the player changes
+    team and at no other time.
+    """
+
+    def test_the_relation_is_decided_once_per_second(self):
+        ns, space, calls, local = build((0.5, 0.5))
+        real = ns['_check_faction_relation']
+        count = [0]
+
+        def counted(*args):
+            count[0] += 1
+            return real(*args)
+
+        ns['_check_faction_relation'] = counted
+        t = target(70)
+        space.entities = {t.id: t}
+        ns['_ent_list_cache'] = None
+        ns['_query_visible_entities'](400, False, False)
+        self.assertEqual(count[0], 1, 'the first gather has to ask')
+        ns['_ent_list_cache'] = None
+        ns['_query_visible_entities'](400, False, False)
+        self.assertEqual(count[0], 1, 'the second gather must not ask again')
+
+    def test_it_is_invalidated_by_a_team_change(self):
+        source = (ROOT / 'pyexec' / 'bs_runtime.py').read_text(encoding='utf-8-sig')
+        body = source[source.index('def _query_visible_entities'):]
+        body = body[:body.index('\ndef ')]
+        self.assertIn('relation[0] == local_team', body,
+                      'a cached relation is only valid for the team it was decided against')
+        self.assertIn('now_m - relation[1] < FACTION_CACHE_TTL', body)

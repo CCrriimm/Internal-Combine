@@ -38,7 +38,8 @@ class EspFilterTests(unittest.TestCase):
                    # The per-entity verdict cache: module-level, so a gather that
                    # runs second must see the same dict, not a fresh one.
                    '_combat_cache': None, '_combat_cache_space': None,
-                   'COMBAT_CACHE_TTL': 0.5}
+                   'COMBAT_CACHE_TTL': 0.5, '_faction_cache': None,
+                   'FACTION_CACHE_TTL': 1.0}
         exec(compile(ast.Module(body=nodes, type_ignores=[]), str(source), 'exec'), self.ns)
 
     def entity(self, eid=2, team='8', **extra):
@@ -53,6 +54,7 @@ class EspFilterTests(unittest.TestCase):
         self.space.entities = {e.id: e for e in entities}
         self.ns['_ent_list_cache'] = None
         self.ns['_combat_cache'] = None
+        self.ns['_faction_cache'] = None
         return self.ns['_query_visible_entities'](400, False, False)[2]
 
     def test_skill_objects_are_excluded_even_with_avatar_flags(self):

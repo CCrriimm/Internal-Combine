@@ -404,8 +404,27 @@ _ent_list_cache = None
 _combat_cache = None
 _combat_cache_space = None
 COMBAT_CACHE_TTL = 0.5
+# entity id -> (local team it was decided against, when, team id, is_team). Team
+# membership is resolved with `game_logic.IsTeammate` and `CanDamage` - two engine
+# calls per target per gather, 22 targets, sixty times a second - for a relation
+# that only changes when the player changes team.
+_faction_cache = None
+FACTION_CACHE_TTL = 1.0
 # (weapon case, when, muzzle speed) - see `_calc_ballistic_velocity`.
 _ballistic_cache = None
+# Serialise-time per-entity fields. The packet carries things that change on
+# respawn (name, hero, monster flag) and things that change on damage (hp, armor).
+# Reading all of them was ~8 engine reads per target per tick: `ser=0.458` in a
+# 22-target fight, the largest single line in the tick, and 40k reads a second at
+# 227 fps for numbers a health bar cannot show at that rate anyway.
+_static_cache = None
+_vitals_cache = None
+STATIC_TTL = 1.0
+VITALS_TTL = 0.10
+# One packet buffer for the life of the process: every byte that is returned is
+# packed on the way out, so nothing stale survives. It used to be a fresh 64 KB
+# bytearray per tick, zeroed, to hold eight kilobytes of useful data.
+_state_buf = None
 _apply_tries = 0
 _apply_seq_seen = -1
 _asset_diag = set()
@@ -3064,12 +3083,18 @@ def _query_visible_entities(max_dist, want_gun=True, want_bone=True):
     local_av, local_id, local_team, _ = _local()
     out = []
     bone_budget = 10
-    global _combat_cache, _combat_cache_space
+    global _combat_cache, _combat_cache_space, _faction_cache
     if _combat_cache is None or _combat_cache_space is not space:
         _combat_cache, _combat_cache_space = {}, space
+        _faction_cache = {}
     if len(_combat_cache) > 4096:
         _combat_cache.clear()
+    if _faction_cache is None:
+        _faction_cache = {}
+    if len(_faction_cache) > 4096:
+        _faction_cache.clear()
     verdicts = _combat_cache
+    factions = _faction_cache
     now_m = time.monotonic()
     ents = _collect_space_entities(space)
     t_list = time.time()
@@ -3175,8 +3200,17 @@ def _query_visible_entities(max_dist, want_gun=True, want_bone=True):
             else:
                 bones_2d = [-1.0] * 48
             tt0 = time.time()
-            team = _team_id(e)
-            is_team = not _check_faction_relation(e, local_av, local_team, team, is_bot, is_monster)
+            relation = factions.get(eid)
+            if (relation is not None and relation[0] == local_team
+                    and now_m - relation[1] < FACTION_CACHE_TTL):
+                team, is_team = relation[2], relation[3]
+            else:
+                team = _team_id(e)
+                is_team = not _check_faction_relation(e, local_av, local_team, team,
+                                                     is_bot, is_monster)
+                # Keyed on the local team as well: the relation is only valid for
+                # the team it was decided against.
+                factions[eid] = (local_team, now_m, team, is_team)
             t_team += time.time() - tt0
             tb = time.time()
             gun = _gun_name(e) if (want_gun and on_screen) else ''
@@ -5264,8 +5298,53 @@ def _force_killfx_on_equipped():
         _sys_log('force_killfx live changes=%d cases=%d families=%d' % (changed, len(cases), len(best)))
 
 
+def _packed_static(e, eid, now):
+    """Name, hero id and monster flag, as the packet wants them.
+
+    These are properties of the entity, not of this frame, and each costs one or
+    two engine reads. Cached for `STATIC_TTL`; a new entity is read on sight.
+    """
+    global _static_cache
+    if _static_cache is None:
+        _static_cache = {}
+    c = _static_cache.get(eid)
+    if c is not None and now - c[0] < STATIC_TTL:
+        return c[1]
+    try:
+        value = (_bytes(_ename(e), 64), int(_hero_of(e) or 0) & 0xFFFF,
+                 1 if getattr(e, 'IsMonster', False) else 0)
+    except Exception:
+        value = (_bytes('', 64), 0, 0)
+    if len(_static_cache) > 4096:
+        _static_cache.clear()
+    _static_cache[eid] = (now, value)
+    return value
+
+
+def _packed_vitals(e, eid, now):
+    """hp/max/armor/max, four reads a frame per target for a bar.
+
+    Cached for `VITALS_TTL` (100 ms): faster than anything the player can see,
+    slow enough to take four engine reads out of every tick per target.
+    """
+    global _vitals_cache
+    if _vitals_cache is None:
+        _vitals_cache = {}
+    c = _vitals_cache.get(eid)
+    if c is not None and now - c[0] < VITALS_TTL:
+        return c[1]
+    try:
+        value = (_hp(e), _max_hp(e), _armor(e), _max_armor(e))
+    except Exception:
+        value = (0.0, 0.0, 0.0, 0.0)
+    if len(_vitals_cache) > 4096:
+        _vitals_cache.clear()
+    _vitals_cache[eid] = (now, value)
+    return value
+
+
 def _serialize_frame_data(cfg, cam, in_match, origin, lpos, items):
-    global _state_seq
+    global _state_seq, _state_buf
     fwd = (0.0, 0.0, -1.0)
     yaw = 0.0
     pitch = 0.0
@@ -5301,7 +5380,9 @@ def _serialize_frame_data(cfg, cam, in_match, origin, lpos, items):
         lhid = int(_local_hero_id()) & 0xFFFF
     except Exception:
         lhid = 0
-    buf = bytearray(STATE_SIZE)
+    if _state_buf is None or len(_state_buf) != STATE_SIZE:
+        _state_buf = bytearray(STATE_SIZE)
+    buf = _state_buf
     struct.pack_into(STATE_FMT, buf, 0, STATE_MAGIC, VERSION, _state_seq, 0,
                      int(time.time() * 1000) & 0xFFFFFFFFFFFFFFFF,
                      sw, sh,
@@ -5321,6 +5402,7 @@ def _serialize_frame_data(cfg, cam, in_match, origin, lpos, items):
         except Exception:
             pass
     if in_match and items:
+        now_s = time.time()
         do_vis = _flag(cfg, F_RENDER_OCCLUSION) or _flag(cfg, F_TRACK_OCCLUSION)
         vis_budget = 64
         max_dist = float(cfg[IDX_RENDER_MAX_DIST])
@@ -5348,18 +5430,16 @@ def _serialize_frame_data(cfg, cam, in_match, origin, lpos, items):
                 team_i = _team_number(eteam)
             except Exception:
                 team_i = 0
-            try:
-                hero_i = int(_hero_of(e) or 0) & 0xFFFF
-            except Exception:
-                hero_i = 0
+            name_b, hero_i, monster_i = _packed_static(e, eid_i, now_s)
+            hp_v, maxhp_v, armor_v, maxarmor_v = _packed_vitals(e, eid_i, now_s)
             try:
                 bones_data = ps if (ps and len(ps) == 48) else ([-1.0] * 48)
                 struct.pack_into(ENT_FMT, buf, off,
-                                 eid_i, _bytes(_ename(e), 64), _bytes(gun, 32),
+                                 eid_i, name_b, _bytes(gun, 32),
                                  ht[0], ht[1], ht[2], feet[0], feet[1], feet[2],
                                  ph[0], ph[1], pf[0], pf[1],
-                                 float(dist), _hp(e), _max_hp(e), _armor(e), _max_armor(e), team_i,
-                                 vis, 1 if is_team else 0, 1 if getattr(e, 'IsMonster', False) else 0, 1,
+                                 float(dist), hp_v, maxhp_v, armor_v, maxarmor_v, team_i,
+                                 vis, 1 if is_team else 0, monster_i, 1,
                                  1 if is_dying else 0,
                                  *bones_data,
                                  hero_i, 1 if is_dying else 0)
@@ -5545,9 +5625,9 @@ def _on_story_tick(dt):
         if _perf_tick_window and t0 - _perf_tick_window >= 10.0:
             ticks = _perf_tick_count or 1
             _sys_log('[sys:tick] n=%d avg_ms=%.3f max_ms=%.3f frame_ms=%.2f in_match=%d '
-                     'apply=%.3f unlock=%.3f gather=%.3f track=%.3f rest=%.3f bone=%.3f '
-                     'proj=%.3f team=%.3f collect=%.3f sync=%.3f local=%.3f ser=%.3f '
-                     'wr=%.3f walk=%d items=%d'
+                     'apply=%.3f unlock=%.3f gather=%.3f track=%.3f '
+                     'rest=%.3f sync=%.3f local=%.3f ser=%.3f wr=%.3f '
+                     'bone=%.3f proj=%.3f team=%.3f collect=%.3f walk=%d items=%d'
                      % (ticks, 1000.0 * _perf_tick_sum / ticks, 1000.0 * _perf_tick_max,
                         1000.0 * _perf_tick_dt / ticks, 1 if in_match else 0,
                         1000.0 * _perf_phase_sum[0] / ticks, 1000.0 * _perf_phase_sum[1] / ticks,
