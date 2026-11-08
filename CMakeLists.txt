@@ -45,7 +45,31 @@ target_include_directories(comet_overlay PRIVATE
 # IMGUI_USE_WCHAR32: 16-bit ImWchar cannot address the emoji planes, and player
 # names in this game use them. Must be defined for every translation unit that
 # includes imgui.h, which is why it lives on the target and not in one file.
-target_compile_definitions(comet_overlay PRIVATE WIN32_LEAN_AND_MEAN NOMINMAX IMGUI_USE_WCHAR32)
+# The commit this overlay was built from. A log that cannot say which build
+# produced it makes every report ambiguous: the fix is either in the file the
+# user is running or it is not, and timestamps do not answer that.
+set(OVL_BUILD_ID "dev")
+execute_process(
+    COMMAND git rev-parse --short=8 HEAD
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    OUTPUT_VARIABLE _ovl_sha
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+    ERROR_QUIET)
+execute_process(
+    COMMAND git status --porcelain --untracked-files=no
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    OUTPUT_VARIABLE _ovl_dirty
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+    ERROR_QUIET)
+if(_ovl_sha)
+    set(OVL_BUILD_ID "${_ovl_sha}")
+    if(_ovl_dirty)
+        string(APPEND OVL_BUILD_ID "-dirty")
+    endif()
+endif()
+message(STATUS "overlay build id: ${OVL_BUILD_ID}")
+
+target_compile_definitions(comet_overlay PRIVATE WIN32_LEAN_AND_MEAN NOMINMAX IMGUI_USE_WCHAR32 OVL_BUILD_ID="${OVL_BUILD_ID}")
 target_link_libraries(comet_overlay PRIVATE d3d11 dxgi d3dcompiler dcomp dwmapi user32)
 
 add_executable(injector src/injector.cpp)

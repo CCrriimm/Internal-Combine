@@ -29,7 +29,7 @@ def build(raycast):
     node = next(n for n in ast.parse(SOURCE.read_text(encoding='utf-8')).body
                 if isinstance(n, ast.FunctionDef) and n.name == '_line_of_sight_query')
     ns = {'math': math, 'time': time, '_vis_cache': {},
-          '_vis_stats': [0, 0, 0, 0], '_vis_log_t': 0.0, '_vis_err': '',
+          '_vis_stats': [0, 0, 0, 0, 0], '_vis_log_t': 0.0, '_vis_err': '',
           '_vec': lambda p: tuple(p) if p is not None else None,
           '_v3': lambda p: p,
           '_len': lambda v: math.sqrt(sum(x * x for x in v)),
@@ -124,3 +124,33 @@ class PointVisibilityTests(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class VisibilityAccountingTests(unittest.TestCase):
+    """[sys:vis] has to say *why* a check did not produce an answer.
+
+    The first version counted a blocked ray as "none" because the cover outcome
+    was never assigned, so the log read `cover=0 none=457` while walls were being
+    detected perfectly. A tally nobody can read is worse than no tally.
+    """
+
+    def setUp(self):
+        self.src = (Path(__file__).resolve().parents[1] / 'pyexec' /
+                    'bs_runtime.py').read_text(encoding='utf-8-sig')
+
+    def test_cover_is_counted_as_cover(self):
+        body = self.src[self.src.index('def _line_of_sight_query'):]
+        body = body[:body.index('\ndef ')]
+        self.assertIn('v, outcome = False, 2', body, 'a blocked ray is cover')
+
+    def test_a_missing_camera_is_its_own_outcome(self):
+        body = self.src[self.src.index('def _line_of_sight_query'):]
+        body = body[:body.index('\ndef ')]
+        self.assertIn('outcome = 4', body)
+        self.assertIn('nocam=', self.src)
+
+    def test_every_counter_is_reset_with_the_log(self):
+        body = self.src[self.src.index('def _log_vis_stats'):]
+        body = body[:body.index('\ndef ')]
+        self.assertIn('range(5)', body,
+                      'the no-camera counter must reset with the others')

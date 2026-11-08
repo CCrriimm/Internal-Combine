@@ -2645,7 +2645,7 @@ def _screen_coord_v2(v):
 
 # Visibility outcomes for the log: cleared / hit the target / hit cover /
 # no raycast at all. Throttled with the other 10 s lines.
-_vis_stats = [0, 0, 0, 0]
+_vis_stats = [0, 0, 0, 0, 0]   # cleared, hit-target, cover, no-ray, no-camera
 _vis_log_t = 0.0
 # First exception out of the raycast, kept for [sys:vis]. A raycast that cannot
 # be made at all is indistinguishable from "covered" in the ESP, so the reason
@@ -2726,6 +2726,8 @@ def _line_of_sight_query(e, head, dist, max_dist):
                                 v, outcome = False, 2
                         except Exception:
                             v, outcome = False, 2
+        else:
+            outcome = 4          # no camera: the question cannot be asked
     except Exception as exc:
         global _vis_err
         v, outcome = False, 3
@@ -2753,10 +2755,12 @@ def _log_vis_stats():
     if total == 0:
         return
     _vis_log_t = now
-    _sys_log('[sys:vis] checks=%d cleared=%d hit-target=%d cover=%d none=%d err=%s'
-             % (total, _vis_stats[0], _vis_stats[1], _vis_stats[2], _vis_stats[3],
-                _vis_err or '-'))
-    _vis_stats[0] = _vis_stats[1] = _vis_stats[2] = _vis_stats[3] = 0
+    _sys_log('[sys:vis] checks=%d cleared=%d hit-target=%d cover=%d nocam=%d '
+             'no-ray=%d err=%s'
+             % (total, _vis_stats[0], _vis_stats[1], _vis_stats[2], _vis_stats[4],
+                _vis_stats[3], _vis_err or '-'))
+    for i in range(5):
+        _vis_stats[i] = 0
 
 
 def _query_occlusion_cache(e, max_age=0.60):

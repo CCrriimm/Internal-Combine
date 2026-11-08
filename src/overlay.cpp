@@ -2961,6 +2961,30 @@ static void DrawESP() {
             return sz.y + pad_y * 2.0f + 2.0f;
         };
 
+        // The game's own nameplate: bold text with a black halo, no plate behind
+        // it. Eight halo draws around the fill, and only for the name - one per
+        // target, not per chip - because at 18 px anything less than a full ring
+        // leaves the outline broken where the glyph is thin.
+        auto outlined = [&](float ccx, float cy_top, const char* s, ImU32 fg) -> float {
+            if (!s || !*s) return 0.0f;
+            NoteMissingGlyphs(esp_font, esp_font_sz, s);
+            ImVec2 sz = calc_sz(s);
+            const ImVec2 p(ccx - sz.x * 0.5f, cy_top);
+            const ImU32 halo = IM_COL32(0, 0, 0, 255);
+            static const float OFF[8][2] = {
+                {-1.0f, -1.0f}, {0.0f, -1.0f}, {1.0f, -1.0f},
+                {-1.0f, 0.0f},                  {1.0f, 0.0f},
+                {-1.0f, 1.0f},  {0.0f, 1.0f},  {1.0f, 1.0f},
+            };
+            for (int i = 0; i < 8; ++i) {
+                dl->AddText(esp_font, esp_font_sz,
+                            ImVec2(p.x + OFF[i][0], p.y + OFF[i][1]), halo, s);
+            }
+            dl->AddText(esp_font, esp_font_sz, p, fg, s);
+            // Same advance the plate version had, so nothing above it moves.
+            return sz.y + 6.0f;
+        };
+
         if (Has(F_ESP_LINE)) {
             const unsigned mode = g_cfg.esp_style & ESP_LINE_ORIGIN_MASK;
             auto origin = esp::LineOrigin(W,H,mode);
@@ -3082,7 +3106,7 @@ static void DrawESP() {
         // The header above the box carries at most the knock state, the team and
         // the player name: stacking weapon + hero + name there buried the target.
         if (Has(F_ESP_NAME) && e.name[0]) {
-            y -= chip(cx, y, e.name, g_cfg.col_name);
+            y -= outlined(cx, y, e.name, g_cfg.col_name);
         }
         if (Has(F_ESP_GUN) && e.gun[0]) {
             y -= chip(cx, y, e.gun, g_cfg.col_gun);
@@ -4617,9 +4641,17 @@ inline void MergeNameFallbacks(float size) {
 
 } // namespace fontcov
 
+#ifndef OVL_BUILD_ID
+#define OVL_BUILD_ID "dev"
+#endif
+
 static void InitFonts() {
 
     ImGuiIO& io = ImGui::GetIO();
+
+    // First line of every overlay_log: which build this is. "Did I install the
+    // one with the fix" cost a whole round trip more than once.
+    Log("[ov] build=%s packet_v=%d", OVL_BUILD_ID, VERSION);
 
     io.Fonts->AddFontDefault();
     if (fontcov::Root().empty()) return;

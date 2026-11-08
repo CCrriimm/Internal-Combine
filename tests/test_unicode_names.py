@@ -189,3 +189,50 @@ class SymbolCoverageTests(unittest.TestCase):
     def test_the_atlas_size_is_reported(self):
         self.assertIn('atlas=%dx%d', self.src,
                       'an atlas overflow drops glyphs without an error')
+
+
+class NameStyleTests(unittest.TestCase):
+    """The name line is drawn like the game's own nameplate: text, black halo, no
+    plate. The reference screenshot is red bold text with a black outline."""
+
+    def setUp(self):
+        self.src = OVERLAY.read_text(encoding='utf-8', errors='replace')
+
+    def body(self):
+        return self.src[self.src.index('auto outlined = [&]'):
+                        self.src.index('if (Has(F_ESP_LINE))')]
+
+    def test_the_name_goes_through_the_outlined_draw(self):
+        self.assertIn('outlined(cx, y, e.name, g_cfg.col_name)', self.src)
+
+    def test_the_outline_is_a_ring_of_black_draws(self):
+        body = self.body()
+        self.assertIn('static const float OFF[8][2]', body)
+        self.assertIn('for (int i = 0; i < 8; ++i)', body)
+        self.assertIn('IM_COL32(0, 0, 0, 255)', body)
+        self.assertNotIn('AddRectFilled', body, 'no plate behind the name')
+
+    def test_the_fill_comes_last(self):
+        body = self.body()
+        self.assertLess(body.index('for (int i = 0; i < 8; ++i)'),
+                        body.rindex('dl->AddText(esp_font, esp_font_sz, p, fg, s)'),
+                        'the halo is drawn under the fill')
+
+    def test_only_the_name_pays_for_the_halo(self):
+        """Nine draws per target is fine; nine per chip is not - there are four."""
+        self.assertNotIn('outlined(cx, y, e.gun', self.src)
+        self.assertNotIn('outlined(cx, foot_y', self.src)
+
+
+class BuildStampTests(unittest.TestCase):
+    """An overlay log that cannot name its own build makes every report a guess."""
+
+    def test_the_overlay_logs_its_commit(self):
+        src = OVERLAY.read_text(encoding='utf-8', errors='replace')
+        self.assertIn('Log("[ov] build=%s packet_v=%d", OVL_BUILD_ID, VERSION)', src)
+        self.assertIn('#define OVL_BUILD_ID "dev"', src, 'a local build still logs')
+
+    def test_cmake_derives_it_from_git(self):
+        cmake = (ROOT / 'CMakeLists.txt').read_text(encoding='utf-8')
+        self.assertIn('git rev-parse --short=8 HEAD', cmake)
+        self.assertIn('OVL_BUILD_ID="${OVL_BUILD_ID}"', cmake)
