@@ -702,7 +702,7 @@ def _init_ctypes_shm():
 STATE_FILE_SIZE = 65536
 
 _state_fh = None
-_state_map = None
+_state_open_failed = False
 
 
 def _write_state_inplace(buf):
@@ -719,59 +719,54 @@ def _write_state_inplace(buf):
     Readers detect a half-written snapshot with the sequence number, so a torn
     read costs one frame of data, never a bad frame.
 
-    The runtime maps it too. Padding every snapshot out to 64 KB and flushing it
-    was a 64 KB copy plus a write syscall on the game thread every tick, and
-    `rest=` in [sys:tick] was 0.23-0.35 ms - a fifth of the tick. The padding was
-    never needed: the overlay reads the entity count from the header and ignores
-    everything past it, so only the bytes actually packed are copied now.
+    The sink is an **unbuffered** handle held open for the life of the process,
+    and only the bytes actually packed are written: one write syscall, no 64 KB
+    padding, no flush. Padding was 64 KB of copy on the game thread every tick and
+    `rest=` in [sys:tick] is 0.23-0.35 ms of it; the overlay reads the entity count
+    from the header and stops, so the tail never mattered.
+
+    A previous version tried an `mmap` of the same file instead, imported lazily
+    inside this function. In a Python where that module is not available the
+    import was retried - and failed - on *every tick*, which is a full importer
+    search across sys.path each time: `rest=` went from 0.4 ms to 6.2-7.9 ms in
+    the user's log and halved the frame rate. Anything tried in here is tried
+    once; if it fails the failure is remembered, never retried.
     """
-    global _state_fh, _state_map
-    if _state_map is not None:
-        try:
-            _state_map[:len(buf)] = buf
-            return True
-        except Exception:
-            try:
-                _state_map.close()
-            except Exception:
-                pass
-            _state_map = None
+    global _state_fh
+    if _state_fh is None:
+        if not _open_state_sink():
+            return False
     try:
-        if _state_map is None:
-            exists = os.path.exists(STATE_PATH)
-            fh = open(STATE_PATH, 'r+b' if exists else 'w+b')
-            try:
-                if os.fstat(fh.fileno()).st_size < STATE_FILE_SIZE:
-                    fh.truncate(STATE_FILE_SIZE)
-                import mmap as mmap_mod
-                _state_map = mmap_mod.mmap(fh.fileno(), STATE_FILE_SIZE)
-                _state_map[:len(buf)] = buf
-                fh.close()
-                return True
-            except Exception:
-                try:
-                    fh.close()
-                except Exception:
-                    pass
-                _state_map = None
-    except Exception:
-        pass
-    # Fallback: the old handle + padding path, for a Python where mmap is missing.
-    try:
-        if _state_fh is None:
-            exists = os.path.exists(STATE_PATH)
-            _state_fh = open(STATE_PATH, 'r+b' if exists else 'w+b')
-        data = buf if len(buf) >= STATE_FILE_SIZE else buf + b'\x00' * (STATE_FILE_SIZE - len(buf))
         _state_fh.seek(0)
-        _state_fh.write(data)
-        _state_fh.flush()
+        _state_fh.write(buf)
         return True
     except Exception:
         try:
-            if _state_fh is not None:
-                _state_fh.close()
+            _state_fh.close()
         except Exception:
             pass
+        _state_fh = None
+        return False
+
+
+def _open_state_sink():
+    """Open the snapshot file once, unbuffered, and size it for the overlay."""
+    global _state_fh, _state_open_failed
+    if _state_open_failed:
+        # One failed open is enough: retrying it per tick is what cost 6 ms.
+        return False
+    try:
+        exists = os.path.exists(STATE_PATH)
+        fh = open(STATE_PATH, 'r+b' if exists else 'w+b', buffering=0)
+        try:
+            if os.fstat(fh.fileno()).st_size < STATE_FILE_SIZE:
+                fh.truncate(STATE_FILE_SIZE)
+        except Exception:
+            pass
+        _state_fh = fh
+        return True
+    except Exception:
+        _state_open_failed = True
         _state_fh = None
         return False
 
@@ -2652,6 +2647,10 @@ def _screen_coord_v2(v):
 # no raycast at all. Throttled with the other 10 s lines.
 _vis_stats = [0, 0, 0, 0]
 _vis_log_t = 0.0
+# First exception out of the raycast, kept for [sys:vis]. A raycast that cannot
+# be made at all is indistinguishable from "covered" in the ESP, so the reason
+# has to be in the log.
+_vis_err = ''
 
 
 def _vis_count(index):
@@ -2725,8 +2724,11 @@ def _line_of_sight_query(e, head, dist, max_dist):
                                 v, outcome = True, 1
                         except Exception:
                             pass
-    except Exception:
+    except Exception as exc:
+        global _vis_err
         v, outcome = False, 3
+        if not _vis_err:
+            _vis_err = '%s: %s' % (type(exc).__name__, exc)
     _vis_count(outcome)
     _vis_cache[cache_key] = _vis_cache[key] = (now, v)
     if len(_vis_cache) > 2048:
@@ -2749,8 +2751,9 @@ def _log_vis_stats():
     if total == 0:
         return
     _vis_log_t = now
-    _sys_log('[sys:vis] checks=%d cleared=%d hit-target=%d cover=%d none=%d'
-             % (total, _vis_stats[0], _vis_stats[1], _vis_stats[2], _vis_stats[3]))
+    _sys_log('[sys:vis] checks=%d cleared=%d hit-target=%d cover=%d none=%d err=%s'
+             % (total, _vis_stats[0], _vis_stats[1], _vis_stats[2], _vis_stats[3],
+                _vis_err or '-'))
     _vis_stats[0] = _vis_stats[1] = _vis_stats[2] = _vis_stats[3] = 0
 
 

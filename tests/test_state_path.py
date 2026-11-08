@@ -28,8 +28,8 @@ class RuntimeSideTests(unittest.TestCase):
     def test_the_state_file_has_a_fixed_size(self):
         self.assertIn('STATE_FILE_SIZE = 65536', self.text)
         body = self.text[self.text.index('def _write_state_inplace'):]
-        body = body[:body.index('\ndef ')]
-        self.assertIn('STATE_FILE_SIZE', body, 'the padding keeps the mapping valid')
+        body = body[:body.index('# Disk fallback must not block')]
+        self.assertIn('STATE_FILE_SIZE', body, 'the file must stay big enough to map')
         self.assertNotIn('replace(', body, 'a rename would invalidate the overlay mapping')
 
     def test_in_place_write_is_used_when_shared_memory_is_missing(self):
