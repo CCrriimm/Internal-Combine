@@ -350,10 +350,12 @@ _perf_last = 0.0
 # game thread - and that one is the only place the runtime could be costing the
 # user frames. Summed every tick (two float adds) and logged every 10 s.
 _perf_phase_sum = [0.0, 0.0, 0.0, 0.0, 0.0]
+_perf_bone_sum = 0.0
 _appearance_sync_t = 0.0
 _damping_t = 0.0
 _perf_items = 0
 _unlock_t = 0.0
+_g_bone_t = 0.0
 _perf_tick_window = 0.0
 _perf_tick_count = 0
 _perf_tick_sum = 0.0
@@ -2952,6 +2954,8 @@ def _query_visible_entities(max_dist, want_gun=True, want_bone=True):
             pass
     out.sort(key=lambda x: x[0])
     total = time.time() - t0
+    global _g_bone_t
+    _g_bone_t = t_bone
     if total > 0.05 and t0 - _g_log_t >= 1.0:
         _g_log_t = t0
         _g_slow = total
@@ -5146,6 +5150,7 @@ def _on_story_tick(dt):
     global _perf_t, _perf_last
     global _perf_tick_window, _perf_tick_count, _perf_tick_sum, _perf_tick_max, _perf_tick_dt
     global _perf_phase_sum, _appearance_sync_t, _damping_t, _perf_items, _unlock_t
+    global _perf_bone_sum
     if int(getattr(builtins, '_m_generation', 0) or 0) != _my_gen:
         return
     try:
@@ -5279,6 +5284,7 @@ def _on_story_tick(dt):
         _perf_phase_sum[2] += t_gather - t_unlock
         _perf_phase_sum[3] += t_track - t_gather
         _perf_phase_sum[4] += t1 - t_track
+        _perf_bone_sum += _g_bone_t
         _perf_items = len(items)
         _perf_tick_dt += dt
         if total > _perf_tick_max:
@@ -5286,18 +5292,20 @@ def _on_story_tick(dt):
         if _perf_tick_window and t0 - _perf_tick_window >= 10.0:
             ticks = _perf_tick_count or 1
             _sys_log('[sys:tick] n=%d avg_ms=%.3f max_ms=%.3f frame_ms=%.2f in_match=%d '
-                     'apply=%.3f unlock=%.3f gather=%.3f track=%.3f rest=%.3f items=%d'
+                     'apply=%.3f unlock=%.3f gather=%.3f track=%.3f rest=%.3f bone=%.3f items=%d'
                      % (ticks, 1000.0 * _perf_tick_sum / ticks, 1000.0 * _perf_tick_max,
                         1000.0 * _perf_tick_dt / ticks, 1 if in_match else 0,
                         1000.0 * _perf_phase_sum[0] / ticks, 1000.0 * _perf_phase_sum[1] / ticks,
                         1000.0 * _perf_phase_sum[2] / ticks, 1000.0 * _perf_phase_sum[3] / ticks,
                         1000.0 * _perf_phase_sum[4] / ticks,
+                        1000.0 * _perf_bone_sum / ticks,
                         _perf_items), force=True)
             _perf_tick_window = t0
             _perf_tick_count = 0
             _perf_tick_sum = 0.0
             for _i in range(5):
                 _perf_phase_sum[_i] = 0.0
+            _perf_bone_sum = 0.0
             _perf_tick_max = 0.0
             _perf_tick_dt = 0.0
         elif not _perf_tick_window:

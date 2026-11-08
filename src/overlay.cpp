@@ -2461,6 +2461,154 @@ static bool ColorRow(const char* label, uint32_t& v) {
 
 
 
+// ---------------------------------------------------------------------------
+// World -> screen, computed here instead of asked for per entity.
+//
+// Every point the ESP draws is currently projected by the game's Python side
+// (`gui.WorldToScreenPercent`), and a player with a skeleton costs 18 of those
+// calls per gather. The overlay already receives the camera position, the camera
+// forward vector, the field of view and the screen size, which is everything the
+// projection needs - the reference implementation in the user's friend's native
+// overlay reads exactly this (camera position, a 3x3 basis, fov) and computes
+// `focal = 1 / tan(fov/2)`, `x = cx + (px / pz) * focal * screenH/2`,
+// `y = cy - (py / pz) * focal * screenH/2`.
+//
+// Two things are not written down anywhere: which handedness the basis has, and
+// whether the engine's fov is vertical or horizontal. So both are measured
+// against the engine's own answer before anything is drawn from this. Nothing in
+// this block changes what is drawn - it only logs.
+// ---------------------------------------------------------------------------
+struct ProjFrame {
+    float pos[3];
+    float right[3];
+    float up[3];
+    float fwd[3];
+    float focal;
+    float w, h;
+    bool valid;
+};
+
+static void Norm3(float* v) {
+    const float len = std::sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
+    if (len > 1e-6f) { v[0] /= len; v[1] /= len; v[2] /= len; }
+}
+
+static void Cross3(const float* a, const float* b, float* out) {
+    out[0] = a[1] * b[2] - a[2] * b[1];
+    out[1] = a[2] * b[0] - a[0] * b[2];
+    out[2] = a[0] * b[1] - a[1] * b[0];
+}
+
+// handedness: 0 = right = up x fwd, 1 = right = fwd x up (mirrored).
+static bool MakeProjFrame(ProjFrame& f, int handedness, bool fov_is_vertical) {
+    f.valid = false;
+    if (g_state.screen_w < 32.0f || g_state.screen_h < 32.0f) return false;
+    const float fov = g_state.fov;
+    if (!(fov > 1.0f && fov < 179.0f)) return false;
+
+    f.w = g_state.screen_w;
+    f.h = g_state.screen_h;
+    for (int i = 0; i < 3; ++i) {
+        f.pos[i] = g_state.cam_pos[i];
+        f.fwd[i] = g_state.cam_forward[i];
+    }
+    Norm3(f.fwd);
+    if (f.fwd[0] == 0.0f && f.fwd[1] == 0.0f && f.fwd[2] == 0.0f) return false;
+
+    // The game's world is Y-up (radar projects x/z, the head offset is applied to
+    // y), so the camera's roll is assumed zero and up is derived from world up.
+    const float worldUp[3] = {0.0f, 1.0f, 0.0f};
+    if (handedness == 0) {
+        Cross3(worldUp, f.fwd, f.right);
+        Norm3(f.right);
+        Cross3(f.fwd, f.right, f.up);
+    } else {
+        Cross3(f.fwd, worldUp, f.right);
+        Norm3(f.right);
+        Cross3(f.right, f.fwd, f.up);
+    }
+    Norm3(f.up);
+
+    const float half = (fov_is_vertical ? f.h : f.w) * 0.5f;
+    f.focal = half / std::tan(fov * 0.017453292f * 0.5f);
+    f.valid = std::isfinite(f.focal) && f.focal > 1.0f;
+    return f.valid;
+}
+
+// Returns false when the point is behind the camera.
+static bool ProjectWorld(const ProjFrame& f, const float* world, float* out_px) {
+    if (!f.valid) return false;
+    const float rel[3] = {world[0] - f.pos[0], world[1] - f.pos[1], world[2] - f.pos[2]};
+    const float pz = rel[0] * f.fwd[0] + rel[1] * f.fwd[1] + rel[2] * f.fwd[2];
+    if (pz <= 0.01f) return false;
+    const float px = rel[0] * f.right[0] + rel[1] * f.right[1] + rel[2] * f.right[2];
+    const float py = rel[0] * f.up[0] + rel[1] * f.up[1] + rel[2] * f.up[2];
+    out_px[0] = f.w * 0.5f + (px / pz) * f.focal;
+    out_px[1] = f.h * 0.5f - (py / pz) * f.focal;
+    return std::isfinite(out_px[0]) && std::isfinite(out_px[1]);
+}
+
+// Compare our projection with the engine's own, and say which convention wins.
+// Runs at most every 10 s and draws nothing.
+static void LogProjectionCalibration() {
+    static ULONGLONG last = 0;
+    const ULONGLONG now = GetTickCount64();
+    if (now - last < 10000) return;
+    last = now;
+    if (!g_state.in_match || g_ents.empty()) return;
+    if (!(g_state.fov > 1.0f && g_state.fov < 179.0f)) {
+        Log("[proj] no camera fov in state (fov=%.2f)", g_state.fov);
+        return;
+    }
+
+    const char* names[4] = {"upxfwd,vfov", "upxfwd,hfov", "fwdxup,vfov", "fwdxup,hfov"};
+    double sum[4] = {0, 0, 0, 0};
+    double worst[4] = {0, 0, 0, 0};
+    int used[4] = {0, 0, 0, 0};
+    ProjFrame frames[4];
+    for (int v = 0; v < 4; ++v) MakeProjFrame(frames[v], v & 1, (v & 2) == 0);
+
+    int samples = 0;
+    for (const Ent& e : g_ents) {
+        if (samples >= 8) break;
+        // The engine's answer is a percentage of the client area.
+        const bool ok_head = (e.head_screen[0] >= -0.5f && e.head_screen[0] <= 1.5f &&
+                              e.head_screen[1] >= -0.5f && e.head_screen[1] <= 1.5f);
+        if (!ok_head) continue;
+        const float want[2] = {e.head_screen[0] * g_state.screen_w,
+                               e.head_screen[1] * g_state.screen_h};
+        bool counted = false;
+        for (int v = 0; v < 4; ++v) {
+            float got[2];
+            if (!ProjectWorld(frames[v], e.head, got)) continue;
+            const double d = std::sqrt((double)((got[0] - want[0]) * (got[0] - want[0]) +
+                                                (got[1] - want[1]) * (got[1] - want[1])));
+            sum[v] += d;
+            if (d > worst[v]) worst[v] = d;
+            ++used[v];
+            counted = true;
+        }
+        if (counted) ++samples;
+    }
+    if (samples == 0) return;
+
+    int best = 0;
+    double best_mean = 1e30;
+    for (int v = 0; v < 4; ++v) {
+        if (!used[v]) continue;
+        const double mean = sum[v] / used[v];
+        if (mean < best_mean) { best_mean = mean; best = v; }
+    }
+    Log("[proj] samples=%d best=%s mean_err_px=%.2f max_err_px=%.2f fov=%.1f screen=%.0fx%.0f "
+        "(mean px: %s, %s, %s, %s)",
+        samples, names[best], best_mean, worst[best], g_state.fov, g_state.screen_w,
+        g_state.screen_h,
+        used[0] ? std::to_string(sum[0] / used[0]).c_str() : "-",
+        used[1] ? std::to_string(sum[1] / used[1]).c_str() : "-",
+        used[2] ? std::to_string(sum[2] / used[2]).c_str() : "-",
+        used[3] ? std::to_string(sum[3] / used[3]).c_str() : "-");
+}
+
 static void DrawESP() {
     if (!Has(F_ESP) || !g_state.in_match) return;
     ImDrawList* dl = ImGui::GetForegroundDrawList();
@@ -4665,6 +4813,10 @@ static void RenderFrame(IDXGISwapChain* sc) {
     // cache is per-match, so it is cleared here as well as after a long empty
     // stretch (Frame() below), which covers wiping back to spectate.
     if (!g_state.in_match) g_team_labels.Reset();
+
+    // Measures our own projection against the engine's, and nothing else. See
+    // LogProjectionCalibration(). Throttled to once per 10 s.
+    LogProjectionCalibration();
 
     bool need = menu || (g_state.in_match &&
                          (Has(F_ESP) || Has(F_AIM_FOV_CIRCLE)));

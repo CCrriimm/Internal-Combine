@@ -127,7 +127,7 @@ class RuntimeTickCostTests(unittest.TestCase):
         body = self.tick_body()
         self.assertIn("[sys:tick] n=%d avg_ms=%.3f max_ms=%.3f frame_ms=%.2f in_match=%d", body)
         for phase in ('apply=%.3f', 'unlock=%.3f', 'gather=%.3f', 'track=%.3f', 'rest=%.3f',
-                      'items=%d'):
+                      'bone=%.3f', 'items=%d'):
             self.assertIn(phase, body)
         self.assertIn('>= 10.0', body)
 
