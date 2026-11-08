@@ -58,6 +58,8 @@ def build(screen_value, want_bone=True, want_gun=True):
         '_matrix_world_to_screen': lambda p: screen_value,
         '_gun_name': gun, '_g_log_t': 0, '_g_slow': 0, '_sys_log': lambda *a, **k: None,
         'MAX_ENTITIES': 256, '_bone_cache': {}, '_combat_type_cache': {},
+        # The per-entity verdict cache is module state; a fresh one per harness.
+        '_combat_cache': None, '_combat_cache_space': None, 'COMBAT_CACHE_TTL': 0.5,
     }
     exec(compile(ast.Module(body=nodes, type_ignores=[]), str(RUNTIME), 'exec'), ns)
     return ns, space, calls, local
@@ -73,6 +75,7 @@ def target(eid, is_combat=True):
 def gather(ns, space, entities, want_bone=True, want_gun=True):
     space.entities = {e.id: e for e in entities}
     ns['_ent_list_cache'] = None
+    ns['_combat_cache'] = None
     return ns['_query_visible_entities'](400, want_gun, want_bone)[2]
 
 
@@ -185,3 +188,57 @@ class GatherRateTests(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class CountingProp:
+    """A prop that counts every attribute read, and has none to give."""
+
+    def __init__(self, eid):
+        self.id = eid
+        self.reads = 0
+
+    def __getattr__(self, name):
+        self.reads += 1
+        raise AttributeError(name)
+
+
+class VerdictCacheTests(unittest.TestCase):
+    """A prop's verdict cannot change, so it must not be re-derived every gather.
+
+    ~100 props to one target in a full match, and each prop cost a position read
+    plus six avatar-marker reads before being rejected - every gather, for an
+    answer that is a property of the entity's class.
+    """
+
+    def test_the_second_gather_does_not_touch_a_known_prop(self):
+        ns, space, calls, local = build((0.5, 0.5))
+        prop = CountingProp(50)
+        space.entities = {50: prop}
+        ns['_ent_list_cache'] = None
+        ns['_query_visible_entities'](400, False, False)
+        first = prop.reads
+        self.assertGreater(first, 0, 'the first gather has to classify it')
+        space.entities = {50: prop}
+        ns['_ent_list_cache'] = None
+        ns['_query_visible_entities'](400, False, False)
+        self.assertEqual(prop.reads, first, 'a cached prop is skipped after its id')
+
+    def test_the_verdict_is_bounded_in_time(self):
+        source = (ROOT / 'pyexec' / 'bs_runtime.py').read_text(encoding='utf-8-sig')
+        self.assertIn('COMBAT_CACHE_TTL = 0.5', source,
+                      'an entity that becomes a target has to be re-classified')
+        body = source[source.index('def _query_visible_entities'):]
+        body = body[:body.index('\ndef ')]
+        self.assertIn('now_m - seen[0] < COMBAT_CACHE_TTL', body)
+
+    def test_the_cache_is_dropped_when_the_space_changes(self):
+        source = (ROOT / 'pyexec' / 'bs_runtime.py').read_text(encoding='utf-8-sig')
+        body = source[source.index('def _query_visible_entities'):]
+        body = body[:body.index('\ndef ')]
+        self.assertIn('_combat_cache_space is not space', body)
+
+    def test_a_target_is_still_marked_after_being_cached(self):
+        ns, space, calls, local = build((0.5, 0.5))
+        t = target(60)
+        self.assertEqual(len(gather(ns, space, [t])), 1)
+        self.assertEqual(len(gather(ns, space, [t])), 1, 'cached as a target, not skipped')

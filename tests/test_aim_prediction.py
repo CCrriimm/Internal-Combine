@@ -30,7 +30,7 @@ class PredictionTests(unittest.TestCase):
                    'IDX_FLAGS': 3, 'F_TRACK_LEAD': 1 << 18, 'IDX_TRACK_SMOOTH': 11,
                    'IDX_TRACK_KEY': 7, 'IDX_TRACK_JOINT': 15, 'IDX_TRACK_MAX_DIST': 12, 'IDX_TRACK_FOV': 10,
                    'F_TRACK_VIEW': 1 << 13, 'OPT_RAY_REDIRECT': 1 << 5,
-                   '_options': lambda cfg: cfg[17]}
+                   '_options': lambda cfg: cfg[17], '_ballistic_cache': None}
         exec(compile(ast.Module(body=nodes, type_ignores=[]), str(source), 'exec'), self.ns)
         self.cfg = [0] * 40
         self.cfg[3] = (1 << 18) | (1 << 13)
@@ -162,3 +162,48 @@ class PredictionTests(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class CountingProto(dict):
+    """A weapon prototype that counts how often its speed is asked for."""
+
+    def __init__(self, *a, **kw):
+        super().__init__(*a, **kw)
+        self.lookups = 0
+
+    def get(self, key, default=None):
+        if key in ('bullet_speed', 'projectile_speed', 'muzzle_velocity'):
+            self.lookups += 1
+        return super().get(key, default)
+
+
+class BallisticCacheTests(unittest.TestCase):
+    """The muzzle speed was re-read once per target per tick, from the weapon
+    prototype chain, to answer a question that only changes with the weapon."""
+
+    setUp = PredictionTests.setUp
+    predict = PredictionTests.predict
+    sample = PredictionTests.sample
+
+    def test_the_speed_is_not_re_read_every_tick(self):
+        proto = CountingProto(bullet_speed=200.0)
+        self.case.weapon_proto = proto
+        first = self.predict()
+        after_first = proto.lookups
+        second = self.predict()
+        self.assertEqual(proto.lookups, after_first, 'cached while the weapon is the same')
+        self.assertEqual(first, second)
+
+    def test_a_weapon_swap_is_picked_up_on_the_next_tick(self):
+        self.case.weapon_proto = CountingProto(bullet_speed=200.0)
+        self.assertEqual(self.ns['_calc_ballistic_velocity'](), 200.0)
+        swapped = types.SimpleNamespace(weapon_proto={'bullet_speed': 600.0})
+        self.ns['_current_case'] = lambda e: swapped
+        self.assertEqual(self.ns['_calc_ballistic_velocity'](), 600.0,
+                         'a new weapon case must not keep the old speed')
+
+    def test_an_unknown_speed_is_asked_again(self):
+        self.assertIsNone(self.ns['_calc_ballistic_velocity']())
+        self.case.weapon_proto = {'bullet_speed': 300.0}
+        self.assertEqual(self.ns['_calc_ballistic_velocity'](), 300.0,
+                         'a miss must not be cached')

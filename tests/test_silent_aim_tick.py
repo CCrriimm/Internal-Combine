@@ -58,7 +58,7 @@ def build(tick_calls, campoint=(0.0, 0.0, 0.0)):
         '_fire_release_at': 0.0, '_perf_t': 0.0, '_perf_last': 0.0,
         '_perf_tick_window': 0.0, '_perf_tick_count': 0, '_perf_tick_sum': 0.0,
         '_perf_tick_max': 0.0, '_perf_tick_dt': 0.0,
-        '_perf_phase_sum': [0.0] * 5, '_appearance_sync_t': 100.0, '_damping_t': 100.0,
+        '_perf_phase_sum': [0.0] * 9, '_appearance_sync_t': 100.0, '_damping_t': 100.0,
         '_perf_items': 0, '_unlock_t': 100.0, '_perf_bone_sum': 0.0, '_g_bone_t': 0.0,
             '_perf_proj_sum': 0.0, '_perf_team_sum': 0.0, '_perf_list_sum': 0.0, '_perf_walk': 0,
             '_g_proj_t': 0.0, '_g_team_t': 0.0, '_g_list_t': 0.0, '_g_walk': 0,

@@ -349,7 +349,10 @@ _perf_last = 0.0
 # 60 ms, which says nothing about the tick that runs sixty times a second on the
 # game thread - and that one is the only place the runtime could be costing the
 # user frames. Summed every tick (two float adds) and logged every 10 s.
-_perf_phase_sum = [0.0, 0.0, 0.0, 0.0, 0.0]
+# apply, unlock, gather, track, rest(=sync+local+serialize+write), sync, local,
+# serialise, write. `rest` was one number covering four calls, so the log could
+# only say "0.33 ms happened after the aim".
+_perf_phase_sum = [0.0] * 9
 _perf_bone_sum = 0.0
 # Cost split inside the gather. `bone=` says how much of it is skeleton joints;
 # these say whether the rest is the engine's projection, the team lookup, or the
@@ -393,6 +396,16 @@ _bone_cache = {}
 _gun_cache = {}
 _diag_t = 0.0
 _ent_list_cache = None
+# entity id -> (when, is_combat). ~100 props to one target, and a prop stays a
+# prop: its five avatar markers and its class never change. Cached *before* the
+# position read, because that read plus the classifier was seven engine reads per
+# prop, every gather, for a verdict that cannot change. The TTL bounds the one
+# case that could: an entity that becomes a target while cached as a prop.
+_combat_cache = None
+_combat_cache_space = None
+COMBAT_CACHE_TTL = 0.5
+# (weapon case, when, muzzle speed) - see `_calc_ballistic_velocity`.
+_ballistic_cache = None
 _apply_tries = 0
 _apply_seq_seen = -1
 _asset_diag = set()
@@ -2925,23 +2938,51 @@ def _sample_target_motion(e, position, now):
 
 
 def _calc_ballistic_velocity():
+    """Muzzle speed of the equipped weapon, cached per weapon.
+
+    This sat inside `_estimate_lead_position`, i.e. it ran once per target per
+    tick: `_current_case` plus up to twelve attribute reads through the weapon
+    prototype chain, to answer a question whose answer changes only when the
+    weapon does. Keyed on the case object identity, so a swap is picked up on the
+    first tick after it, with a TTL for the case where the same case object gains
+    a different prototype.
+    """
+    global _ballistic_cache
     try:
         case = _current_case(_local()[0])
+    except Exception:
+        return None
+    now = time.time()
+    cached = _ballistic_cache
+    # A miss is not cached: "this weapon has no speed attribute" is the answer that
+    # has to be re-asked, because the prototype can gain one (and a stale None
+    # would silently disable lead for the rest of the fight).
+    if (cached is not None and cached[0] is case and cached[2] is not None
+            and now - cached[1] < 0.5):
+        return cached[2]
+    speed = None
+    try:
         sources = [case]
         for name in ('equip_proto', 'body_equip_proto', 'weapon_proto', 'proto'):
             sources.append(getattr(case, name, None))
         for source in sources:
+            found = False
             for name in ('bullet_speed', 'projectile_speed', 'muzzle_velocity'):
                 try:
                     value = source.get(name) if hasattr(source, 'get') else _call_attr(source, (name,))
-                    speed = float(value)
-                    if math.isfinite(speed) and speed > 0.0:
-                        return speed
+                    value = float(value)
+                    if math.isfinite(value) and value > 0.0:
+                        speed = value
+                        found = True
+                        break
                 except (TypeError, ValueError, AttributeError):
                     pass
+            if found:
+                break
     except Exception:
         pass
-    return None
+    _ballistic_cache = (case, now, speed)
+    return speed
 
 
 def _calc_tracking_ratio(scale, dt, theta):
@@ -3023,6 +3064,13 @@ def _query_visible_entities(max_dist, want_gun=True, want_bone=True):
     local_av, local_id, local_team, _ = _local()
     out = []
     bone_budget = 10
+    global _combat_cache, _combat_cache_space
+    if _combat_cache is None or _combat_cache_space is not space:
+        _combat_cache, _combat_cache_space = {}, space
+    if len(_combat_cache) > 4096:
+        _combat_cache.clear()
+    verdicts = _combat_cache
+    now_m = time.monotonic()
     ents = _collect_space_entities(space)
     t_list = time.time()
     t_bone = 0.0
@@ -3038,6 +3086,11 @@ def _query_visible_entities(max_dist, want_gun=True, want_bone=True):
             eid = getattr(e, 'id', None)
             if eid is None or (local_id is not None and eid == local_id):
                 continue
+            seen = verdicts.get(eid)
+            fresh = seen is not None and now_m - seen[0] < COMBAT_CACHE_TTL
+            if fresh and not seen[1]:
+                continue
+            known_target = fresh
             # Position and distance first: classifying an entity costs about two
             # dozen flag checks and most of a full space is outside the ESP range.
             pos_raw = _call_attr(e, ('position', 'pos', 'GetPosition'))
@@ -3047,15 +3100,20 @@ def _query_visible_entities(max_dist, want_gun=True, want_bone=True):
                     pos_raw = _call_attr(m, ('Position', 'position', 'GetPosition'))
             feet = _vec(pos_raw)
             if feet is not None:
-                _sample_target_motion(e, feet, time.monotonic())
                 rough = _len(_sub(feet, origin))
                 if rough > max_dist + 10.0:
                     continue
+                # Only now: motion sampling was being paid for every prop in the
+                # space, and it is only read for things that can be aimed at.
+                _sample_target_motion(e, feet, now_m)
             tn = type(e).__name__.lower()
             # The cheap gate before the four-flag classifier; the result is the
             # same because both are pure predicates and neither mutates.
-            if not _is_combat(e):
-                continue
+            if not known_target:
+                if not _is_combat(e):
+                    verdicts[eid] = (now_m, False)
+                    continue
+            verdicts[eid] = (now_m, True)
             is_bot, is_monster, is_ai = _ai_kind(e, tn)
             if not _alive(e):
                 continue
@@ -3079,8 +3137,10 @@ def _query_visible_entities(max_dist, want_gun=True, want_bone=True):
             if dist <= 0.1 or dist > max_dist:
                 continue
             tp = time.time()
-            ph = _matrix_world_to_screen(head) if _front(head) else None
-            pf = _matrix_world_to_screen(feet) if _front(feet) else None
+            # `in_front` was already computed from `feet`; asking again for the
+            # head and the feet built three vectors where one was needed.
+            ph = _matrix_world_to_screen(head) if in_front else None
+            pf = _matrix_world_to_screen(feet) if in_front else None
             t_proj += time.time() - tp
             # Bones and the weapon chip are drawn next to the box, so they are only
             # worth sampling for a target that is actually on screen. This used to
@@ -5468,6 +5528,10 @@ def _on_story_tick(dt):
         _perf_phase_sum[2] += t_gather - t_unlock
         _perf_phase_sum[3] += t_track - t_gather
         _perf_phase_sum[4] += t1 - t_track
+        _perf_phase_sum[5] += t_sync - t_track
+        _perf_phase_sum[6] += t_local - t_sync
+        _perf_phase_sum[7] += t_serial - t_local
+        _perf_phase_sum[8] += t1 - t_serial
         _log_vis_stats()
         _perf_bone_sum += _g_bone_t
         _perf_proj_sum += _g_proj_t
@@ -5482,19 +5546,24 @@ def _on_story_tick(dt):
             ticks = _perf_tick_count or 1
             _sys_log('[sys:tick] n=%d avg_ms=%.3f max_ms=%.3f frame_ms=%.2f in_match=%d '
                      'apply=%.3f unlock=%.3f gather=%.3f track=%.3f rest=%.3f bone=%.3f '
-                     'proj=%.3f team=%.3f collect=%.3f walk=%d items=%d'
+                     'proj=%.3f team=%.3f collect=%.3f sync=%.3f local=%.3f ser=%.3f '
+                     'wr=%.3f walk=%d items=%d'
                      % (ticks, 1000.0 * _perf_tick_sum / ticks, 1000.0 * _perf_tick_max,
                         1000.0 * _perf_tick_dt / ticks, 1 if in_match else 0,
                         1000.0 * _perf_phase_sum[0] / ticks, 1000.0 * _perf_phase_sum[1] / ticks,
                         1000.0 * _perf_phase_sum[2] / ticks, 1000.0 * _perf_phase_sum[3] / ticks,
                         1000.0 * _perf_phase_sum[4] / ticks,
+                        1000.0 * _perf_phase_sum[5] / ticks,
+                        1000.0 * _perf_phase_sum[6] / ticks,
+                        1000.0 * _perf_phase_sum[7] / ticks,
+                        1000.0 * _perf_phase_sum[8] / ticks,
                         1000.0 * _perf_bone_sum / ticks,
                         1000.0 * _perf_proj_sum / ticks, 1000.0 * _perf_team_sum / ticks,
                         1000.0 * _perf_list_sum / ticks, _perf_walk, _perf_items), force=True)
             _perf_tick_window = t0
             _perf_tick_count = 0
             _perf_tick_sum = 0.0
-            for _i in range(5):
+            for _i in range(9):
                 _perf_phase_sum[_i] = 0.0
             _perf_bone_sum = 0.0
             _perf_proj_sum = 0.0
