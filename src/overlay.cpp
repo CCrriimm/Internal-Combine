@@ -733,6 +733,7 @@ static void NoteFault(const char* where, unsigned code) {
 // guarded wrapper below can call them.
 static bool InitOverlay(IDXGISwapChain* sc);
 static void RenderFrame(IDXGISwapChain* sc);
+static void LogDisplayMode(bool force);
 
 // Note on the wrappers below: MSVC refuses __try/__except in any function that
 // needs C++ object unwinding (error C2712), which rules out RAII locals and
@@ -4096,6 +4097,7 @@ static bool BindSwapchain(IDXGISwapChain* sc) {
     g_swapchain = sc;
 
     Log("swapchain rebind %p", sc);
+    LogDisplayMode(true);
 
     return true;
 
@@ -4949,6 +4951,44 @@ struct PresentPerfSample {
 };
 
 
+// What the game is actually presenting into, and what the panel is actually at.
+//
+// "60 in a match, 200+ in the range" is a display-mode question as often as a
+// cost question: a game can put the panel into 60 Hz for a match and leave the
+// desktop at 240, and then nothing the overlay does can change the number. This
+// logs the swap chain mode and the desktop mode side by side, on rebind and
+// whenever either changes, so that question is answered by the log instead of by
+// a theory.
+static void LogDisplayMode(bool force) {
+    if (!g_swapchain) return;
+    DXGI_SWAP_CHAIN_DESC desc{};
+    if (FAILED(g_swapchain->GetDesc(&desc))) return;
+    const DXGI_MODE_DESC& mode = desc.BufferDesc;
+    unsigned chain_hz = 0;
+    if (mode.RefreshRate.Denominator)
+        chain_hz = (unsigned)((mode.RefreshRate.Numerator + mode.RefreshRate.Denominator / 2) /
+                              mode.RefreshRate.Denominator);
+    unsigned desk_hz = 0, desk_w = 0, desk_h = 0;
+    DEVMODEA dm{};
+    if (EnumDisplaySettingsA(nullptr, ENUM_CURRENT_SETTINGS, &dm)) {
+        desk_hz = dm.dmDisplayFrequency;
+        desk_w = dm.dmPelsWidth;
+        desk_h = dm.dmPelsHeight;
+    }
+    static unsigned last_chain = 0, last_desk = 0, last_w = 0, last_h = 0;
+    static int last_windowed = -1;
+    const int windowed = desc.Windowed ? 1 : 0;
+    if (!force && chain_hz == last_chain && desk_hz == last_desk && mode.Width == last_w &&
+        mode.Height == last_h && windowed == last_windowed)
+        return;
+    last_chain = chain_hz; last_desk = desk_hz; last_w = mode.Width; last_h = mode.Height;
+    last_windowed = windowed;
+    Log("[display] swapchain=%ux%u chain_hz=%u windowed=%d effect=%d flags=0x%x "
+        "desktop=%ux%u desktop_hz=%u",
+        (unsigned)mode.Width, (unsigned)mode.Height, chain_hz, windowed,
+        (int)desc.SwapEffect, (unsigned)desc.Flags, desk_w, desk_h, desk_hz);
+}
+
 static void NotePresentPerf(IDXGISwapChain* sc, const char* which, UINT sync,
                             const LARGE_INTEGER& begin, const LARGE_INTEGER& before_present,
                             const LARGE_INTEGER& after_present, const LARGE_INTEGER& frequency) {
@@ -4999,14 +5039,18 @@ static void NotePresentPerf(IDXGISwapChain* sc, const char* which, UINT sync,
     sample.copy_ms += t_copy_ms;
     if (render > sample.overlay_max_ms) sample.overlay_max_ms = render;
     if (now - sample.started >= 10000) {
+        LogDisplayMode(false);
         // fps is measured between Present calls, so it is what the game actually
         // achieves; sync is what the engine asked for. sync=1 means the game is
         // vsync-bound and its ceiling is the display refresh rate, not the
         // overlay - that is the first thing to check when the frame rate looks
         // pinned at 60.
-        Log("perf %s frames=%u interval_ms=%llu fps=%.1f sync0=%u sync1=%u sync_other=%u overlay_avg_ms=%.3f overlay_max_ms=%.3f present_avg_ms=%.3f pre_avg_ms=%.3f ui_avg_ms=%.3f state_avg_ms=%.3f copy_avg_ms=%.3f shield_begin_ms=%.3f shield_present_ms=%.3f shield=%d chain=%s modules=%d",
+        // The scene is part of the measurement: fps alone cannot tell a heavy map
+        // apart from our own per-entity cost, and the ESP is drawn per entity.
+        Log("perf %s frames=%u interval_ms=%llu fps=%.1f sync0=%u sync1=%u sync_other=%u ents=%u menu=%d esp=%d overlay_avg_ms=%.3f overlay_max_ms=%.3f present_avg_ms=%.3f pre_avg_ms=%.3f ui_avg_ms=%.3f state_avg_ms=%.3f copy_avg_ms=%.3f shield_begin_ms=%.3f shield_present_ms=%.3f shield=%d chain=%s modules=%d",
             which, sample.frames, (unsigned long long)(now - sample.started), g_pacing.fps,
             sample.sync_zero, sample.sync_one, sample.sync_other,
+            (unsigned)g_ents.size(), Has(F_MENU_OPEN) ? 1 : 0, Has(F_ESP) ? 1 : 0,
             sample.overlay_ms / sample.frames, sample.overlay_max_ms,
             sample.present_ms / sample.frames, sample.pre_ms / sample.frames,
             sample.ui_ms / sample.frames, sample.state_ms / sample.frames,
