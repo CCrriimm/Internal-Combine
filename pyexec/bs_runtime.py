@@ -2098,6 +2098,9 @@ def _local():
             pass
     lid = _call_attr(av, ('id', 'entity_id')) if av is not None else None
     team = _team_id(av) or _team_id(p)
+    global _local_team_raw
+    if team is not None:
+        _local_team_raw = team
     pos = _call_attr(av, ('position', 'pos')) if av is not None else None
     if pos is None and p is not None:
         pos = _call_attr(p, ('position', 'pos'))
@@ -2119,6 +2122,35 @@ def _normalize_team_id(value):
         return None
     text = str(value).strip()
     return text if text not in ('', '0', '-1', 'None') else None
+
+
+_team_numbers = {}
+_local_team_raw = None
+
+
+def _team_number(raw, reset=False):
+    """A small stable number for a team, assigned in first-seen order per match.
+
+    The engine hands out team ids as opaque strings (`team=au+R9FvWlF0VveRQ` in the
+    user's log), not as numbers, so `int(team)` used to fail and every entity went
+    out with team 0 - which is why the team tint and the "Team 1 / Team 2" label
+    never appeared. The overlay only needs to tell teams apart, so each distinct id
+    gets 1, 2, 3... and keeps it for the rest of the match.
+    """
+    global _team_numbers
+    if reset:
+        _team_numbers = {}
+        return 0
+    if raw is None:
+        return 0
+    text = str(raw).strip()
+    if text in ('', 'None', '0', '-1'):
+        return 0
+    number = _team_numbers.get(text)
+    if number is None:
+        number = len(_team_numbers) + 1
+        _team_numbers[text] = number
+    return number
 
 
 def _team_id(e):
@@ -4904,6 +4936,15 @@ def _serialize_frame_data(cfg, cam, in_match, origin, lpos, items):
                      1 if in_match else 0, 1 if origin is not None else 0, lhid)
     off = STATE_HEAD_SIZE
     n = 0
+    if not in_match:
+        _team_number(None, reset=True)
+    else:
+        try:
+            # Seeded before any target, so the numbering always starts at the team
+            # the player is on: Team 1 is yours, Team 2 is theirs.
+            _team_number(_local_team_raw)
+        except Exception:
+            pass
     if in_match and items:
         do_vis = _flag(cfg, F_RENDER_OCCLUSION) or _flag(cfg, F_TRACK_OCCLUSION)
         vis_budget = 64
@@ -4929,7 +4970,7 @@ def _serialize_frame_data(cfg, cam, in_match, origin, lpos, items):
                         vis = 1 if stale else 0
             eid_i = _id_u64(eid)
             try:
-                team_i = int(eteam or 0)
+                team_i = _team_number(eteam)
             except Exception:
                 team_i = 0
             try:

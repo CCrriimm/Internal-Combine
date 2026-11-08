@@ -1772,15 +1772,21 @@ static std::string EnemyHeroLabel(uint32_t hero_id) {
 // Built once per frame: TeamTint is called per target, and a fresh hash set per
 // call was a heap allocation inside the present hook.
 struct ReservedColours {
-    uint32_t values[3];
+    uint32_t values[4];
     bool count(uint32_t colour) const {
-        return values[0] == colour || values[1] == colour || values[2] == colour;
+        for (uint32_t v : values)
+            if (v == colour) return true;
+        return false;
     }
 };
 
+// Colours a generated team tint must never land on: the two box colours are how
+// the user reads "visible" / "not visible", and the teammate and bot colours are
+// how they read "not a target". A tint that collided with any of them would make
+// the ESP lie.
 static ReservedColours BuildReservedColours() {
-    return {{g_cfg.col_box & 0x00FFFFFFu, g_cfg.col_team & 0x00FFFFFFu,
-             g_cfg.col_monster & 0x00FFFFFFu}};
+    return {{g_cfg.col_box & 0x00FFFFFFu, g_cfg.col_box_hidden & 0x00FFFFFFu,
+             g_cfg.col_team & 0x00FFFFFFu, g_cfg.col_monster & 0x00FFFFFFu}};
 }
 
 static ImU32 TeamTint(int team, const ReservedColours& reserved) {
@@ -2603,14 +2609,25 @@ static void DrawESP() {
             scol = g_cfg.col_monster;
         }
 
-        // Per-team tints (Comet port). Knocked, teammate and monster colours
-        // keep priority, and a hidden-by-visibility entity keeps the hidden
-        // colour, so the tint only ever presents a living, visible enemy.
-        const bool team_tint = team_colors_on && !is_knocked && !e.is_team &&
-                               !e.is_monster && !hidden && e.team > 0;
+        // Per-team colour, generated once and held for the match. Knocked,
+        // teammate and monster colours keep priority.
+        //
+        //   * visibility check on  - the box keeps the visible / hidden colour and
+        //     the tint goes on the skeleton, the snapline and the team label. The
+        //     whole point of the check is that the colour tells you whether the
+        //     target can see you, so a tint must never overwrite it.
+        //   * visibility check off - the box and the line both show the team.
+        //
+        // The tint is picked from colours that exclude both box colours, so it can
+        // never be confused with "visible" or "hidden".
+        const ImU32 tint = (team_colors_on && !is_knocked && !e.is_team && !e.is_monster &&
+                            e.team > 0)
+                               ? TeamTint(e.team, reserved_cols)
+                               : 0u;
+        const bool team_tint = tint != 0;
         if (team_tint) {
-            col = TeamTint(e.team, reserved_cols);
-            scol = col;
+            scol = tint;
+            if (!esp_show_visible) col = tint;
         }
 
         float th = g_cfg.box_thickness;
@@ -2665,7 +2682,7 @@ static void DrawESP() {
             // Snapline alpha is its own (usually softer) setting.
             const ImU32 team_line_alpha = g_cfg.col_line & 0xFF000000u;
             const ImU32 line_col = team_tint
-                ? (TeamTint(e.team, reserved_cols) & 0x00FFFFFFu) | team_line_alpha
+                ? (tint & 0x00FFFFFFu) | team_line_alpha
                 : g_cfg.col_line;
             front->AddLine(pa,pb,IM_COL32(0,0,0,200),3.0f);
             front->AddLine(pa,pb,line_col,1.5f);
@@ -2763,12 +2780,15 @@ static void DrawESP() {
         if (is_knocked) {
             y -= chip(cx, y, "[KNOCKED]", IM_COL32(255, 175, 45, 255));
         }
-        if (team_label_on && !e.is_team && !e.is_monster) {
+        if (team_label_on && !e.is_monster && e.team > 0) {
             const int number = g_team_labels.NumberFor(e.team);
             if (number > 0) {
                 char tbuf[24];
                 snprintf(tbuf, sizeof(tbuf), "Team %d", number);
-                y -= chip(cx, y, tbuf, team_tint ? col : g_cfg.col_team);
+                // Same colour as the team's box/line, so the label and the target
+                // are obviously the same team. Falls back to the teammate colour
+                // when tints are off.
+                y -= chip(cx, y, tbuf, team_tint ? tint : g_cfg.col_team);
             }
         }
         // The header above the box carries at most the knock state, the team and
@@ -2953,19 +2973,12 @@ static void DrawESPTab() {
     FlagCheck("Armor bar",F_ESP_ARMOR);
     FlagCheck("Head marker",F_ESP_HEADDOT);
     FlagCheck("Enemy counter",F_ESP_COUNT);
-    EndCard();
-    ImGui::Dummy(ImVec2(0,12));
-    BeginCard("visuals_extras",ImVec2(0,0));
-    Section("ESP extras");
     bool hero = HasOpt2(OPT2_ESP_HERO);
     if (CometUi::Toggle("Enemy hero name",&hero,ImGui::GetContentRegionAvail().x)) SetOpt2(OPT2_ESP_HERO,hero);
     bool team_label = HasOpt2(OPT2_TEAM_LABEL);
     if (CometUi::Toggle("Team label",&team_label,ImGui::GetContentRegionAvail().x)) SetOpt2(OPT2_TEAM_LABEL,team_label);
     bool team_colors = HasOpt2(OPT2_TEAM_COLORS);
     if (CometUi::Toggle("Team box + line colors",&team_colors,ImGui::GetContentRegionAvail().x)) SetOpt2(OPT2_TEAM_COLORS,team_colors);
-    ImGui::TextDisabled("Team colours are assigned per team, automatically.");
-    ImGui::TextDisabled("Armor bar colour follows max armor: 50 / 75 / 100 / 125.");
-    ImGui::TextDisabled("Armour colour is automatic; there is no colour picker.");
     EndCard();
     ImGui::TableNextColumn();
     BeginCard("visuals_filters",ImVec2(0,0));
