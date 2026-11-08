@@ -19,6 +19,9 @@ class RuntimeTickTests(unittest.TestCase):
             '_read_cfg': lambda: [123], 'IDX_MAGIC': 0, 'CFG_MAGIC': 123,
             '_last_hooks': 100.0, '_last_scrub': 100.0, '_last_catalog_check': 100.0,
             '_fire_release_at': 0.0, '_perf_t': 0.0, '_perf_last': 0.0,
+            # Per-tick cost window (see the [sys:tick] line).
+            '_perf_tick_window': 0.0, '_perf_tick_count': 0, '_perf_tick_sum': 0.0,
+            '_perf_tick_max': 0.0, '_perf_tick_dt': 0.0,
             '_flag': lambda *args: False,
             '_sys_log': logs.append, '_get_cam': lambda: None,
             '_local': lambda: (None, None, None, None),

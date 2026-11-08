@@ -345,6 +345,15 @@ _track_eid_t = 0.0
 _track_hold_log_t = 0.0
 _perf_t = 0.0
 _perf_last = 0.0
+# Per-tick cost, averaged. The [sys:perf] line above only fires for a tick over
+# 60 ms, which says nothing about the tick that runs sixty times a second on the
+# game thread - and that one is the only place the runtime could be costing the
+# user frames. Summed every tick (two float adds) and logged every 10 s.
+_perf_tick_window = 0.0
+_perf_tick_count = 0
+_perf_tick_sum = 0.0
+_perf_tick_max = 0.0
+_perf_tick_dt = 0.0
 _state_file_t = 0.0
 _g_log_t = 0.0
 _g_slow = 0.0
@@ -5085,6 +5094,7 @@ def _on_story_tick(dt):
     global _last_state, _fire_release_at, _last_catalog_check, _track_busy
     global _last_gather, _gather_cache, _last_hooks, _last_scrub, _diag_t
     global _perf_t, _perf_last
+    global _perf_tick_window, _perf_tick_count, _perf_tick_sum, _perf_tick_max, _perf_tick_dt
     if int(getattr(builtins, '_m_generation', 0) or 0) != _my_gen:
         return
     try:
@@ -5186,6 +5196,26 @@ def _on_story_tick(dt):
             _write(STATE_PATH, buf)
         t1 = time.time()
         total = t1 - t0
+        # Rolling per-tick cost. `frame_ms` is how often the engine calls us, so
+        # `avg_ms / frame_ms` is the share of the frame the runtime takes - the
+        # number that decides whether a low frame rate can be ours at all.
+        _perf_tick_count += 1
+        _perf_tick_sum += total
+        _perf_tick_dt += dt
+        if total > _perf_tick_max:
+            _perf_tick_max = total
+        if _perf_tick_window and t0 - _perf_tick_window >= 10.0:
+            ticks = _perf_tick_count or 1
+            _sys_log('[sys:tick] n=%d avg_ms=%.3f max_ms=%.3f frame_ms=%.2f in_match=%d'
+                     % (ticks, 1000.0 * _perf_tick_sum / ticks, 1000.0 * _perf_tick_max,
+                        1000.0 * _perf_tick_dt / ticks, 1 if in_match else 0), force=True)
+            _perf_tick_window = t0
+            _perf_tick_count = 0
+            _perf_tick_sum = 0.0
+            _perf_tick_max = 0.0
+            _perf_tick_dt = 0.0
+        elif not _perf_tick_window:
+            _perf_tick_window = t0
         if (total > 0.06 or t_track - t_gather > 0.04) and t0 - _perf_last >= 1.0:
             _perf_last = t0
             _sys_log('[sys:perf] dt=%.3f total=%.3f apply=%.4f unlock=%.4f gather=%.4f track=%.4f state=%.4f sync=%.4f local=%.4f serialize=%.4f write=%.4f items=%d' % (

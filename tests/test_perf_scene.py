@@ -11,6 +11,7 @@ import unittest
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 OVERLAY = (ROOT / 'src' / 'overlay.cpp').read_text(encoding='utf-8')
+RUNTIME = (ROOT / 'pyexec' / 'bs_runtime.py').read_text(encoding='utf-8-sig')
 
 
 class PerfLineTests(unittest.TestCase):
@@ -79,6 +80,43 @@ class DisplayModeTests(unittest.TestCase):
         body = OVERLAY[OVERLAY.index('static void LogDisplayMode(bool force) {'):]
         body = body[:body.index('static void NotePresentPerf')]
         self.assertIn('if (!force && chain_hz == last_chain', body)
+
+
+class RuntimeTickCostTests(unittest.TestCase):
+    """The runtime's own cost per frame, which used to be invisible.
+
+    `[sys:perf]` only fires for a tick over 60 ms, so the tick that runs on the
+    game thread every frame - the only place the runtime could cost frames - had
+    never been measured. These keep the average in the log.
+    """
+
+    def tick_body(self):
+        start = RUNTIME.index('def _on_story_tick(dt):')
+        return RUNTIME[start:RUNTIME.index('_on_story_tick.__name__', start)]
+
+    def test_every_tick_is_counted(self):
+        body = self.tick_body()
+        self.assertIn('_perf_tick_count += 1', body)
+        self.assertIn('_perf_tick_sum += total', body)
+
+    def test_the_average_is_logged_periodically(self):
+        body = self.tick_body()
+        self.assertIn("[sys:tick] n=%d avg_ms=%.3f max_ms=%.3f frame_ms=%.2f in_match=%d", body)
+        self.assertIn('>= 10.0', body)
+
+    def test_the_line_cannot_be_swallowed_by_the_log_throttle(self):
+        body = self.tick_body()
+        line = body[body.index("[sys:tick]"):][:400]
+        self.assertIn('force=True', line)
+
+    def test_the_window_resets(self):
+        body = self.tick_body()
+        self.assertIn('_perf_tick_window = t0', body)
+        self.assertIn('_perf_tick_count = 0', body)
+
+    def test_the_accumulators_are_module_level(self):
+        self.assertIn('\n_perf_tick_count = 0', RUNTIME)
+        self.assertIn('global _perf_tick_window', RUNTIME)
 
 
 if __name__ == '__main__':
