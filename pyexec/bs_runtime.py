@@ -702,6 +702,7 @@ def _init_ctypes_shm():
 STATE_FILE_SIZE = 65536
 
 _state_fh = None
+_state_map = None
 
 
 def _write_state_inplace(buf):
@@ -717,8 +718,45 @@ def _write_state_inplace(buf):
     mapping stays valid and a frame costs it a memcpy instead of three syscalls.
     Readers detect a half-written snapshot with the sequence number, so a torn
     read costs one frame of data, never a bad frame.
+
+    The runtime maps it too. Padding every snapshot out to 64 KB and flushing it
+    was a 64 KB copy plus a write syscall on the game thread every tick, and
+    `rest=` in [sys:tick] was 0.23-0.35 ms - a fifth of the tick. The padding was
+    never needed: the overlay reads the entity count from the header and ignores
+    everything past it, so only the bytes actually packed are copied now.
     """
-    global _state_fh
+    global _state_fh, _state_map
+    if _state_map is not None:
+        try:
+            _state_map[:len(buf)] = buf
+            return True
+        except Exception:
+            try:
+                _state_map.close()
+            except Exception:
+                pass
+            _state_map = None
+    try:
+        if _state_map is None:
+            exists = os.path.exists(STATE_PATH)
+            fh = open(STATE_PATH, 'r+b' if exists else 'w+b')
+            try:
+                if os.fstat(fh.fileno()).st_size < STATE_FILE_SIZE:
+                    fh.truncate(STATE_FILE_SIZE)
+                import mmap as mmap_mod
+                _state_map = mmap_mod.mmap(fh.fileno(), STATE_FILE_SIZE)
+                _state_map[:len(buf)] = buf
+                fh.close()
+                return True
+            except Exception:
+                try:
+                    fh.close()
+                except Exception:
+                    pass
+                _state_map = None
+    except Exception:
+        pass
+    # Fallback: the old handle + padding path, for a Python where mmap is missing.
     try:
         if _state_fh is None:
             exists = os.path.exists(STATE_PATH)
@@ -2229,16 +2267,30 @@ def _combat_type(cls):
 
 
 def _is_combat(e):
-    if _is_skill_object(e) or _is_vehicle(e):
+    """Is this a target? Six reads for the common answer instead of twenty-two.
+
+    This used to open with `_is_skill_object` (thirteen marker reads) and
+    `_is_vehicle` (three more), so every prop in the space - billboards, water
+    snares, magic fields, ~75 of the ~90 entities on a big map - paid sixteen
+    engine attribute reads before being rejected. At ~20 us per entity in a match
+    against 2.4 us in the lobby (the objects there are cheap), that was 1.5-1.9 ms
+    of every gather, which is most of the tick.
+
+    The answer is unchanged: `not (skill or vehicle) and avatar` is the same
+    boolean either way, so the exclusions simply moved behind the avatar test.
+    """
+    avatar = any(_entity_flag(e, name) for name in ('IsPlayerCombatAvatar',
+               'IsRobotCombatAvatar', 'IsRobotCombatAvatarZombie', 'IsDummyCombatAvatar',
+               'IsATMGuardAI'))
+    if not avatar:
+        # Remote avatars lack the local-player marker in SquadFight and other
+        # modes. The MRO walk is type-derived and cannot change for a class, so it
+        # is cached by type object; the per-instance flag is read fresh, because a
+        # live entity can gain a skill/vehicle marker at any time.
+        avatar = _entity_flag(e, 'IsCombatAvatar') and _combat_type(type(e))
+    if not avatar:
         return False
-    if any(_entity_flag(e, name) for name in ('IsPlayerCombatAvatar',
-           'IsRobotCombatAvatar', 'IsRobotCombatAvatarZombie', 'IsDummyCombatAvatar', 'IsATMGuardAI')):
-        return True
-    # Remote avatars lack the local-player marker in SquadFight and other modes.
-    # The MRO walk is type-derived and cannot change for a class, so it is cached
-    # by type object; the per-instance flag is still read fresh, because a live
-    # entity can gain a skill/vehicle marker at any time.
-    return _entity_flag(e, 'IsCombatAvatar') and _combat_type(type(e))
+    return not (_is_skill_object(e) or _is_vehicle(e))
 
 
 def _ai_kind(e, tn=None):
@@ -2676,6 +2728,22 @@ def _check_faction_relation(e, local_av, local_team, team, is_bot, is_monster):
     return bool(is_bot or is_monster)
 
 
+# Class names that can hold a target. Used twice: to pick which of the space's
+# categories are worth walking, and to skip the general pool's props before any
+# attribute is read. The category keys this game exposes are class names
+# (`CombatAvatar`, `CombatAvatarMoba`, `PosterBoard`, `WaterSnare`, ...), so one
+# list can serve both without the two drifting apart.
+COMBAT_CLASS_WORDS = ('avatar', 'robot', 'monster', 'combat', 'dummy', 'guard', 'npc',
+                      'enemy', 'unit', 'aircraft', 'parachute', 'glider', 'skydive',
+                      'vehicle', 'player', 'human', 'soldier', 'hero', 'character')
+
+def _combat_class_name(tn):
+    for word in COMBAT_CLASS_WORDS:
+        if word in tn:
+            return True
+    return False
+
+
 def _collect_space_entities(space):
     """All entities in the space, cached for 30 ms.
 
@@ -2727,10 +2795,7 @@ def _collect_space_entities(space):
         except Exception:
             keys = []
         for key in keys:
-            low = str(key).lower()
-            if any(w in low for w in ('avatar', 'robot', 'monster', 'combat', 'dummy',
-                                      'guard', 'npc', 'enemy', 'unit', 'aircraft',
-                                      'parachute', 'glider', 'skydive', 'vehicle', 'player')):
+            if _combat_class_name(str(key).lower()):
                 add_src(cats.get(key))
 
     # 3. Space entities general pool
@@ -2903,9 +2968,11 @@ def _query_visible_entities(max_dist, want_gun=True, want_bone=True):
                 if rough > max_dist + 10.0:
                     continue
             tn = type(e).__name__.lower()
-            is_bot, is_monster, is_ai = _ai_kind(e, tn)
+            # The cheap gate before the four-flag classifier; the result is the
+            # same because both are pure predicates and neither mutates.
             if not _is_combat(e):
                 continue
+            is_bot, is_monster, is_ai = _ai_kind(e, tn)
             if not _alive(e):
                 continue
             is_dying = _is_dying(e)

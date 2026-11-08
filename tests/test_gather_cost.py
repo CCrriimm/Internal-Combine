@@ -134,6 +134,29 @@ class GatherCostTests(unittest.TestCase):
         self.assertIn('_combat_type_cache[cls] = hit', source)
         self.assertIn("_entity_flag(e, 'IsCombatAvatar') and _combat_type(type(e))", source)
 
+    def test_a_prop_is_rejected_without_the_marker_scan(self):
+        """22 engine reads per entity used to be paid by every prop in the map.
+
+        Measured in the user's big-map match: ~18-21 us per entity inside the
+        gather against 2.4 us for the same walk in the lobby, and the difference
+        was `_is_skill_object` (13 marker reads) + `_is_vehicle` (3) running before
+        anything asked whether the entity was even an avatar.
+        """
+        source = RUNTIME.read_text(encoding='utf-8-sig')
+        body = source[source.index('def _is_combat(e):'):]
+        body = body[:body.index('def _ai_kind')]
+        body = body[body.index('avatar = any('):]   # past the docstring
+        self.assertLess(body.index('IsPlayerCombatAvatar'), body.index('_is_skill_object'),
+                        'the cheap avatar test must run before the marker scan')
+        self.assertLess(body.index('if not avatar:'), body.index('_is_skill_object'))
+        self.assertIn('return not (_is_skill_object(e) or _is_vehicle(e))', body)
+
+    def test_the_cheap_gate_runs_before_the_flag_classifier(self):
+        source = RUNTIME.read_text(encoding='utf-8-sig')
+        body = source[source.index('def _query_visible_entities'):]
+        body = body[:body.index('def _owner_type_name')]
+        self.assertLess(body.index('if not _is_combat(e):'), body.index('_ai_kind(e, tn)'))
+
     def test_skeleton_still_comes_back_in_packet_shape(self):
         ns, space, calls, _ = build(None)
         out = gather(ns, space, [target(2)], want_bone=True)
